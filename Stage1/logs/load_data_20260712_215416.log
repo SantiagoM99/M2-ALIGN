@@ -1,0 +1,12 @@
+2026-07-12 21:54:16 | INFO | Loading NLLB config=ben_Beng-eng_Latn split=train target=100000 samples
+2026-07-12 21:54:30 | INFO | Bengali progress: 10000 / 100000
+2026-07-12 21:54:31 | INFO | Bengali progress: 20000 / 100000
+2026-07-12 21:54:38 | INFO | Bengali progress: 30000 / 100000
+2026-07-12 21:54:39 | INFO | Bengali progress: 40000 / 100000
+2026-07-12 21:54:45 | INFO | Bengali progress: 50000 / 100000
+2026-07-12 21:54:46 | INFO | Bengali progress: 60000 / 100000
+2026-07-12 21:54:48 | INFO | Bengali progress: 70000 / 100000
+2026-07-12 21:54:54 | INFO | Bengali progress: 80000 / 100000
+2026-07-12 21:54:55 | INFO | Bengali progress: 90000 / 100000
+2026-07-12 21:54:58 | INFO | Bengali progress: 100000 / 100000
+2026-07-12 21:54:58 | INFO | Bengali: wrote 100000 pairs to Stage1/data/Bengali_to_English.jsonl

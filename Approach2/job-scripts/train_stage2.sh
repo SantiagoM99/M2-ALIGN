@@ -35,7 +35,7 @@ module --force purge
 module load StdEnv/2023
 module load python/3.11.5
 module load cudacore/.12.2.2
-module load arrow/18.1.0
+module load arrow/21.0.0
 
 echo "=== Activate virtual environment ==="
 source "$SCRATCH/venvs/m2-align/bin/activate"
