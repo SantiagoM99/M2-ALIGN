@@ -42,6 +42,26 @@ from common import (
 from model import DualEncoderMerger
 
 
+# Fallback for eval files that carry an ISO code in `source_language`
+# instead of an `nllb_lang_tag` field (e.g. the shared xGQA testdev JSONL).
+ISO_TO_NLLB = {
+    "bn": "ben_Beng", "sw": "swh_Latn", "yo": "yor_Latn", "wo": "wol_Latn",
+    "fr": "fra_Latn", "de": "deu_Latn", "en": "eng_Latn", "zh": "zho_Hans",
+    "ko": "kor_Hang", "ru": "rus_Cyrl", "pt": "por_Latn", "id": "ind_Latn",
+}
+
+
+def row_nllb_tag(row: dict) -> str:
+    """Return the row's NLLB tag, deriving it from `source_language` if absent."""
+    tag = row.get("nllb_lang_tag")
+    if tag:
+        return tag
+    lang = row.get("source_language", "")
+    if lang in ISO_TO_NLLB:
+        return ISO_TO_NLLB[lang]
+    raise KeyError(f"Row has neither nllb_lang_tag nor a known source_language: {lang!r}")
+
+
 def normalize_answer(text: str) -> str:
     """Lowercase, strip punctuation/articles/extra whitespace (VQA-style)."""
     text = text.lower().strip()
@@ -151,7 +171,7 @@ def main() -> None:
 
             pixel_values = image_processor(images=[image], return_tensors="pt")["pixel_values"].to(device)
             input_ids_mt, mask_mt = mt_input_features(
-                [row["query"]], [row["nllb_lang_tag"]], tokenizer_mt, args.max_mt_seq_len, device
+                [row["query"]], [row_nllb_tag(row)], tokenizer_mt, args.max_mt_seq_len, device
             )
             prompt = format_chat_prompt(
                 tokenizer_llm, row["query"], use_chat_template=not args.no_chat_template

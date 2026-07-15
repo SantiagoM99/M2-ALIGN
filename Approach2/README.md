@@ -50,9 +50,9 @@ sbatch Approach2/job-scripts/evaluate_vqa.sh
 Models (pre-download to `$SCRATCH/huggingface` on a login node, compute
 nodes are offline):
 
-- LLM: `google/gemma-2-9b-it` (hidden 3584 — same as Qwen3-VL-8B, so
-  Approach 1 mapping checkpoints are dimensionally compatible for
-  warm-start experiments, `--init-checkpoint`)
+- LLM: `google/gemma-2-9b-it` (hidden 3584; note Qwen3-VL-8B is 4096, so
+  Approach 1 mapping checkpoints are NOT loadable here — they serve only
+  as the Approach 1 baseline)
 - Vision: `google/siglip2-so400m-patch14-384` (729 visual tokens; needs
   `transformers >= 4.49`)
 - MT: `facebook/nllb-200-distilled-600M`
