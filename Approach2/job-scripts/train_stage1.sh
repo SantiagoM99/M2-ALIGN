@@ -20,7 +20,7 @@ PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
 
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
-MT_PATH="${MT_PATH:-$SCRATCH/huggingface/nllb-200-distilled-600M-full}"
+MT_PATH="${MT_PATH:-facebook/nllb-200-distilled-600M}"
 DATA_DIR="$PROJECT_ROOT/Stage1/data"
 OUTPUT_DIR="$A2/outputs/stage1"
 

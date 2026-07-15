@@ -21,7 +21,7 @@ A2="$PROJECT_ROOT/Approach2"
 
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
 VIS_PATH="${VIS_PATH:-google/siglip2-so400m-patch14-384}"
-MT_PATH="${MT_PATH:-$SCRATCH/huggingface/nllb-200-distilled-600M-full}"
+MT_PATH="${MT_PATH:-facebook/nllb-200-distilled-600M}"
 DATA_PATH="$PROJECT_ROOT/Stage3/data/stage3b/bengali.jsonl"
 IMAGES_DIR="$PROJECT_ROOT/Stage3/data/gqa/images"
 OUTPUT_DIR="$A2/outputs/stage3"
