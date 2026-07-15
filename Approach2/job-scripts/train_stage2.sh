@@ -88,5 +88,18 @@ python -u train_stage2_vision.py \
   --local-files-only \
   "${RESUME_ARGS[@]}"
 
+echo "=== Harvest results into git ==="
+RESULTS_DIR="$A2/results"
+mkdir -p "$RESULTS_DIR"
+APP_LOG=$(ls -t "$A2"/logs/a2_stage2_vision_*.log 2>/dev/null | head -1)
+if [ -n "$APP_LOG" ]; then
+  grep -E "Epoch [0-9]+ \| val_loss" "$APP_LOG" \
+    > "$RESULTS_DIR/stage2_curve_${SLURM_JOB_ID:-manual}.txt" || true
+fi
+cd "$PROJECT_ROOT"
+git add Approach2/results 2>/dev/null || true
+git commit -m "results: stage2 curve (job ${SLURM_JOB_ID:-manual})" Approach2/results \
+  || echo "No new results to commit."
+
 echo "=== Done ==="
 date

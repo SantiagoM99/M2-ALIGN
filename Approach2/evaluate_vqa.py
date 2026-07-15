@@ -211,10 +211,16 @@ def main() -> None:
         "DONE | scored=%d skipped=%d correct=%d accuracy=%.4f → %s",
         n_scored, n_skipped, n_correct, accuracy, args.output_path,
     )
-    print(json.dumps({
+    summary = {
         "scored": n_scored, "skipped": n_skipped,
         "correct": n_correct, "accuracy": accuracy,
-    }))
+        "data_path": args.data_path, "ckpt": args.ckpt,
+        "llm_path": args.llm_path, "vis_path": args.vis_path, "mt_path": args.mt_path,
+        "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
+    }
+    with open(args.output_path + ".summary.json", "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+    print(json.dumps(summary))
 
 
 if __name__ == "__main__":

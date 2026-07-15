@@ -63,5 +63,15 @@ python -u evaluate_vqa.py \
   --llm-path    "$LLM_PATH" \
   --local-files-only
 
+echo "=== Harvest results into git ==="
+RESULTS_DIR="$A2/results"
+mkdir -p "$RESULTS_DIR"
+cp "$OUTPUT_PATH" "$RESULTS_DIR/" 2>/dev/null || true
+cp "$OUTPUT_PATH.summary.json" "$RESULTS_DIR/" 2>/dev/null || true
+cd "$PROJECT_ROOT"
+git add Approach2/results 2>/dev/null || true
+git commit -m "results: xGQA $EVAL_LANG eval (job ${SLURM_JOB_ID:-manual})" Approach2/results \
+  || echo "No new results to commit."
+
 echo "=== Done ==="
 date
