@@ -116,6 +116,9 @@ def main() -> None:
     parser.add_argument("--llm-path", type=str, default="google/gemma-2-9b-it")
     parser.add_argument("--local-files-only", action="store_true")
     parser.add_argument("--no-chat-template", action="store_true")
+    parser.add_argument("--blind", action="store_true",
+                        help="Replace every image with a neutral gray canvas — measures the "
+                             "language-prior baseline (how much accuracy needs no vision at all).")
     parser.add_argument("--max-vis-tokens", type=int, default=0)
     parser.add_argument("--max-mt-seq-len", type=int, default=256)
     parser.add_argument("--max-seq-len", type=int, default=512)
@@ -164,7 +167,10 @@ def main() -> None:
 
     with open(args.output_path, "w", encoding="utf-8") as fout:
         for idx, row in enumerate(tqdm(rows, desc="eval")):
-            image = resolve_image(row, args.images_dir, args.image_cache_dir)
+            if args.blind:
+                image = Image.new("RGB", (384, 384), (128, 128, 128))
+            else:
+                image = resolve_image(row, args.images_dir, args.image_cache_dir)
             if image is None:
                 n_skipped += 1
                 continue
@@ -216,6 +222,7 @@ def main() -> None:
         "correct": n_correct, "accuracy": accuracy,
         "data_path": args.data_path, "ckpt": args.ckpt,
         "llm_path": args.llm_path, "vis_path": args.vis_path, "mt_path": args.mt_path,
+        "blind": args.blind,
         "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
     }
     with open(args.output_path + ".summary.json", "w", encoding="utf-8") as f:
