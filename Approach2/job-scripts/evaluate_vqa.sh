@@ -12,6 +12,7 @@
 
 # Approach 2 evaluation on xGQA (Bengali by default).
 # Submit from the repo root: sbatch Approach2/job-scripts/evaluate_vqa.sh
+# Blind (language-prior) baseline: BLIND=1 sbatch --export=ALL Approach2/job-scripts/evaluate_vqa.sh
 
 set -euo pipefail
 
@@ -26,6 +27,12 @@ DATA_PATH="$PROJECT_ROOT/Stage3/data/stage3b_eval/xgqa/$EVAL_LANG.jsonl"
 IMAGES_DIR="$PROJECT_ROOT/Stage3/data/gqa/images"
 CKPT="$A2/outputs/stage3/mapping/pytorch_model.bin"
 OUTPUT_PATH="$A2/outputs/stage3/eval_xgqa_${EVAL_LANG}.jsonl"
+
+BLIND_ARGS=()
+if [ "${BLIND:-0}" = "1" ]; then
+  BLIND_ARGS=(--blind)
+  OUTPUT_PATH="$A2/outputs/stage3/eval_xgqa_${EVAL_LANG}_BLIND.jsonl"
+fi
 
 if [ -d "$MT_PATH" ]; then
   for d in "$MT_PATH"/*; do
@@ -61,7 +68,8 @@ python -u evaluate_vqa.py \
   --mt-path     "$MT_PATH" \
   --vis-path    "$VIS_PATH" \
   --llm-path    "$LLM_PATH" \
-  --local-files-only
+  --local-files-only \
+  "${BLIND_ARGS[@]}"
 
 echo "=== Harvest results into git ==="
 RESULTS_DIR="$A2/results"
