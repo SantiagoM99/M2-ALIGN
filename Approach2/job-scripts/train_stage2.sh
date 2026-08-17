@@ -21,8 +21,8 @@ A2="$PROJECT_ROOT/Approach2"
 
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
 VIS_PATH="${VIS_PATH:-google/siglip2-so400m-patch14-384}"
-DATA_PATH="$PROJECT_ROOT/Stage2/data/wit_pairs.jsonl"
-IMAGE_CACHE_DIR="$PROJECT_ROOT/Stage2/data/image_cache"
+DATA_PATH="${DATA_PATH:-$PROJECT_ROOT/Stage2/data/wit_pairs.jsonl}"
+IMAGE_CACHE_DIR="${IMAGE_CACHE_DIR:-$PROJECT_ROOT/Stage2/data/image_cache}"
 OUTPUT_DIR="$A2/outputs/stage2"
 
 echo "=== Job info ==="

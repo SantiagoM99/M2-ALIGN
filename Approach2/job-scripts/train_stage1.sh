@@ -21,7 +21,7 @@ A2="$PROJECT_ROOT/Approach2"
 
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
 MT_PATH="${MT_PATH:-facebook/nllb-200-distilled-600M}"
-DATA_DIR="$PROJECT_ROOT/Stage1/data"
+DATA_DIR="${DATA_DIR:-$PROJECT_ROOT/Stage1/data}"
 OUTPUT_DIR="$A2/outputs/stage1"
 
 if [ -d "$MT_PATH" ]; then
