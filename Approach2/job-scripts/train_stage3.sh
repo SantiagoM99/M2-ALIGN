@@ -24,9 +24,9 @@ VIS_PATH="${VIS_PATH:-google/siglip2-so400m-patch14-384}"
 MT_PATH="${MT_PATH:-facebook/nllb-200-distilled-600M}"
 DATA_PATH="${DATA_PATH:-$PROJECT_ROOT/Stage3/data/stage3b/bengali.jsonl}"
 IMAGES_DIR="${IMAGES_DIR:-$PROJECT_ROOT/Stage3/data/gqa/images}"
-OUTPUT_DIR="$A2/outputs/stage3"
-STAGE1_CKPT="$A2/outputs/stage1/mapping/pytorch_model.bin"
-STAGE2_CKPT="$A2/outputs/stage2/mapping/pytorch_model.bin"
+OUTPUT_DIR="${OUTPUT_DIR:-$A2/outputs/stage3}"
+STAGE1_CKPT="${STAGE1_CKPT:-$A2/outputs/stage1/mapping/pytorch_model.bin}"
+STAGE2_CKPT="${STAGE2_CKPT:-$A2/outputs/stage2/mapping/pytorch_model.bin}"
 
 if [ -d "$MT_PATH" ]; then
   for d in "$MT_PATH"/*; do
@@ -97,7 +97,7 @@ python -u train_stage3_vqa.py \
   --use-wandb \
   --wandb-mode     offline \
   --wandb-project  m2-align \
-  --wandb-run-name "a2-stage3-vqa" \
+  --wandb-run-name "${RUN_NAME:-a2-stage3-vqa}" \
   --local-files-only \
   "${RESUME_ARGS[@]}"
 

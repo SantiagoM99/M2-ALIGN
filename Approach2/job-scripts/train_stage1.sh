@@ -22,7 +22,8 @@ A2="$PROJECT_ROOT/Approach2"
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
 MT_PATH="${MT_PATH:-facebook/nllb-200-distilled-600M}"
 DATA_DIR="${DATA_DIR:-$PROJECT_ROOT/Stage1/data}"
-OUTPUT_DIR="$A2/outputs/stage1"
+LANGUAGES="${LANGUAGES:-Bengali}"
+OUTPUT_DIR="${OUTPUT_DIR:-$A2/outputs/stage1}"
 
 if [ -d "$MT_PATH" ]; then
   for d in "$MT_PATH"/*; do
@@ -69,7 +70,7 @@ fi
 cd "$A2"
 python -u train_stage1_text.py \
   --data-dir   "$DATA_DIR" \
-  --languages  Bengali \
+  --languages  "$LANGUAGES" \
   --output-dir "$OUTPUT_DIR" \
   --mt-path    "$MT_PATH" \
   --llm-path   "$LLM_PATH" \
@@ -83,7 +84,7 @@ python -u train_stage1_text.py \
   --use-wandb \
   --wandb-mode     offline \
   --wandb-project  m2-align \
-  --wandb-run-name "a2-stage1-text" \
+  --wandb-run-name "${RUN_NAME:-a2-stage1-text-${LANGUAGES}}" \
   --local-files-only \
   "${RESUME_ARGS[@]}"
 

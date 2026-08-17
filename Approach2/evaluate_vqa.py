@@ -48,6 +48,7 @@ ISO_TO_NLLB = {
     "bn": "ben_Beng", "sw": "swh_Latn", "yo": "yor_Latn", "wo": "wol_Latn",
     "fr": "fra_Latn", "de": "deu_Latn", "en": "eng_Latn", "zh": "zho_Hans",
     "ko": "kor_Hang", "ru": "rus_Cyrl", "pt": "por_Latn", "id": "ind_Latn",
+    "ga": "gle_Latn", "jv": "jav_Latn", "mn": "khk_Cyrl", "si": "sin_Sinh",
 }
 
 

@@ -56,6 +56,17 @@ LANGS_MAP_NLLB = {
     "Wolof": "wol_Latn",
     "French": "fra_Latn",
     "Bengali": "ben_Beng",
+    "German": "deu_Latn",
+    "Russian": "rus_Cyrl",
+    "Mandarin": "zho_Hans",
+    "Chinese": "zho_Hans",
+    "Korean": "kor_Hang",
+    "Portuguese": "por_Latn",
+    "Indonesian": "ind_Latn",
+    "Irish": "gle_Latn",
+    "Javanese": "jav_Latn",
+    "Mongolian": "khk_Cyrl",
+    "Sinhala": "sin_Sinh",
 }
 
 

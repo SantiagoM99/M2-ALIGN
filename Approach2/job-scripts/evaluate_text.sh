@@ -25,9 +25,13 @@ A2="$PROJECT_ROOT/Approach2"
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
 MT_PATH="${MT_PATH:-facebook/nllb-200-distilled-600M}"
 EVAL_DIR="${EVAL_DIR:-$PROJECT_ROOT/evaluation}"
-STAGE1_CKPT="$A2/outputs/stage1/mapping/pytorch_model.bin"
-STAGE3_CKPT="$A2/outputs/stage3/mapping/pytorch_model.bin"
-OUT="$A2/outputs/text_eval"
+EVAL_LANG="${EVAL_LANG:-bn}"
+EVAL_NLLB_TAG="${EVAL_NLLB_TAG:-ben_Beng}"
+MGSM_PATH="${MGSM_PATH:-$EVAL_DIR/MGSM.jsonl}"
+MSVAMP_PATH="${MSVAMP_PATH:-$EVAL_DIR/MSVAMP.jsonl}"
+STAGE1_CKPT="${STAGE1_CKPT:-$A2/outputs/stage1/mapping/pytorch_model.bin}"
+STAGE3_CKPT="${STAGE3_CKPT:-$A2/outputs/stage3/mapping/pytorch_model.bin}"
+OUT="${OUT:-$A2/outputs/text_eval}"
 
 echo "=== Job info ==="
 date; hostname
@@ -48,7 +52,7 @@ export HF_DATASETS_CACHE="$HF_HOME/datasets"
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
-for f in "$EVAL_DIR/MGSM.jsonl" "$EVAL_DIR/MSVAMP.jsonl" "$STAGE1_CKPT" "$STAGE3_CKPT"; do
+for f in "$MGSM_PATH" "$MSVAMP_PATH" "$STAGE1_CKPT" "$STAGE3_CKPT"; do
   if [ ! -f "$f" ]; then
     echo "ERROR: required file not found: $f"
     exit 1
@@ -64,20 +68,21 @@ run_eval () {
   python -u evaluate_text.py \
     --data-path   "$data" \
     --benchmark   "$bench" \
-    --output-path "$OUT/eval_${bench}_bn_${tag}.jsonl" \
+    --output-path "$OUT/eval_${bench}_${EVAL_LANG}_${tag}.jsonl" \
     --mt-path     "$MT_PATH" \
     --llm-path    "$LLM_PATH" \
+    --nllb-tag    "$EVAL_NLLB_TAG" \
     --local-files-only \
     "$@"
 }
 
 # MGSM (250 q) first — fast signal; then MSVAMP (1000 q).
-run_eval mgsm   "$EVAL_DIR/MGSM.jsonl"   gemma  --no-mapping
-run_eval mgsm   "$EVAL_DIR/MGSM.jsonl"   stage1 --ckpt "$STAGE1_CKPT"
-run_eval mgsm   "$EVAL_DIR/MGSM.jsonl"   stage3 --ckpt "$STAGE3_CKPT"
-run_eval msvamp "$EVAL_DIR/MSVAMP.jsonl" gemma  --no-mapping
-run_eval msvamp "$EVAL_DIR/MSVAMP.jsonl" stage1 --ckpt "$STAGE1_CKPT"
-run_eval msvamp "$EVAL_DIR/MSVAMP.jsonl" stage3 --ckpt "$STAGE3_CKPT"
+run_eval mgsm   "$MGSM_PATH"   gemma  --no-mapping
+run_eval mgsm   "$MGSM_PATH"   stage1 --ckpt "$STAGE1_CKPT"
+run_eval mgsm   "$MGSM_PATH"   stage3 --ckpt "$STAGE3_CKPT"
+run_eval msvamp "$MSVAMP_PATH" gemma  --no-mapping
+run_eval msvamp "$MSVAMP_PATH" stage1 --ckpt "$STAGE1_CKPT"
+run_eval msvamp "$MSVAMP_PATH" stage3 --ckpt "$STAGE3_CKPT"
 
 echo "=== Summary table ==="
 for s in "$OUT"/*.summary.json; do

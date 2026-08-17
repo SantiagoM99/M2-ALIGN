@@ -23,7 +23,7 @@ LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
 VIS_PATH="${VIS_PATH:-google/siglip2-so400m-patch14-384}"
 DATA_PATH="${DATA_PATH:-$PROJECT_ROOT/Stage2/data/wit_pairs.jsonl}"
 IMAGE_CACHE_DIR="${IMAGE_CACHE_DIR:-$PROJECT_ROOT/Stage2/data/image_cache}"
-OUTPUT_DIR="$A2/outputs/stage2"
+OUTPUT_DIR="${OUTPUT_DIR:-$A2/outputs/stage2}"
 
 echo "=== Job info ==="
 date; hostname
@@ -84,7 +84,7 @@ python -u train_stage2_vision.py \
   --use-wandb \
   --wandb-mode     offline \
   --wandb-project  m2-align \
-  --wandb-run-name "a2-stage2-vision" \
+  --wandb-run-name "${RUN_NAME:-a2-stage2-vision}" \
   --local-files-only \
   "${RESUME_ARGS[@]}"
 

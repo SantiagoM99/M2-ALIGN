@@ -25,13 +25,14 @@ MT_PATH="${MT_PATH:-facebook/nllb-200-distilled-600M}"
 EVAL_LANG="${EVAL_LANG:-bn}"
 DATA_PATH="${DATA_PATH:-$PROJECT_ROOT/Stage3/data/stage3b_eval/xgqa/$EVAL_LANG.jsonl}"
 IMAGES_DIR="${IMAGES_DIR:-$PROJECT_ROOT/Stage3/data/gqa/images}"
-CKPT="$A2/outputs/stage3/mapping/pytorch_model.bin"
-OUTPUT_PATH="$A2/outputs/stage3/eval_xgqa_${EVAL_LANG}.jsonl"
+CKPT="${CKPT:-$A2/outputs/stage3/mapping/pytorch_model.bin}"
 
 BLIND_ARGS=()
 if [ "${BLIND:-0}" = "1" ]; then
   BLIND_ARGS=(--blind)
-  OUTPUT_PATH="$A2/outputs/stage3/eval_xgqa_${EVAL_LANG}_BLIND.jsonl"
+  OUTPUT_PATH="${OUTPUT_PATH:-$A2/outputs/stage3/eval_xgqa_${EVAL_LANG}_BLIND.jsonl}"
+else
+  OUTPUT_PATH="${OUTPUT_PATH:-$A2/outputs/stage3/eval_xgqa_${EVAL_LANG}.jsonl}"
 fi
 
 if [ -d "$MT_PATH" ]; then
