@@ -143,8 +143,10 @@ _VQA_SYSTEM = "You are a helpful assistant that answers questions about images."
 
 
 def build_open_ended_prompt(question: str) -> str:
-    """Task prompt for open-ended VQA — must match Stage3/evaluate_vqa.py."""
-    return f"Question: {question}\nAnswer with a single word or short phrase."
+    """Task prompt for open-ended VQA — must match Stage3/evaluate.py on the
+    `parallel` branch. "in English" pins the answer language so exact match
+    doesn't punish correct answers given in the question's language."""
+    return f"Question: {question}\nAnswer with a single word or short phrase, in English."
 
 
 def format_chat_prompt(tokenizer_llm, question: str, use_chat_template: bool) -> str:

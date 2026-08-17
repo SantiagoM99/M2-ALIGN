@@ -10,8 +10,13 @@
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_stage2_%j.log
 
-# Approach 2, Stage 2: SigLIP -> Gemma vision mapping on WIT captions.
-# Reuses Stage2's wit_pairs.jsonl and image cache (Stage2/load_image.py).
+# Approach 2, Stage 2: SigLIP -> Gemma vision mapping on English captions.
+# DATA_PATH / IMAGE_CACHE_DIR accept comma-separated lists, so WIT and CC3M
+# can be combined (cc3m_pairs.jsonl uses the shared cc3m/image_cache):
+#   DATA_PATH=$DT/Stage2/data/bn/cc3m_pairs.jsonl,$DT/Stage2/data/bn/wit_pairs.jsonl \
+#   IMAGE_CACHE_DIR=$DT/Stage2/data/cc3m/image_cache,$DT/Stage2/data/bn/image_cache \
+#   OUTPUT_DIR=$PWD/Approach2/outputs/stage2_cc3m \
+#     sbatch --export=ALL Approach2/job-scripts/train_stage2.sh
 # Submit from the repo root: sbatch Approach2/job-scripts/train_stage2.sh
 
 set -euo pipefail
@@ -54,11 +59,13 @@ if [ -f "$PROJECT_ROOT/.tokens" ]; then
   source "$PROJECT_ROOT/.tokens"
 fi
 
-if [ ! -f "$DATA_PATH" ]; then
-  echo "ERROR: Data file not found: $DATA_PATH"
-  echo "       Run: python Stage2/load_image.py --languages bn --n-per-language 100000 --output-dir Stage2/data"
-  exit 1
-fi
+IFS=',' read -ra _DATA_FILES <<< "$DATA_PATH"
+for f in "${_DATA_FILES[@]}"; do
+  if [ ! -f "$f" ]; then
+    echo "ERROR: Data file not found: $f"
+    exit 1
+  fi
+done
 
 RESUME_ARGS=()
 TRAINING_STATE="$OUTPUT_DIR/training_state.pt"

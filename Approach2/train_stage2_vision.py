@@ -55,15 +55,17 @@ except ImportError:
 
 
 class WITImageDataset(Dataset):
-    """WIT JSONL pairs with pre-downloaded images keyed by ``sha1(url).jpg``.
+    """Caption pairs with pre-downloaded images keyed by ``sha1(url).jpg``.
 
-    Same cache layout as Stage2/train.py, so both approaches share one
-    image cache.
+    Same cache layout as Stage2's loaders, so both approaches share the
+    image caches. Accepts several cache directories (searched in order)
+    because wit_pairs.jsonl uses a per-language cache while cc3m_pairs.jsonl
+    uses the shared ``Stage2/data/cc3m/image_cache``.
     """
 
-    def __init__(self, rows: list[dict], cache_dir: str) -> None:
+    def __init__(self, rows: list[dict], cache_dirs: list[str]) -> None:
         self.rows = rows
-        self.cache_dir = cache_dir
+        self.cache_dirs = cache_dirs
 
     def __len__(self) -> int:
         return len(self.rows)
@@ -76,14 +78,15 @@ class WITImageDataset(Dataset):
         return {"image": image, "target_caption": row["target_caption"]}
 
     def _load_image(self, url: str) -> Image.Image | None:
-        cache_key = hashlib.sha1(url.encode()).hexdigest()
-        cache_path = os.path.join(self.cache_dir, cache_key + ".jpg")
-        if not os.path.exists(cache_path):
-            return None
-        try:
-            return Image.open(cache_path).convert("RGB")
-        except Exception:
-            return None
+        cache_name = hashlib.sha1(url.encode()).hexdigest() + ".jpg"
+        for cache_dir in self.cache_dirs:
+            cache_path = os.path.join(cache_dir, cache_name)
+            if os.path.exists(cache_path):
+                try:
+                    return Image.open(cache_path).convert("RGB")
+                except Exception:
+                    return None
+        return None
 
 
 def collate_wit(batch: list[dict | None], image_processor) -> dict | None:
@@ -131,7 +134,13 @@ def main(args, logger) -> None:
     if device.type != "cuda":
         raise RuntimeError("train_stage2_vision.py requires CUDA.")
 
-    rows = load_jsonl(args.data_path)
+    data_paths = [p.strip() for p in args.data_path.split(",") if p.strip()]
+    rows: list[dict] = []
+    for path in data_paths:
+        file_rows = load_jsonl(path)
+        logger.info("Loaded %d rows from %s", len(file_rows), path)
+        rows.extend(file_rows)
+    cache_dirs = [d.strip() for d in args.image_cache_dir.split(",") if d.strip()]
     random.shuffle(rows)
     split = int(len(rows) * (1.0 - args.val_ratio))
     train_rows, val_rows = rows[:split], rows[split:]
@@ -162,12 +171,12 @@ def main(args, logger) -> None:
 
     _collate = partial(collate_wit, image_processor=image_processor)
     train_loader = DataLoader(
-        WITImageDataset(train_rows, args.image_cache_dir),
+        WITImageDataset(train_rows, cache_dirs),
         batch_size=args.train_batch_size, shuffle=True,
         collate_fn=_collate, num_workers=args.num_workers,
     )
     val_loader = DataLoader(
-        WITImageDataset(val_rows, args.image_cache_dir),
+        WITImageDataset(val_rows, cache_dirs),
         batch_size=args.eval_batch_size, shuffle=False,
         collate_fn=_collate, num_workers=args.num_workers,
     )
@@ -257,9 +266,11 @@ def main(args, logger) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Approach 2 Stage 2: SigLIP → Gemma vision mapping.")
     parser.add_argument("--data-path", type=str, required=True,
-                        help="Path to wit_pairs.jsonl from Stage2/load_image.py.")
+                        help="Comma-separated JSONL path(s): wit_pairs.jsonl and/or "
+                             "cc3m_pairs.jsonl (identical schemas, rows are concatenated).")
     parser.add_argument("--image-cache-dir", type=str, required=True,
-                        help="Image cache directory populated by Stage2/load_image.py.")
+                        help="Comma-separated image cache dir(s), searched in order "
+                             "for each row's sha1(url).jpg.")
     parser.add_argument("--output-dir", type=str, required=True)
     parser.add_argument("--vis-path", type=str, default="google/siglip2-so400m-patch14-384")
     parser.add_argument("--llm-path", type=str, default="google/gemma-2-9b-it")
