@@ -67,6 +67,7 @@ LANGS_MAP_NLLB = {
     "Javanese": "jav_Latn",
     "Mongolian": "khk_Cyrl",
     "Sinhala": "sin_Sinh",
+    "Sinhalese": "sin_Sinh",
 }
 
 
