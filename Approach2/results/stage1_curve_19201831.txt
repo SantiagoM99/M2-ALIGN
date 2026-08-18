@@ -1,0 +1,17 @@
+2026-08-18 05:28:22,345 | INFO | Epoch 0 | val_loss=3.0628 | val_ppl=21.3868
+2026-08-18 05:29:10,280 | INFO | Epoch 0 | val_loss=3.1618 | val_ppl=23.6130
+2026-08-18 05:29:22,097 | INFO | Epoch 0 | val_loss=3.2070 | val_ppl=24.7045
+2026-08-18 05:29:39,403 | INFO | Epoch 0 | val_loss=3.1097 | val_ppl=22.4144
+2026-08-18 05:30:14,706 | INFO | Epoch 0 | val_loss=2.9657 | val_ppl=19.4085
+2026-08-18 05:31:18,967 | INFO | Epoch 0 | val_loss=3.1287 | val_ppl=22.8436
+2026-08-18 06:08:01,725 | INFO | Epoch 1 | val_loss=2.7003 | val_ppl=14.8839
+2026-08-18 06:09:18,356 | INFO | Epoch 1 | val_loss=2.9424 | val_ppl=18.9622
+2026-08-18 06:10:45,488 | INFO | Epoch 1 | val_loss=2.9871 | val_ppl=19.8283
+2026-08-18 06:11:27,147 | INFO | Epoch 1 | val_loss=2.7446 | val_ppl=15.5585
+2026-08-18 06:12:01,536 | INFO | Epoch 1 | val_loss=2.9479 | val_ppl=19.0651
+2026-08-18 06:20:02,379 | INFO | Epoch 1 | val_loss=2.9241 | val_ppl=18.6166
+2026-08-18 06:50:04,299 | INFO | Epoch 2 | val_loss=2.7815 | val_ppl=16.1428
+2026-08-18 06:50:49,816 | INFO | Epoch 2 | val_loss=2.2454 | val_ppl=9.4443
+2026-08-18 06:51:18,043 | INFO | Epoch 2 | val_loss=2.8115 | val_ppl=16.6350
+2026-08-18 06:53:08,309 | INFO | Epoch 2 | val_loss=2.8297 | val_ppl=16.9403
+2026-08-18 06:53:32,356 | INFO | Epoch 2 | val_loss=2.5893 | val_ppl=13.3203
