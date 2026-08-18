@@ -116,9 +116,12 @@ echo "=== Stage 3 per language (waits on stage 2 + its stage 1) ==="
 declare -A S3_JOB
 S3_READY=()
 for L in bn "${XGQA_LANGS[@]}" "${CVQA_ONLY_LANGS[@]}"; do
+  # Two known layouts: the repo default (stage3b/<language>.jsonl) and what
+  # Maryam's load_translated_data.sh actually writes (Stage3/data/<iso>.jsonl).
   s3b="$DT/Stage3/data/stage3b/${NAME[$L],,}.jsonl"
+  [ -f "$s3b" ] || s3b="$DT/Stage3/data/$L.jsonl"
   if [ ! -f "$s3b" ]; then
-    echo "  stage3 $L: SKIPPED — $s3b not found (re-run this script when it lands)"
+    echo "  stage3 $L: SKIPPED — no stage3b data found for $L (re-run this script when it lands)"
     continue
   fi
   if [ "$L" = bn ]; then
