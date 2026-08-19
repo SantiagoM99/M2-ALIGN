@@ -29,3 +29,7 @@ slurm-*.out
 
 # Secrets
 .tokens
+
+# Shared benchmark data (rsynced/downloaded, not tracked) and download junk
+evaluation/
+wget-log*
