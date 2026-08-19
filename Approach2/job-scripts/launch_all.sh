@@ -152,10 +152,13 @@ done
 
 # submit_eval <kind:xgqa|cvqa> <lang> <blind:0|1>
 submit_eval () {
-  local kind="$1" L="$2" B="$3" suffix="" data images name out
-  [ "$B" = 1 ] && suffix="_BLIND"
+  local kind="$1" L="$2" B="$3" suffix="" jobsuffix="" data images name out
+  # Plain if — a $( [ ... ] && echo ) here returns exit 1 when B=0, and a
+  # bare assignment takes the command substitution's status, killing the
+  # script under set -e (this silently ate every eval submission once).
+  if [ "$B" = 1 ]; then suffix="_BLIND"; jobsuffix="_b"; fi
   out="$A2/outputs/stage3_$L/eval_${kind}_${L}${suffix}.jsonl"
-  name="a2_ev_${kind:0:1}_${L}$( [ "$B" = 1 ] && echo _b )"
+  name="a2_ev_${kind:0:1}_${L}${jobsuffix}"
   if [ "$kind" = xgqa ]; then
     data="$DT/Stage3/data/xgqa/$L.jsonl"; images="$GQA_IMAGES"
   else
