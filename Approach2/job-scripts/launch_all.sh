@@ -46,7 +46,13 @@ GQA_IMAGES="$DT/Stage3/data/gqa/images"
 [ -d "$GQA_IMAGES" ] || GQA_IMAGES="$ROOT/Stage3/data/gqa/images"
 
 BN_STAGE1_CKPT="$A2/outputs/stage1/mapping/pytorch_model.bin"
-S2_OUT="$A2/outputs/stage2_cc3m"
+
+# Optional round tag: ROUND=v2 writes stage2_cc3m_v2 / stage3_<L>_v2 / eval
+# outputs + job names suffixed _v2, so a re-run with better hyperparameters
+# (e.g. S2_EPOCHS=10 S2_LR=1e-4 S2_GRAD_ACCUM=2, exported) coexists with the
+# original round. Stage 1 checkpoints are shared across rounds.
+R="${ROUND:+_$ROUND}"
+S2_OUT="$A2/outputs/stage2_cc3m$R"
 
 contains () { local x="$1"; shift; local e; for e in "$@"; do [ "$e" = "$x" ] && return 0; done; return 1; }
 queued_id () { squeue -h -u "$USER" -n "$1" -o %i 2>/dev/null | head -1; }
@@ -80,17 +86,22 @@ hard=0
 [ "$hard" = 0 ] || exit 1
 echo "Shared inputs OK."
 
-echo "=== Stage 2 (shared: CC3M + WIT-bn, English captions) ==="
+echo "=== Stage 2 (shared: CC3M + every language's WIT, English captions) ==="
 S2_JOB=""
-if [ -n "$(queued_id a2_s2_cc3m)" ] || [ ! -f "$S2_OUT/mapping/pytorch_model.bin" ]; then
+if [ -n "$(queued_id "a2_s2_cc3m$R")" ] || [ ! -f "$S2_OUT/mapping/pytorch_model.bin" ]; then
   S2_DATA="$DT/Stage2/data/bn/cc3m_pairs.jsonl"
   S2_CACHES="$DT/Stage2/data/cc3m/image_cache"
-  if [ -f "$DT/Stage2/data/bn/wit_pairs.jsonl" ] && [ -d "$DT/Stage2/data/bn/image_cache" ]; then
-    S2_DATA="$S2_DATA,$DT/Stage2/data/bn/wit_pairs.jsonl"
-    S2_CACHES="$S2_CACHES,$DT/Stage2/data/bn/image_cache"
-  fi
+  # A2's stage 2 trains on the English target_caption only, so every
+  # language's WIT pairs are usable — gather them all, each with its cache.
+  for wp in "$DT"/Stage2/data/*/wit_pairs.jsonl; do
+    [ -f "$wp" ] || continue
+    d="$(dirname "$wp")"
+    [ -d "$d/image_cache" ] || continue
+    S2_DATA="$S2_DATA,$wp"
+    S2_CACHES="$S2_CACHES,$d/image_cache"
+  done
   S2_JOB=$(DATA_PATH="$S2_DATA" IMAGE_CACHE_DIR="$S2_CACHES" OUTPUT_DIR="$S2_OUT" \
-           RUN_NAME="a2-stage2-cc3m" submit a2_s2_cc3m "" "$JS/train_stage2.sh")
+           RUN_NAME="a2-stage2-cc3m$R" submit "a2_s2_cc3m$R" "" "$JS/train_stage2.sh")
 else
   echo "  stage2: checkpoint exists ($S2_OUT) -> done (delete the dir to retrain)"
 fi
@@ -130,7 +141,7 @@ for L in bn "${XGQA_LANGS[@]}" "${CVQA_ONLY_LANGS[@]}"; do
     [ -n "${S1_JOB[$L]+x}" ] || { echo "  stage3 $L: SKIPPED — its stage 1 was skipped"; continue; }
     s1_ckpt="$A2/outputs/stage1_$L/mapping/pytorch_model.bin"; s1_dep="${S1_JOB[$L]}"
   fi
-  if [ -z "$(queued_id "a2_s3_$L")" ] && [ -f "$A2/outputs/stage3_$L/mapping/pytorch_model.bin" ]; then
+  if [ -z "$(queued_id "a2_s3_$L$R")" ] && [ -f "$A2/outputs/stage3_$L$R/mapping/pytorch_model.bin" ]; then
     echo "  stage3 $L: checkpoint exists -> done"
     S3_JOB[$L]=""
     S3_READY+=("$L")
@@ -144,9 +155,9 @@ for L in bn "${XGQA_LANGS[@]}" "${CVQA_ONLY_LANGS[@]}"; do
   S3_JOB[$L]=$(DATA_PATH="$s3b" IMAGES_DIR="$GQA_IMAGES" \
                STAGE1_CKPT="$s1_ckpt" \
                STAGE2_CKPT="$S2_OUT/mapping/pytorch_model.bin" \
-               OUTPUT_DIR="$A2/outputs/stage3_$L" \
-               RUN_NAME="a2-stage3-$L" \
-               submit "a2_s3_$L" "$dep" "$JS/train_stage3.sh")
+               OUTPUT_DIR="$A2/outputs/stage3_$L$R" \
+               RUN_NAME="a2-stage3-$L$R" \
+               submit "a2_s3_$L$R" "$dep" "$JS/train_stage3.sh")
   S3_READY+=("$L")
 done
 
@@ -157,8 +168,8 @@ submit_eval () {
   # bare assignment takes the command substitution's status, killing the
   # script under set -e (this silently ate every eval submission once).
   if [ "$B" = 1 ]; then suffix="_BLIND"; jobsuffix="_b"; fi
-  out="$A2/outputs/stage3_$L/eval_${kind}_${L}${suffix}.jsonl"
-  name="a2_ev_${kind:0:1}_${L}${jobsuffix}"
+  out="$A2/outputs/stage3_$L$R/eval_${kind}_${L}${suffix}.jsonl"
+  name="a2_ev_${kind:0:1}_${L}${R}${jobsuffix}"
   if [ "$kind" = xgqa ]; then
     data="$DT/Stage3/data/xgqa/$L.jsonl"; images="$GQA_IMAGES"
   else
@@ -174,7 +185,7 @@ submit_eval () {
   local script="$JS/evaluate_vqa.sh"
   [ "$kind" = cvqa ] && script="$JS/evaluate_cvqa.sh"
   BLIND="$B" EVAL_LANG="$L" DATA_PATH="$data" IMAGES_DIR="$images" \
-  CKPT="$A2/outputs/stage3_$L/mapping/pytorch_model.bin" \
+  CKPT="$A2/outputs/stage3_$L$R/mapping/pytorch_model.bin" \
   OUTPUT_PATH="$out" \
   submit "$name" "$dep" "$script" > /dev/null
 }
@@ -193,16 +204,16 @@ done
 
 if contains bn "${S3_READY[@]}" && [ -f "$ROOT/evaluation/MGSM.jsonl" ] && [ -f "$ROOT/evaluation/MSVAMP.jsonl" ]; then
   echo "=== Text evals MGSM/MSVAMP (bn, new stage-3 checkpoint) ==="
-  TXT_OUT="$A2/outputs/text_eval_bn_v2"
-  if [ -z "$(queued_id a2_evt_bn)" ] && [ -f "$TXT_OUT/eval_msvamp_bn_stage3.jsonl.summary.json" ]; then
-    echo "  a2_evt_bn: summaries exist -> done"
+  TXT_OUT="$A2/outputs/text_eval_bn_v2$R"
+  if [ -z "$(queued_id "a2_evt_bn$R")" ] && [ -f "$TXT_OUT/eval_msvamp_bn_stage3.jsonl.summary.json" ]; then
+    echo "  a2_evt_bn$R: summaries exist -> done"
   else
     dep=""
     [ -n "${S3_JOB[bn]:-}" ] && dep="afterok:${S3_JOB[bn]}"
     STAGE1_CKPT="$BN_STAGE1_CKPT" \
-    STAGE3_CKPT="$A2/outputs/stage3_bn/mapping/pytorch_model.bin" \
+    STAGE3_CKPT="$A2/outputs/stage3_bn$R/mapping/pytorch_model.bin" \
     OUT="$TXT_OUT" \
-    submit a2_evt_bn "$dep" "$JS/evaluate_text.sh" > /dev/null
+    submit "a2_evt_bn$R" "$dep" "$JS/evaluate_text.sh" > /dev/null
   fi
 else
   echo "(MGSM/MSVAMP: skipped — bn stage 3 not ready or evaluation/{MGSM,MSVAMP}.jsonl missing)"

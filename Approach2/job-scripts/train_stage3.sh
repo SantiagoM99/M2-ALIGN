@@ -87,8 +87,8 @@ python -u train_stage3_vqa.py \
   --mt-path     "$MT_PATH" \
   --vis-path    "$VIS_PATH" \
   --llm-path    "$LLM_PATH" \
-  --epochs      1 \
-  --lr          2e-5 \
+  --epochs      "${S3_EPOCHS:-1}" \
+  --lr          "${S3_LR:-2e-5}" \
   --train-batch-size 2 \
   --eval-batch-size  2 \
   --grad-accum  16 \

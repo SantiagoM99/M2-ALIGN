@@ -75,8 +75,8 @@ python -u train_stage1_text.py \
   --mt-path    "$MT_PATH" \
   --llm-path   "$LLM_PATH" \
   --train-num  100000 \
-  --epochs     3 \
-  --lr         2e-5 \
+  --epochs     "${S1_EPOCHS:-3}" \
+  --lr         "${S1_LR:-2e-5}" \
   --train-batch-size 4 \
   --eval-batch-size  4 \
   --grad-accum 8 \

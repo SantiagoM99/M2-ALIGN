@@ -81,11 +81,11 @@ python -u train_stage2_vision.py \
   --output-dir      "$OUTPUT_DIR" \
   --vis-path        "$VIS_PATH" \
   --llm-path        "$LLM_PATH" \
-  --epochs     1 \
-  --lr         2e-5 \
+  --epochs     "${S2_EPOCHS:-1}" \
+  --lr         "${S2_LR:-2e-5}" \
   --train-batch-size 4 \
   --eval-batch-size  4 \
-  --grad-accum 8 \
+  --grad-accum "${S2_GRAD_ACCUM:-8}" \
   --max-gen-len 512 \
   --save-steps 200 \
   --use-wandb \
