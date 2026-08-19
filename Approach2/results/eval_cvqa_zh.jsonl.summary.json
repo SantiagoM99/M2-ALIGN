@@ -2,13 +2,13 @@
   "benchmark": "cvqa",
   "scored": 311,
   "skipped": 0,
-  "correct": 121,
-  "accuracy": 0.3890675241157556,
+  "correct": 160,
+  "accuracy": 0.5144694533762058,
   "data_path": "/scratch/santimn/datatransfer/Stage3/data/cvqa/zh.jsonl",
-  "ckpt": "/home/santimn/links/projects/def-annielee/santimn/M2-ALIGN/Approach2/outputs/stage3_zh/mapping/pytorch_model.bin",
+  "ckpt": "/home/santimn/links/projects/def-annielee/santimn/M2-ALIGN/Approach2/outputs/stage3_zh_v2/mapping/pytorch_model.bin",
   "llm_path": "google/gemma-2-9b-it",
   "vis_path": "google/siglip2-so400m-patch14-384",
   "mt_path": "facebook/nllb-200-distilled-600M",
   "blind": false,
-  "slurm_job_id": "19243573"
+  "slurm_job_id": "19243838"
 }
