@@ -161,45 +161,39 @@ for L in bn "${XGQA_LANGS[@]}" "${CVQA_ONLY_LANGS[@]}"; do
   S3_READY+=("$L")
 done
 
-# submit_eval <kind:xgqa|cvqa> <lang> <blind:0|1>
-submit_eval () {
-  local kind="$1" L="$2" B="$3" suffix="" jobsuffix="" data images name out
-  # Plain if — a $( [ ... ] && echo ) here returns exit 1 when B=0, and a
-  # bare assignment takes the command substitution's status, killing the
-  # script under set -e (this silently ate every eval submission once).
-  if [ "$B" = 1 ]; then suffix="_BLIND"; jobsuffix="_b"; fi
-  out="$A2/outputs/stage3_$L$R/eval_${kind}_${L}${suffix}.jsonl"
-  name="a2_ev_${kind:0:1}_${L}${R}${jobsuffix}"
-  if [ "$kind" = xgqa ]; then
-    data="$DT/Stage3/data/xgqa/$L.jsonl"; images="$GQA_IMAGES"
-  else
-    data="$DT/Stage3/data/cvqa/$L.jsonl"; images="$DT/Stage3/data/cvqa/images"
-  fi
-  [ -f "$data" ] || { echo "  $name: SKIPPED — $data not found"; return; }
-  if [ -z "$(queued_id "$name")" ] && [ -f "$out.summary.json" ]; then
-    echo "  $name: summary exists -> done"
-    return
-  fi
-  local dep=""
-  [ -n "${S3_JOB[$L]:-}" ] && dep="afterok:${S3_JOB[$L]}"
-  local script="$JS/evaluate_vqa.sh"
-  [ "$kind" = cvqa ] && script="$JS/evaluate_cvqa.sh"
-  BLIND="$B" EVAL_LANG="$L" DATA_PATH="$data" IMAGES_DIR="$images" \
-  CKPT="$A2/outputs/stage3_$L$R/mapping/pytorch_model.bin" \
-  OUTPUT_PATH="$out" \
-  submit "$name" "$dep" "$script" > /dev/null
-}
-
-echo "=== Evals: full + blind per language (wait on stage 3) ==="
+echo "=== Evals: one batched job per language (xGQA + CVQA, full + blind) ==="
+# All of a language's evals share one GPU allocation (evaluate_language.sh)
+# instead of 2-4 tiny jobs — less scheduler/model-load overhead and kinder
+# to the shared account's fairshare.
 for L in "${S3_READY[@]}"; do
-  if [ "$L" = bn ] || contains "$L" "${XGQA_LANGS[@]}"; then
-    submit_eval xgqa "$L" 0
-    submit_eval xgqa "$L" 1
+  outdir="$A2/outputs/stage3_$L$R"
+  xgqa_data=""
+  cvqa_data=""
+  if { [ "$L" = bn ] || contains "$L" "${XGQA_LANGS[@]}"; } && [ -f "$DT/Stage3/data/xgqa/$L.jsonl" ]; then
+    xgqa_data="$DT/Stage3/data/xgqa/$L.jsonl"
   fi
-  if contains "$L" "${CVQA_LANGS[@]}"; then
-    submit_eval cvqa "$L" 0
-    submit_eval cvqa "$L" 1
+  if contains "$L" "${CVQA_LANGS[@]}" && [ -f "$DT/Stage3/data/cvqa/$L.jsonl" ]; then
+    cvqa_data="$DT/Stage3/data/cvqa/$L.jsonl"
   fi
+  if [ -z "$xgqa_data" ] && [ -z "$cvqa_data" ]; then
+    echo "  evals $L: SKIPPED — no eval data found"
+    continue
+  fi
+  need=0
+  for s in "" "_BLIND"; do
+    if [ -n "$xgqa_data" ] && [ ! -f "$outdir/eval_xgqa_${L}${s}.jsonl.summary.json" ]; then need=1; fi
+    if [ -n "$cvqa_data" ] && [ ! -f "$outdir/eval_cvqa_${L}${s}.jsonl.summary.json" ]; then need=1; fi
+  done
+  if [ "$need" = 0 ] && [ -z "$(queued_id "a2_ev_$L$R")" ]; then
+    echo "  evals $L: all summaries exist -> done"
+    continue
+  fi
+  dep=""
+  [ -n "${S3_JOB[$L]:-}" ] && dep="afterok:${S3_JOB[$L]}"
+  EVAL_LANG="$L" CKPT="$outdir/mapping/pytorch_model.bin" OUT_DIR="$outdir" \
+  XGQA_DATA="$xgqa_data" XGQA_IMAGES="$GQA_IMAGES" \
+  CVQA_DATA="$cvqa_data" CVQA_IMAGES="$DT/Stage3/data/cvqa/images" \
+  submit "a2_ev_$L$R" "$dep" "$JS/evaluate_language.sh" > /dev/null
 done
 
 if contains bn "${S3_READY[@]}" && [ -f "$ROOT/evaluation/MGSM.jsonl" ] && [ -f "$ROOT/evaluation/MSVAMP.jsonl" ]; then
