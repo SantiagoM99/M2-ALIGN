@@ -1,0 +1,4 @@
+2026-08-19 06:33:28,346 | INFO | Epoch 0 | val_loss=0.7744 | val_ppl=2.1694
+2026-08-19 06:34:13,389 | INFO | Epoch 0 | val_loss=0.7369 | val_ppl=2.0895
+2026-08-19 06:34:37,655 | INFO | Epoch 0 | val_loss=0.8397 | val_ppl=2.3157
+2026-08-19 06:35:10,614 | INFO | Epoch 0 | val_loss=0.8393 | val_ppl=2.3147
