@@ -28,6 +28,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import itertools
 import math
 import os
 import random
@@ -105,6 +106,72 @@ def collate_vqa(batch: list[dict | None], image_processor) -> dict | None:
         "queries": [x["query"] for x in valid],
         "answers": [x["answer"] for x in valid],
         "nllb_lang_tags": [x["nllb_lang_tag"] for x in valid],
+    }
+
+
+class TextReplayDataset(Dataset):
+    """Text-only replay rows mixed into VQA training (no image).
+
+    Accepts stage-1 translation rows (``source``/``target``) and math-CoT
+    rows from build_math_replay.py (``query``/``target``/``task=math``).
+    Purpose: the mappings keep seeing non-VQA territory during stage 3, so
+    the prefix can't specialize into corrupting everything that isn't a
+    short-answer VQA question (the measured MGSM/MSVAMP collapse).
+    """
+
+    def __init__(self, rows: list[dict]) -> None:
+        self.rows = rows
+
+    def __len__(self) -> int:
+        return len(self.rows)
+
+    def __getitem__(self, idx: int) -> dict:
+        r = self.rows[idx]
+        return {
+            "query": r.get("query") or r.get("source"),
+            "target": r["target"],
+            "nllb_lang_tag": r["nllb_lang_tag"],
+            "task": r.get("task", "translation"),
+        }
+
+
+def collate_replay(batch: list[dict]) -> dict:
+    return {
+        "queries": [x["query"] for x in batch],
+        "targets": [x["target"] for x in batch],
+        "nllb_lang_tags": [x["nllb_lang_tag"] for x in batch],
+        "tasks": [x["task"] for x in batch],
+    }
+
+
+def build_replay_inputs(batch, tokenizer_mt, tokenizer_llm, args, device):
+    """Tokenise a text-only replay batch. Math rows get the exact eval-time
+    math prompt (evaluate_text.format_math_chat); translation rows get no
+    prompt, matching stage 1's format."""
+    from evaluate_text import format_math_chat
+
+    input_ids_mt, mask_mt = mt_input_features(
+        batch["queries"], batch["nllb_lang_tags"], tokenizer_mt, args.max_mt_seq_len, device
+    )
+    prompts = [
+        format_math_chat(tokenizer_llm, q, use_chat_template=not args.no_chat_template)
+        if task == "math" else ""
+        for q, task in zip(batch["queries"], batch["tasks"])
+    ]
+    input_ids_prompt, mask_prompt = llm_input_features(
+        prompts, tokenizer_llm, args.max_seq_len, add_bos=False, add_eos=False, device=device
+    )
+    labels, mask_label = llm_input_features(
+        batch["targets"], tokenizer_llm, args.replay_max_gen_len,
+        add_bos=False, add_eos=True, device=device,
+    )
+    return {
+        "input_ids_mt": input_ids_mt,
+        "attention_mask_mt": mask_mt,
+        "input_ids_prompt": input_ids_prompt,
+        "mask_prompt": mask_prompt,
+        "labels": labels,
+        "mask_label": mask_label,
     }
 
 
@@ -193,6 +260,12 @@ def main(args, logger) -> None:
             p.requires_grad = False
         logger.info("mapping_vis frozen.")
 
+    if args.zero_init_gate:
+        with torch.no_grad():
+            model.mapping_txt.gate.zero_()
+            model.mapping_vis.gate.zero_()
+        logger.info("Mapping gates zero-initialized — the prefix starts inert.")
+
     optimizer = torch.optim.AdamW(
         filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr
     )
@@ -207,6 +280,26 @@ def main(args, logger) -> None:
         shuffle=False, collate_fn=_collate, num_workers=args.num_workers,
     )
 
+    replay_iter = None
+    if args.replay_data:
+        replay_rows: list[dict] = []
+        for path in [p.strip() for p in args.replay_data.split(",") if p.strip()]:
+            file_rows = load_jsonl(path)
+            if 0 < args.replay_max_rows_per_file < len(file_rows):
+                file_rows = random.sample(file_rows, args.replay_max_rows_per_file)
+            for r in file_rows:
+                r.setdefault("nllb_lang_tag", args.replay_default_tag)
+            replay_rows.extend(file_rows)
+            logger.info("Replay: %d rows from %s", len(file_rows), path)
+        replay_loader = DataLoader(
+            TextReplayDataset(replay_rows),
+            batch_size=args.replay_batch_size or args.train_batch_size,
+            shuffle=True, collate_fn=collate_replay, num_workers=2,
+        )
+        replay_iter = itertools.cycle(replay_loader)
+        logger.info("Replay enabled: %d rows total, 1 replay batch per %d VQA batches.",
+                    len(replay_rows), args.replay_every)
+
     use_wandb = init_wandb_or_disable(args, {
         "stage": "approach2_stage3_vqa",
         "mt_path": args.mt_path,
@@ -219,6 +312,9 @@ def main(args, logger) -> None:
         "max_vis_tokens": args.max_vis_tokens,
         "freeze_text_mapping": args.freeze_text_mapping,
         "freeze_vision_mapping": args.freeze_vision_mapping,
+        "replay_data": args.replay_data,
+        "replay_every": args.replay_every,
+        "zero_init_gate": args.zero_init_gate,
         "train_size": len(train_rows),
         "val_size": len(val_rows),
     })
@@ -239,6 +335,7 @@ def main(args, logger) -> None:
     for epoch in range(start_epoch, args.epochs):
         model.train()
         running, steps = 0.0, 0
+        replay_running, replay_steps = 0.0, 0
         pbar = tqdm(train_loader, desc=f"epoch={epoch}")
         optimizer.zero_grad(set_to_none=True)
         skip_batches = resume_skip_batches if epoch == start_epoch else 0
@@ -252,6 +349,15 @@ def main(args, logger) -> None:
             inputs = build_batch_inputs(batch, tokenizer_mt, tokenizer_llm, args, device)
             loss = model(**inputs)
             (loss / args.grad_accum).backward()
+
+            if replay_iter is not None and args.replay_every > 0 and steps % args.replay_every == 0:
+                rbatch = next(replay_iter)
+                rinputs = build_replay_inputs(rbatch, tokenizer_mt, tokenizer_llm, args, device)
+                rloss = model(**rinputs)
+                (rloss / args.grad_accum).backward()
+                replay_running += rloss.item()
+                replay_steps += 1
+
             if (global_step + 1) % args.grad_accum == 0:
                 optimizer.step()
                 optimizer.zero_grad(set_to_none=True)
@@ -259,9 +365,15 @@ def main(args, logger) -> None:
             running += loss.item()
             steps += 1
             global_step += 1
-            pbar.set_postfix(loss=f"{running / steps:.4f}")
+            postfix = {"loss": f"{running / steps:.4f}"}
+            if replay_steps:
+                postfix["replay"] = f"{replay_running / replay_steps:.4f}"
+            pbar.set_postfix(**postfix)
             if use_wandb:
-                wandb.log({"train/loss": running / steps, "train/global_step": global_step})
+                log = {"train/loss": running / steps, "train/global_step": global_step}
+                if replay_steps:
+                    log["train/replay_loss"] = replay_running / replay_steps
+                wandb.log(log)
 
             if args.save_steps > 0 and global_step % args.save_steps == 0:
                 state_path = os.path.join(args.output_dir, "training_state.pt")
@@ -303,6 +415,24 @@ if __name__ == "__main__":
     parser.add_argument("--local-files-only", action="store_true")
     parser.add_argument("--no-chat-template", action="store_true",
                         help="Use the bare task prompt for T (for non-instruction-tuned LLMs).")
+    parser.add_argument("--replay-data", type=str, default=None,
+                        help="Comma-separated text-only JSONL files (stage-1 translation "
+                             "rows and/or build_math_replay.py math rows) mixed into "
+                             "training so the prefix keeps covering non-VQA territory.")
+    parser.add_argument("--replay-every", type=int, default=3,
+                        help="One replay batch per N VQA batches (with --replay-data).")
+    parser.add_argument("--replay-batch-size", type=int, default=0,
+                        help="0 = same as --train-batch-size.")
+    parser.add_argument("--replay-max-gen-len", type=int, default=512,
+                        help="Label budget for replay targets (CoT solutions are long).")
+    parser.add_argument("--replay-max-rows-per-file", type=int, default=10000,
+                        help="Random subsample per replay file, so a 100k translation "
+                             "file doesn't drown the math data (0 = no cap).")
+    parser.add_argument("--replay-default-tag", type=str, default="ben_Beng",
+                        help="NLLB tag for replay rows that lack one (stage-1 files).")
+    parser.add_argument("--zero-init-gate", action="store_true",
+                        help="Reset both mapping gates to 0 after warm-start: the prefix "
+                             "starts inert and must earn its influence during training.")
     parser.add_argument("--freeze-text-mapping", action="store_true")
     parser.add_argument("--freeze-vision-mapping", action="store_true")
     parser.add_argument("--max-vis-tokens", type=int, default=0,

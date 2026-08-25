@@ -137,14 +137,19 @@ class Mapping(nn.Module):
         super().__init__()
         self.mlp = MLP(in_dim, llm_dim)
         self.end_boundary = nn.Parameter(torch.zeros(1, 1, llm_dim), requires_grad=True)
+        # Learnable scalar volume on the whole prefix contribution. Init 1.0
+        # (identity — checkpoints without the key behave exactly as before);
+        # stage 3's --zero-init-gate resets it to 0 so the prefix starts
+        # inert and must earn its influence (LLaMA-Adapter-style).
+        self.gate = nn.Parameter(torch.ones(1))
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
-        """Apply the MLP projection to *hidden_states*."""
-        return self.mlp(hidden_states)
+        """Apply the MLP projection (scaled by the gate) to *hidden_states*."""
+        return self.gate * self.mlp(hidden_states)
 
     def get_embed(self) -> torch.Tensor:
-        """Return the learnable end-boundary embedding ``[1, 1, llm_dim]``."""
-        return self.end_boundary
+        """Return the gated end-boundary embedding ``[1, 1, llm_dim]``."""
+        return self.gate * self.end_boundary
 
 
 class DualEncoderMerger(nn.Module):

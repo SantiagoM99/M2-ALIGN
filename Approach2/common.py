@@ -209,11 +209,17 @@ def load_mapping_checkpoint(path: str, model, logger=None) -> None:
     """
     ckpt = torch.load(path, map_location="cpu")
     loaded = []
+    # strict=False: pre-gate checkpoints lack the `gate` key — the module's
+    # init value (1.0, identity) is the correct behavior for them.
     if "mapping_txt" in ckpt and model.mapping_txt is not None:
-        model.mapping_txt.load_state_dict(ckpt["mapping_txt"])
+        missing, unexpected = model.mapping_txt.load_state_dict(ckpt["mapping_txt"], strict=False)
+        if (missing or unexpected) and logger is not None:
+            logger.info("mapping_txt: missing=%s unexpected=%s", missing, unexpected)
         loaded.append("mapping_txt")
     if "mapping_vis" in ckpt and model.mapping_vis is not None:
-        model.mapping_vis.load_state_dict(ckpt["mapping_vis"])
+        missing, unexpected = model.mapping_vis.load_state_dict(ckpt["mapping_vis"], strict=False)
+        if (missing or unexpected) and logger is not None:
+            logger.info("mapping_vis: missing=%s unexpected=%s", missing, unexpected)
         loaded.append("mapping_vis")
     if "model_state_dict" in ckpt and model.mapping_txt is not None and not loaded:
         model.mapping_txt.load_state_dict(ckpt["model_state_dict"], strict=False)
