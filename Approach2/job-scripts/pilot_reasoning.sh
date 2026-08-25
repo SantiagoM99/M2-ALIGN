@@ -120,7 +120,10 @@ fi
 CKPT="$OUT/mapping/pytorch_model.bin"
 
 run_text () {  # <bench> <data>
-  local bench="$1" data="$2" out="$OUT/eval_${bench}_bn_stage3_$TAG.jsonl"
+  # NOTE: under `set -u`, ${bench} may not be referenced in the same `local`
+  # statement that assigns it — expansion happens before `local` runs.
+  local bench="$1" data="$2"
+  local out="$OUT/eval_${bench}_bn_stage3_$TAG.jsonl"
   [ -f "$out.summary.json" ] && { echo "--- skip $bench (summary exists)"; return; }
   python -u evaluate_text.py \
     --data-path "$data" --benchmark "$bench" \
