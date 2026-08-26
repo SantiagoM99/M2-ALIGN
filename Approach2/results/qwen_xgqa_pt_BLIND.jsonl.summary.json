@@ -1,0 +1,11 @@
+{
+  "benchmark": "xgqa",
+  "lang": "pt",
+  "scored": 12578,
+  "correct": 3086,
+  "accuracy": 0.245349022102083,
+  "data_path": "/scratch/santimn/datatransfer/Stage3/data/xgqa/pt.jsonl",
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "blind": true,
+  "slurm_job_id": "19625590"
+}
