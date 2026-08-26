@@ -162,6 +162,7 @@ def main(args, logger) -> None:
         use_text_branch=False,
         use_vision_branch=True,
         max_vis_tokens=args.max_vis_tokens,
+        vis_layers=args.vis_layers,
         local_files_only=args.local_files_only,
     ).to(device)
 
@@ -190,6 +191,7 @@ def main(args, logger) -> None:
         "train_batch_size": args.train_batch_size,
         "grad_accum": args.grad_accum,
         "max_vis_tokens": args.max_vis_tokens,
+        "vis_layers": args.vis_layers,
         "train_size": len(train_rows),
         "val_size": len(val_rows),
     })
@@ -278,6 +280,11 @@ if __name__ == "__main__":
     parser.add_argument("--max-vis-tokens", type=int, default=0,
                         help="τ_k: keep only the first k visual tokens (0 = keep all; "
                              "siglip2-so400m-patch14-384 yields 729).")
+    parser.add_argument("--vis-layers", type=str, default="",
+                        help="DenseConnector: comma-separated SigLIP hidden-state indices "
+                             "channel-concatenated per patch (e.g. '9,18,-1'; -1 = "
+                             "post-layernorm final layer). Empty = final layer only. "
+                             "Checkpoints only load under the same setting.")
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--train-batch-size", type=int, default=4)

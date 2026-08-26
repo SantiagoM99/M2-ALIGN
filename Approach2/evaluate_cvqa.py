@@ -88,6 +88,8 @@ def main() -> None:
                         help="Replace every image with a neutral gray canvas — the "
                              "language-prior baseline, as in evaluate_vqa.py.")
     parser.add_argument("--max-vis-tokens", type=int, default=0)
+    parser.add_argument("--vis-layers", type=str, default="",
+                        help="DenseConnector layer indices — MUST match the checkpoint's.")
     parser.add_argument("--max-mt-seq-len", type=int, default=256)
     parser.add_argument("--max-seq-len", type=int, default=512)
     parser.add_argument("--max-choice-len", type=int, default=64)
@@ -122,6 +124,7 @@ def main() -> None:
         use_text_branch=True,
         use_vision_branch=True,
         max_vis_tokens=args.max_vis_tokens,
+        vis_layers=args.vis_layers,
         local_files_only=args.local_files_only,
     ).to(device)
     load_mapping_checkpoint(args.ckpt, model, logger)

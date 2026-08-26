@@ -243,6 +243,7 @@ def main(args, logger) -> None:
         use_text_branch=True,
         use_vision_branch=True,
         max_vis_tokens=args.max_vis_tokens,
+        vis_layers=args.vis_layers,
         local_files_only=args.local_files_only,
     ).to(device)
 
@@ -310,6 +311,7 @@ def main(args, logger) -> None:
         "train_batch_size": args.train_batch_size,
         "grad_accum": args.grad_accum,
         "max_vis_tokens": args.max_vis_tokens,
+        "vis_layers": args.vis_layers,
         "freeze_text_mapping": args.freeze_text_mapping,
         "freeze_vision_mapping": args.freeze_vision_mapping,
         "replay_data": args.replay_data,
@@ -437,6 +439,11 @@ if __name__ == "__main__":
     parser.add_argument("--freeze-vision-mapping", action="store_true")
     parser.add_argument("--max-vis-tokens", type=int, default=0,
                         help="τ_k: keep only the first k visual tokens (0 = keep all).")
+    parser.add_argument("--vis-layers", type=str, default="",
+                        help="DenseConnector: comma-separated SigLIP hidden-state indices "
+                             "channel-concatenated per patch (e.g. '9,18,-1'; -1 = "
+                             "post-layernorm final layer). Empty = final layer only. "
+                             "MUST match the --stage2-ckpt's setting.")
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--train-batch-size", type=int, default=2)

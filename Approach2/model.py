@@ -171,6 +171,19 @@ class DualEncoderMerger(nn.Module):
             tokens (0 keeps all). Applied before the mapping MLP, which is
             equivalent to applying it after (the MLP is per-token) but
             cheaper.
+        vis_layers: DenseConnector-style multi-layer features (DCI variant):
+            comma-separated hidden-state indices whose features are
+            channel-concatenated per patch before the vision mapping, e.g.
+            ``"9,18,-1"``. Positive ``i`` selects ``hidden_states[i]``
+            (output of encoder layer *i*, pre-final-layernorm; index 0 is
+            the patch embeddings); ``-1`` selects ``last_hidden_state``
+            (post-layernorm — identical to the single-layer path). Empty
+            string (default) keeps the original last-layer-only behaviour,
+            so existing checkpoints load unchanged. The vision mapping's
+            input dim becomes ``hidden_size * n_layers`` — checkpoints are
+            NOT interchangeable across different ``vis_layers`` settings,
+            and every consumer of a checkpoint (stage 3 warm-start, evals)
+            must pass the same value it was trained with.
         local_files_only: Skip Hub downloads when ``True``.
     """
 
@@ -185,6 +198,7 @@ class DualEncoderMerger(nn.Module):
         use_text_branch: bool = True,
         use_vision_branch: bool = True,
         max_vis_tokens: int = 0,
+        vis_layers: str = "",
         local_files_only: bool = False,
     ) -> None:
         super().__init__()
@@ -194,6 +208,7 @@ class DualEncoderMerger(nn.Module):
         self.use_text_branch = use_text_branch
         self.use_vision_branch = use_vision_branch
         self.max_vis_tokens = max_vis_tokens
+        self.vis_layers = [int(i) for i in vis_layers.split(",") if i.strip()] if vis_layers else []
 
         # Frozen text-only LLM (bf16 to keep Gemma2-9B within a single GPU).
         self.model_llm = AutoModelForCausalLM.from_pretrained(
@@ -231,7 +246,8 @@ class DualEncoderMerger(nn.Module):
             self.encoder_vis = getattr(vis_model, "vision_model", vis_model)
             for p in self.encoder_vis.parameters():
                 p.requires_grad = False
-            self.mapping_vis = Mapping(self.encoder_vis.config.hidden_size, llm_dim)
+            vis_in_dim = self.encoder_vis.config.hidden_size * max(1, len(self.vis_layers))
+            self.mapping_vis = Mapping(vis_in_dim, llm_dim)
 
         self.llm_pad_token_id = llm_pad_token_id
         self.llm_bos_token_id = llm_bos_token_id if llm_bos_token_id is not None else llm_pad_token_id
@@ -291,7 +307,19 @@ class DualEncoderMerger(nn.Module):
         """
         bs = pixel_values.size(0)
         dtype = self.llm_dtype
-        vis_hidden = self.encoder_vis(pixel_values=pixel_values).last_hidden_state
+        vis_out = self.encoder_vis(
+            pixel_values=pixel_values, output_hidden_states=bool(self.vis_layers)
+        )
+        if self.vis_layers:
+            # DenseConnector DCI: channel-concat per patch. Patch order is
+            # identical across layers, so τ_k truncation below stays valid.
+            feats = [
+                vis_out.last_hidden_state if i == -1 else vis_out.hidden_states[i]
+                for i in self.vis_layers
+            ]
+            vis_hidden = torch.cat(feats, dim=-1)
+        else:
+            vis_hidden = vis_out.last_hidden_state
         if self.max_vis_tokens > 0:
             vis_hidden = vis_hidden[:, : self.max_vis_tokens]
         v_f = self.mapping_vis(vis_hidden.float()).to(dtype)
