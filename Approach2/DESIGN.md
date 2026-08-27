@@ -105,7 +105,7 @@ captions carry content words, never negative evidence or precise geometry.
 Not a token-budget issue: all 729 SigLIP2 patches pass through, in raster
 order.
 
-### D9 — DenseConnector multi-layer vision features (2026-08-26) — PENDING
+### D9 — DenseConnector multi-layer vision features (2026-08-26) — ACCEPTED
 DCI variant: channel-concatenate SigLIP2 hidden states from layers 9, 18 and
 the post-layernorm final layer per patch before the vision mapping
 (`--vis-layers "9,18,-1"`; mapping input 1152→3456). Motivated by D8:
@@ -124,16 +124,40 @@ stage-3-epochs lever (targets yes/no, learned from GQA itself, not from
 captions) is tested separately afterwards by re-running with `S3_EPOCHS=2`
 (reuses the stage-2 DC checkpoint).
 
-**Baseline to beat** (stage3_bn_replay): xGQA-bn 41.3/31.0, CVQA-bn
-39.2/32.5, MGSM 37.6, MSVAMP 49.8. **Result**: _pending._
+**Result** (bn, job 19664268, ~10h wall-clock):
+
+| bench | baseline | + DenseConnector | Δ |
+|---|---|---|---|
+| xGQA full | 41.26 | **44.23** | **+2.97** |
+| xGQA blind | 31.01 | 30.93 | −0.08 |
+| xGQA ΔV | +10.25 | **+13.30** | +3.05 |
+| CVQA full | 39.16† | 39.16 | ±0.00 |
+| CVQA blind | 32.52† | 28.32 | −4.20 |
+| CVQA ΔV | +6.64† | **+10.84** | +4.20 |
+| MGSM | 37.6 | 32.4 | −5.2 (n=250, ~1.7σ) |
+| MSVAMP | 49.8 | 49.4 | −0.4 (noise) |
+
+† CVQA baseline is stage3_bn_v2 — the replay pilot didn't run CVQA; D6
+showed replay leaves VQA intact, so the comparison stands with that caveat.
+
+**Reading**: the +2.97 xGQA gain is entirely visual — blind is unchanged, so
+ΔV rises 1:1 with full accuracy. First genuine vision-extraction gain since
+D4 and the best xGQA-bn to date. Unpaired z ≈ 4.8 at n=12,578 (paired
+McNemar pending per-item harvest). CVQA tells the same story differently:
+identical full accuracy but −4.2 blind — the model answers the same
+questions leaning less on prior and more on pixels. MSVAMP flat; MGSM −5.2
+is ~1.7σ at n=250 — watch whether the e2 arm recovers it (more replay
+steps). Category attribution (color/material/spatial/yes-no as predicted?)
+pending the per-item harvest. **ACCEPTED into the standard recipe.**
 
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
 
-1. ~~DenseConnector~~ → D9 (pilot running).
+1. ~~DenseConnector~~ → D9 ACCEPTED (+2.97 xGQA full, all of it ΔV).
 2. Stage-3 epochs ≥2 (yes/no verification is learned in stage 3; currently
-   1 epoch) — free, `S3_EPOCHS` env exists.
+   1 epoch) — free, `S3_EPOCHS=2` reuses the stage-2 DC checkpoint (~4h,
+   only stage 3 + evals rerun). NEXT.
 3. Stage-2 scale-up to LLaVA-Pretrain-558k (English captions only — our
    structural advantage; D4 showed the derivative: 745→11.5k ≈ +10 ΔV).
    Needs a ~30GB login-node download.
