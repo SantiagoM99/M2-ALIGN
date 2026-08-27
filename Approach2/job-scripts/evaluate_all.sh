@@ -16,7 +16,8 @@
 # between rounds and were already measured). Each eval is skipped when its
 # .summary.json already exists, so re-running only fills gaps.
 #
-# Env: DT (required), ROUND (optional round tag).
+# Env: DT (required), ROUND (optional round tag), VIS_LAYERS (default ""
+#      — MUST match what the round's checkpoints were trained with).
 
 set -uo pipefail
 
@@ -24,6 +25,7 @@ PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
 DT="${DT:?set DT}"
 R="${ROUND:+_$ROUND}"
+VIS_LAYERS="${VIS_LAYERS:-}"
 
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
 VIS_PATH="${VIS_PATH:-google/siglip2-so400m-patch14-384}"
@@ -90,6 +92,7 @@ run_one () {  # <kind:xgqa|cvqa> <lang> <blind:0|1>
       --mt-path     "$MT_PATH" \
       --vis-path    "$VIS_PATH" \
       --llm-path    "$LLM_PATH" \
+      --vis-layers  "$VIS_LAYERS" \
       --local-files-only \
       "${args[@]}"; then
     echo "### $kind $L blind=$blind FAILED — continuing"
@@ -145,6 +148,13 @@ harvest_dir () {
     [ -f "$f" ] || continue
     base="$(basename "${f%.jsonl.summary.json}")"
     cp "$f" "$RESULTS_DIR/${base}${R}.jsonl.summary.json" 2>/dev/null || true
+  done
+  # Per-item xGQA predictions too — category breakdowns + McNemar
+  # (analysis/xgqa_category_breakdown.py) need them.
+  for f in "$dir"/eval_xgqa_*.jsonl; do
+    [ -f "$f" ] || continue
+    base="$(basename "${f%.jsonl}")"
+    cp "$f" "$RESULTS_DIR/${base}${R}.jsonl" 2>/dev/null || true
   done
 }
 for L in $XGQA_LANGS $CVQA_LANGS; do

@@ -15,9 +15,17 @@
 # prerequisites (stage-1/stage-2 ckpts, stage3b data) are missing; a failed
 # language is reported and the loop continues.
 #
+# Since v3 the standard recipe includes text replay (DESIGN.md D6): each
+# language's GSM8K math replay is NLLB-built in-job if missing (~20 min/lang,
+# GSM8K must be in the HF datasets cache — compute nodes are offline), then
+# mixed with the language's stage-1 translation rows every REPLAY_EVERY VQA
+# steps. REPLAY=0 disables. VIS_LAYERS (DESIGN.md D9) must match the
+# stage-2 checkpoint's setting — ckpts don't load across different values.
+#
 # Env: DT (required), ROUND (optional round tag, e.g. v2),
 #      STAGE2_CKPT (required), LANGS (default: bn + 10),
-#      S3_EPOCHS / S3_LR overrides.
+#      VIS_LAYERS (default "" = single-layer), REPLAY (default 1),
+#      REPLAY_EVERY (default 3), S3_EPOCHS / S3_LR overrides.
 
 set -uo pipefail
 
@@ -27,6 +35,9 @@ DT="${DT:?set DT}"
 R="${ROUND:+_$ROUND}"
 STAGE2_CKPT="${STAGE2_CKPT:?set STAGE2_CKPT}"
 LANGS="${LANGS:-bn de ru zh pt id ko jv mn si ga}"
+VIS_LAYERS="${VIS_LAYERS:-}"
+REPLAY="${REPLAY:-1}"
+REPLAY_EVERY="${REPLAY_EVERY:-3}"
 
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
 VIS_PATH="${VIS_PATH:-google/siglip2-so400m-patch14-384}"
@@ -37,6 +48,9 @@ GQA_IMAGES="${GQA_IMAGES:-$DT/Stage3/data/gqa/images}"
 declare -A NAME=( [bn]=Bengali [de]=German [ru]=Russian [zh]=Chinese
                   [pt]=Portuguese [id]=Indonesian [ko]=Korean [jv]=Javanese
                   [mn]=Mongolian [si]=Sinhalese [ga]=Irish )
+declare -A NLLB=( [bn]=ben_Beng [de]=deu_Latn [ru]=rus_Cyrl [zh]=zho_Hans
+                  [pt]=por_Latn [id]=ind_Latn [ko]=kor_Hang [jv]=jav_Latn
+                  [mn]=khk_Cyrl [si]=sin_Sinh [ga]=gle_Latn )
 
 if [ -d "$MT_PATH" ]; then
   for d in "$MT_PATH"/*; do
@@ -47,6 +61,7 @@ fi
 echo "=== Job info ==="
 date; hostname
 echo "ROUND=${ROUND:-} STAGE2_CKPT=$STAGE2_CKPT"
+echo "VIS_LAYERS=$VIS_LAYERS REPLAY=$REPLAY REPLAY_EVERY=$REPLAY_EVERY"
 nvidia-smi || true
 
 echo "=== Load modules ==="
@@ -94,6 +109,31 @@ for L in $LANGS; do
     echo "### stage3 $L: stage-1 checkpoint missing ($S1_CKPT), skipping"
     continue
   fi
+  REPLAY_ARGS=()
+  if [ "$REPLAY" = 1 ]; then
+    MATH="$A2/data/math_replay_$L.jsonl"
+    if [ ! -f "$MATH" ]; then
+      echo "=== build math replay $L (${NLLB[$L]}) === $(date)"
+      if ! python -u build_math_replay.py \
+          --nllb-tag "${NLLB[$L]}" \
+          --mt-path  "$MT_PATH" \
+          --output   "$MATH" \
+          --local-files-only; then
+        echo "### stage3 $L: math replay build FAILED — skipping language"
+        FAILED+=("$L")
+        continue
+      fi
+    fi
+    RDATA="$MATH"
+    TRANS="$DT/Stage1/data/${name}_to_English.jsonl"
+    if [ -f "$TRANS" ]; then
+      RDATA="$RDATA,$TRANS"
+    else
+      echo "--- $L: no translation data ($TRANS) — math-only replay"
+    fi
+    REPLAY_ARGS=(--replay-data "$RDATA" --replay-every "$REPLAY_EVERY"
+                 --replay-default-tag "${NLLB[$L]}")
+  fi
   RESUME_ARGS=()
   [ -f "$OUT/training_state.pt" ] && RESUME_ARGS=(--resume-from-checkpoint "$OUT/training_state.pt")
   echo "=== stage3 $L ($name) === $(date)"
@@ -106,6 +146,7 @@ for L in $LANGS; do
       --mt-path     "$MT_PATH" \
       --vis-path    "$VIS_PATH" \
       --llm-path    "$LLM_PATH" \
+      --vis-layers  "$VIS_LAYERS" \
       --epochs      "${S3_EPOCHS:-1}" \
       --lr          "${S3_LR:-2e-5}" \
       --train-batch-size 2 \
@@ -116,6 +157,7 @@ for L in $LANGS; do
       --use-wandb --wandb-mode offline --wandb-project m2-align \
       --wandb-run-name "a2-stage3-$L$R" \
       --local-files-only \
+      "${REPLAY_ARGS[@]}" \
       "${RESUME_ARGS[@]}"; then
     echo "### stage3 $L FAILED — continuing with next language"
     FAILED+=("$L")

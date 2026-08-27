@@ -170,6 +170,19 @@ volume but its ΔV (+5.8) is still far from Qwen's (+22) — the D8 diagnosis
 stands: verification needs training signal (stage-3 epochs / existence-QA),
 not just better features.
 
+### D10 — Round v3: replay + DenseConnector, all 11 languages (2026-08-27)
+Composition of every accepted lever into a full round: per-language stage 3
+warm-started from round-B stage 1 + the shared D9 `stage2_dc` (nothing
+retrained below stage 3), with text replay (D6) in every language — each
+language's GSM8K math replay is NLLB-built in-job on first use
+(`train_stage3_all.sh` gained `REPLAY`/`VIS_LAYERS`/per-language NLLB
+tags; `--replay-default-tag` matters: translation rows carry no tag and
+default to ben_Beng otherwise). `evaluate_all.sh` gained `VIS_LAYERS` and
+now harvests per-item xGQA predictions for paired analyses. Launcher
+`launch_v3.sh`: two chained jobs (train → eval), one GPU at a time.
+`S3_EPOCHS` is set by the D9 e2-arm verdict (pending). Outputs
+`stage3_<lang>_v3`, results harvested as `*_v3`. **Result**: _pending._
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
