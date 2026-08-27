@@ -16,15 +16,18 @@
 #       data. Fewer epochs (2, not 10) to keep sample-epochs comparable:
 #       11.5k x 10 = 115k, 111k x 2 = 222k, and D4's best val_ppl came at
 #       epoch 4 of 10 (~46k), so 2 epochs is already past that point.
-#   [2] stage 3 bn: identical to stage3_bn_dc (1 ep, replay, same lr)
+#   [2] stage 3 bn: identical to stage3_bn_dc_e2 (2 ep, replay, same lr) —
+#       the D9b-accepted recipe, so the delta measures what LLaVA adds ON TOP
+#       of everything already accepted
 #   [3] xGQA bn full+blind, CVQA bn full+blind, MGSM, MSVAMP
 #
-# Baseline to beat (stage3_bn_dc, DESIGN.md D9): xGQA 44.23/30.93,
-# CVQA 39.16/28.32, MGSM 32.4, MSVAMP 49.4.
+# Baseline to beat (stage3_bn_dc_e2, DESIGN.md D9b): xGQA 46.34/30.98,
+# CVQA 41.61/32.52, MGSM 35.6, MSVAMP 54.2.
 #
 # Prereq: build_llava_pretrain.py already run on a login node.
 # Env: DT (required), LLAVA_DIR (default $DT/Stage2/data/llava),
-#      VIS_LAYERS (default "9,18,-1"), S2_EPOCHS (2), REPLAY_EVERY (3).
+#      VIS_LAYERS (default "9,18,-1"), S2_EPOCHS (2), S3_EPOCHS (2),
+#      REPLAY_EVERY (3).
 
 set -uo pipefail
 
@@ -34,6 +37,7 @@ DT="${DT:?set DT}"
 LLAVA_DIR="${LLAVA_DIR:-$DT/Stage2/data/llava}"
 VIS_LAYERS="${VIS_LAYERS:-9,18,-1}"
 S2_EPOCHS="${S2_EPOCHS:-2}"
+S3_EPOCHS="${S3_EPOCHS:-2}"
 REPLAY_EVERY="${REPLAY_EVERY:-3}"
 
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
@@ -44,10 +48,12 @@ GQA_IMAGES="${GQA_IMAGES:-$DT/Stage3/data/gqa/images}"
 
 STAGE1_CKPT="$A2/outputs/stage1/mapping/pytorch_model.bin"
 S2_OUT="$A2/outputs/stage2_dc_llava"
-S3_OUT="$A2/outputs/stage3_bn_dcl"
 MATH_REPLAY="$A2/data/math_replay_bn.jsonl"
 TRANS_REPLAY="$DT/Stage1/data/Bengali_to_English.jsonl"
+
 TAG="dcl"
+[ "$S3_EPOCHS" != 2 ] && TAG="dcl_e$S3_EPOCHS"
+S3_OUT="$A2/outputs/stage3_bn_$TAG"
 
 if [ -d "$MT_PATH" ]; then
   for d in "$MT_PATH"/*; do
@@ -57,7 +63,7 @@ fi
 
 echo "=== Job info ==="
 date; hostname
-echo "TAG=$TAG VIS_LAYERS=$VIS_LAYERS S2_EPOCHS=$S2_EPOCHS LLAVA_DIR=$LLAVA_DIR"
+echo "TAG=$TAG VIS_LAYERS=$VIS_LAYERS S2_EPOCHS=$S2_EPOCHS S3_EPOCHS=$S3_EPOCHS LLAVA_DIR=$LLAVA_DIR"
 nvidia-smi || true
 
 echo "=== Load modules ==="
@@ -140,7 +146,7 @@ else
     --vis-layers  "$VIS_LAYERS" \
     --replay-data "$MATH_REPLAY,$TRANS_REPLAY" \
     --replay-every "$REPLAY_EVERY" \
-    --epochs 1 --lr 2e-5 \
+    --epochs "$S3_EPOCHS" --lr 2e-5 \
     --train-batch-size 2 --eval-batch-size 2 --grad-accum 16 \
     --max-gen-len 64 --save-steps 200 \
     --use-wandb --wandb-mode offline --wandb-project m2-align \

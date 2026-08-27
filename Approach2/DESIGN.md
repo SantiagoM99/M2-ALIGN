@@ -230,13 +230,14 @@ unzip: 558k files would threaten the scratch inode quota; a larger
 100k → ~111k stage-2 pairs with CC3M+WIT.
 
 **Ablation discipline**: `job-scripts/pilot_scale.sh` keeps the D9 connector
-and a stage 3 identical to `stage3_bn_dc`, so stage-2 *data* is the only
-variable. Epochs drop 10 → 2 to hold sample-epochs comparable (11.5k×10 =
+and a stage 3 identical to `stage3_bn_dc_e2` (the D9b recipe), so stage-2
+*data* is the only variable and the delta measures what LLaVA adds on top of
+everything already accepted. Epochs drop 10 → 2 to hold sample-epochs comparable (11.5k×10 =
 115k vs 111k×2 = 222k) — D4's best val_ppl landed at epoch 4 of 10 (~46k),
 so 2 epochs is already well past that point.
 
-**Baseline to beat** (stage3_bn_dc): xGQA-bn 44.23/30.93, CVQA-bn
-39.16/28.32, MGSM 32.4, MSVAMP 49.4. **Result**: _pending._
+**Baseline to beat** (stage3_bn_dc_e2): xGQA-bn 46.34/30.98, CVQA-bn
+41.61/32.52, MGSM 35.6, MSVAMP 54.2. **Result**: _pending._
 
 ---
 
