@@ -170,6 +170,43 @@ volume but its ΔV (+5.8) is still far from Qwen's (+22) — the D8 diagnosis
 stands: verification needs training signal (stage-3 epochs / existence-QA),
 not just better features.
 
+### D9b — Stage-3 epochs 1 → 2 (2026-08-27) — ACCEPTED
+The epochs lever isolated in D9's ablation plan: a second epoch of joint VQA
+training on the same `stage2_dc` checkpoint (`S3_EPOCHS=2`, job 19737101).
+It also doubles the number of replay steps.
+
+| bench | DC 1 ep | DC 2 ep | Δ |
+|---|---|---|---|
+| xGQA full | 44.23 | **46.34** | **+2.11** |
+| xGQA blind | 30.93 | 30.98 | +0.05 |
+| xGQA ΔV | +13.30 | **+15.36** | +2.06 |
+| CVQA full | 39.16 | **41.61** | +2.45 |
+| CVQA blind | 28.32 | 32.52 | +4.20 |
+| MGSM | 32.4 | 35.6 | +3.2 |
+| MSVAMP | 49.4 | **54.2** | +4.8 |
+
+Paired McNemar on xGQA full: b/c = 613/879, p = 5.7e-12. Wins on every
+benchmark with nothing traded away — blind is flat again, so the xGQA gain
+is visual. MSVAMP 54.2 is the best figure measured anywhere in this project
+(beats D6's replay-only 49.8) and MGSM recovers most of the D9 dip, which
+is what doubling the replay steps should do.
+
+Category attribution vs DC at 1 epoch:
+
+| category | n | Δ full | ΔV: 1ep → 2ep | McNemar p |
+|---|---|---|---|---|
+| material | 309 | **+6.15** | +4.5 → +11.0 | 1e-3 |
+| color | 758 | +2.77 | +16.0 → +18.7 | 0.011 |
+| yes/no | 4525 | +2.72 | +5.8 → **+8.9** | 2e-6 |
+| object/other | 6273 | +1.79 | +19.9 → +21.2 | 4e-6 |
+| spatial | 713 | −1.26 | +3.7 → +3.1 | 0.44 |
+
+The D8 prediction holds from the other side: yes/no barely responded to
+better features (D9: +2.5 ΔV) but responds to training signal (+3.1 ΔV
+here), because verification is learned from GQA, not from captions.
+Spatial is now the only category that moves for neither lever — it stays
+the open problem (queue item 4). **v3 runs with `S3_EPOCHS=2`.**
+
 ### D10 — Round v3: replay + DenseConnector, all 11 languages (2026-08-27)
 Composition of every accepted lever into a full round: per-language stage 3
 warm-started from round-B stage 1 + the shared D9 `stage2_dc` (nothing
@@ -180,7 +217,7 @@ tags; `--replay-default-tag` matters: translation rows carry no tag and
 default to ben_Beng otherwise). `evaluate_all.sh` gained `VIS_LAYERS` and
 now harvests per-item xGQA predictions for paired analyses. Launcher
 `launch_v3.sh`: two chained jobs (train → eval), one GPU at a time.
-`S3_EPOCHS` is set by the D9 e2-arm verdict (pending). Outputs
+`S3_EPOCHS=2` per D9b. Outputs
 `stage3_<lang>_v3`, results harvested as `*_v3`. **Result**: _pending._
 
 ### D11 — Stage-2 scale-up to LLaVA-Pretrain (2026-08-27) — PENDING
@@ -206,9 +243,7 @@ so 2 epochs is already well past that point.
 ## Improvement queue (evidence-ranked, 2026-08-26)
 
 1. ~~DenseConnector~~ → D9 ACCEPTED (+2.97 xGQA full, all of it ΔV).
-2. Stage-3 epochs ≥2 (yes/no verification is learned in stage 3; currently
-   1 epoch) — free, `S3_EPOCHS=2` reuses the stage-2 DC checkpoint (~4h,
-   only stage 3 + evals rerun). NEXT.
+2. ~~Stage-3 epochs ≥2~~ → D9b ACCEPTED (+2.11 xGQA, +4.8 MSVAMP).
 3. ~~Stage-2 scale-up to LLaVA-Pretrain-558k~~ → D11 (pilot written,
    awaiting the login-node download + conversion).
 4. Honeybee C-Abstractor (2D-aware abstraction) — targets spatial (ΔV −0.6).
