@@ -183,6 +183,24 @@ now harvests per-item xGQA predictions for paired analyses. Launcher
 `S3_EPOCHS` is set by the D9 e2-arm verdict (pending). Outputs
 `stage3_<lang>_v3`, results harvested as `*_v3`. **Result**: _pending._
 
+### D11 — Stage-2 scale-up to LLaVA-Pretrain (2026-08-27) — PENDING
+D4's derivative is the strongest evidence we have (745 → 11.5k pairs bought
++9.7 ΔV), and the 558k BLIP-LAION-CC-SBU captions are English-only, which
+this architecture accepts as-is. `build_llava_pretrain.py` streams a seeded
+sample straight out of `images.zip` into the `sha1(url).jpg` cache (no full
+unzip: 558k files would threaten the scratch inode quota; a larger
+`--sample` later re-extracts the same prefix plus new rows). Default sample
+100k → ~111k stage-2 pairs with CC3M+WIT.
+
+**Ablation discipline**: `job-scripts/pilot_scale.sh` keeps the D9 connector
+and a stage 3 identical to `stage3_bn_dc`, so stage-2 *data* is the only
+variable. Epochs drop 10 → 2 to hold sample-epochs comparable (11.5k×10 =
+115k vs 111k×2 = 222k) — D4's best val_ppl landed at epoch 4 of 10 (~46k),
+so 2 epochs is already well past that point.
+
+**Baseline to beat** (stage3_bn_dc): xGQA-bn 44.23/30.93, CVQA-bn
+39.16/28.32, MGSM 32.4, MSVAMP 49.4. **Result**: _pending._
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
@@ -191,9 +209,8 @@ now harvests per-item xGQA predictions for paired analyses. Launcher
 2. Stage-3 epochs ≥2 (yes/no verification is learned in stage 3; currently
    1 epoch) — free, `S3_EPOCHS=2` reuses the stage-2 DC checkpoint (~4h,
    only stage 3 + evals rerun). NEXT.
-3. Stage-2 scale-up to LLaVA-Pretrain-558k (English captions only — our
-   structural advantage; D4 showed the derivative: 745→11.5k ≈ +10 ΔV).
-   Needs a ~30GB login-node download.
+3. ~~Stage-2 scale-up to LLaVA-Pretrain-558k~~ → D11 (pilot written,
+   awaiting the login-node download + conversion).
 4. Honeybee C-Abstractor (2D-aware abstraction) — targets spatial (ΔV −0.6).
 5. M3IT-style instruction diversity in stages 2/3, incl. existence-QA
    synthesized from captions — targets yes/no (negative evidence).
