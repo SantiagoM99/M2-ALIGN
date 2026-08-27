@@ -147,8 +147,28 @@ McNemar pending per-item harvest). CVQA tells the same story differently:
 identical full accuracy but −4.2 blind — the model answers the same
 questions leaning less on prior and more on pixels. MSVAMP flat; MGSM −5.2
 is ~1.7σ at n=250 — watch whether the e2 arm recovers it (more replay
-steps). Category attribution (color/material/spatial/yes-no as predicted?)
-pending the per-item harvest. **ACCEPTED into the standard recipe.**
+steps). Paired McNemar on the full-image runs: b/c = 1161/1534,
+p = 6.7e-13. **ACCEPTED into the standard recipe.**
+
+**Category attribution** (bn, paired per-item,
+`analysis/xgqa_category_breakdown.py`) — every category moved in the
+predicted direction:
+
+| category | n | Δ full | ΔV: replay → DC | McNemar p |
+|---|---|---|---|---|
+| color | 758 | +5.80 | +3.8 → **+16.0** | 3e-4 |
+| yes/no | 4525 | +4.38 | +2.5 → +5.8 | 9e-8 |
+| spatial | 713 | +3.37 | **−0.3 → +3.7** | 0.10 |
+| material | 309 | +2.27 | +0.7 → +4.5 | 0.35 |
+| object/other | 6273 | +1.59 | +18.3 → +19.9 | 9e-4 |
+
+Color is the standout (ΔV ×4, exactly the shallow-layer signal the final
+contrastive layer discards) and spatial turns positive for the first time.
+The two small-n categories (spatial, material) are trends, not yet
+significant. yes/no contributes the largest share of the total gain by
+volume but its ΔV (+5.8) is still far from Qwen's (+22) — the D8 diagnosis
+stands: verification needs training signal (stage-3 epochs / existence-QA),
+not just better features.
 
 ---
 
