@@ -16,7 +16,8 @@
 # between rounds and were already measured). Each eval is skipped when its
 # .summary.json already exists, so re-running only fills gaps.
 #
-# Env: DT (required), ROUND (optional round tag), VIS_LAYERS (default ""
+# Env: DT (required), ROUND (optional round tag), TEXT_LANGS (default
+#      "bn de ru zh"), VIS_LAYERS (default ""
 #      — MUST match what the round's checkpoints were trained with).
 
 set -uo pipefail
@@ -109,33 +110,44 @@ for L in $CVQA_LANGS; do
   run_one cvqa "$L" 1
 done
 
-echo "=== Text evals MGSM/MSVAMP (bn, stage-3 variant) ==="
+echo "=== Text evals MGSM/MSVAMP (stage-3 variant) ==="
+# MGSM and MSVAMP overlap our 11 languages in exactly bn/de/ru/zh, so the
+# reasoning-retention result (DESIGN.md D11) can be shown in 4 languages
+# instead of 1. Per-language files are evaluation/<BENCH>_<lang>.jsonl;
+# Bengali falls back to the original untagged evaluation/<BENCH>.jsonl and
+# keeps its historical output filename, so old summaries still skip.
 TXT_OUT="$A2/outputs/text_eval_bn_v2$R"
-S3_BN="$A2/outputs/stage3_bn$R/mapping/pytorch_model.bin"
-if [ -f "$PROJECT_ROOT/evaluation/MGSM.jsonl" ] && [ -f "$S3_BN" ]; then
-  mkdir -p "$TXT_OUT"
+TEXT_LANGS="${TEXT_LANGS:-bn de ru zh}"
+declare -A TEXT_NLLB=( [bn]=ben_Beng [de]=deu_Latn [ru]=rus_Cyrl [zh]=zho_Hans )
+mkdir -p "$TXT_OUT"
+for L in $TEXT_LANGS; do
+  S3_L="$A2/outputs/stage3_$L$R/mapping/pytorch_model.bin"
+  if [ ! -f "$S3_L" ]; then echo "--- skip text $L (no stage-3 ckpt)"; continue; fi
   for bench in mgsm msvamp; do
     case "$bench" in
-      mgsm)   data="$PROJECT_ROOT/evaluation/MGSM.jsonl" ;;
-      msvamp) data="$PROJECT_ROOT/evaluation/MSVAMP.jsonl" ;;
+      mgsm)   B=MGSM ;;
+      msvamp) B=MSVAMP ;;
     esac
-    out="$TXT_OUT/eval_${bench}_bn_stage3.jsonl"
-    if [ -f "$out.summary.json" ]; then echo "--- skip $bench (summary exists)"; continue; fi
+    data="$PROJECT_ROOT/evaluation/${B}_${L}.jsonl"
+    if [ ! -f "$data" ] && [ "$L" = bn ]; then data="$PROJECT_ROOT/evaluation/${B}.jsonl"; fi
+    if [ ! -f "$data" ]; then echo "--- skip $bench $L (no $(basename "$data"))"; continue; fi
+    out="$TXT_OUT/eval_${bench}_${L}_stage3.jsonl"
+    if [ -f "$out.summary.json" ]; then echo "--- skip $bench $L (summary exists)"; continue; fi
+    echo "=== text $bench $L (${TEXT_NLLB[$L]}) === $(date)"
     if ! python -u evaluate_text.py \
         --data-path   "$data" \
         --benchmark   "$bench" \
         --output-path "$out" \
-        --ckpt        "$S3_BN" \
+        --ckpt        "$S3_L" \
+        --nllb-tag    "${TEXT_NLLB[$L]}" \
         --mt-path     "$MT_PATH" \
         --llm-path    "$LLM_PATH" \
         --local-files-only; then
-      echo "### text $bench FAILED — continuing"
-      FAILED+=("text:$bench")
+      echo "### text $bench $L FAILED — continuing"
+      FAILED+=("text:$bench:$L")
     fi
   done
-else
-  echo "(text evals skipped: evaluation/ files or bn stage-3 ckpt missing)"
-fi
+done
 
 echo "=== Harvest results into git ==="
 RESULTS_DIR="$A2/results"
@@ -150,8 +162,9 @@ harvest_dir () {
     cp "$f" "$RESULTS_DIR/${base}${R}.jsonl.summary.json" 2>/dev/null || true
   done
   # Per-item xGQA predictions too — category breakdowns + McNemar
-  # (analysis/xgqa_category_breakdown.py) need them.
-  for f in "$dir"/eval_xgqa_*.jsonl; do
+  # (analysis/xgqa_category_breakdown.py) need them; per-item MGSM/MSVAMP
+  # feed analysis/text_gen_health.py.
+  for f in "$dir"/eval_xgqa_*.jsonl "$dir"/eval_mgsm_*.jsonl "$dir"/eval_msvamp_*.jsonl; do
     [ -f "$f" ] || continue
     base="$(basename "${f%.jsonl}")"
     cp "$f" "$RESULTS_DIR/${base}${R}.jsonl" 2>/dev/null || true
