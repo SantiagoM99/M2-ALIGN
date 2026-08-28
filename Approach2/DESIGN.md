@@ -280,6 +280,24 @@ MGSM 54.4 by closing the vision channel (xGQA 19.4); D11 beats that MGSM
 therefore partly a function of the *other* modality's alignment quality —
 a claim worth its own ablation in the paper.
 
+**Generation-health verification** (`analysis/text_gen_health.py`): an
+accuracy jump this large could come from fewer broken generations rather
+than better reasoning. It does not — the opposite holds. `dcl` degenerates
+*more* (MGSM repetition loops 1.2% → 4.4%, unparseable 0% → 1.2%), and the
+gap **widens** once degenerate rows are dropped:
+
+| run | acc | loops | no-extract | acc, clean subset |
+|---|---|---|---|---|
+| MGSM dc_e2 | 35.6 | 1.2% | 0.0% | 36.2 |
+| MGSM **dcl** | 62.0 | 4.4% | 1.2% | **65.3** (+29.1) |
+| MSVAMP dc_e2 | 54.2 | 1.0% | 1.4% | 55.3 |
+| MSVAMP **dcl** | 64.5 | 3.1% | 3.9% | **68.4** (+13.1) |
+
+Loops score 9% on MGSM against 65% for everything else, so they are almost
+pure loss — a repetition penalty at decoding is ~2-3 points of untapped
+headroom, deliberately left alone to preserve the D8 protocol parity
+(future work / separately-marked row).
+
 Category attribution vs `stage3_bn_dc_e2` (paired, n = 12,578):
 
 | category | n | Δ full | ΔV: dc_e2 → dcl | McNemar p |
