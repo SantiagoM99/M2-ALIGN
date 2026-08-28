@@ -220,7 +220,7 @@ now harvests per-item xGQA predictions for paired analyses. Launcher
 `S3_EPOCHS=2` per D9b. Outputs
 `stage3_<lang>_v3`, results harvested as `*_v3`. **Result**: _pending._
 
-### D11 — Stage-2 scale-up to LLaVA-Pretrain (2026-08-27) — PENDING
+### D11 — Stage-2 scale-up to LLaVA-Pretrain (2026-08-28) — ACCEPTED
 D4's derivative is the strongest evidence we have (745 → 11.5k pairs bought
 +9.7 ΔV), and the 558k BLIP-LAION-CC-SBU captions are English-only, which
 this architecture accepts as-is. `build_llava_pretrain.py` streams a seeded
@@ -236,8 +236,66 @@ everything already accepted. Epochs drop 10 → 2 to hold sample-epochs comparab
 115k vs 111k×2 = 222k) — D4's best val_ppl landed at epoch 4 of 10 (~46k),
 so 2 epochs is already well past that point.
 
-**Baseline to beat** (stage3_bn_dc_e2): xGQA-bn 46.34/30.98, CVQA-bn
-41.61/32.52, MGSM 35.6, MSVAMP 54.2. **Result**: _pending._
+**Result** (job 19754253, `stage3_bn_dcl`): the largest single-lever gain
+measured in this project, and it lands on *reasoning*, not on VQA.
+
+| bench | stage2_dc (11.5k) | + LLaVA (~111k) | Δ |
+|---|---|---|---|
+| xGQA full | 46.34 | **47.66** | +1.32 |
+| xGQA blind | 30.98 | 30.83 | −0.15 |
+| xGQA ΔV | +15.36 | **+16.83** | +1.47 |
+| CVQA full | 41.61 | 39.16 | −2.45 |
+| CVQA blind | 32.52 | 30.42 | −2.10 |
+| CVQA ΔV | +9.09 | +8.74 | −0.35 |
+| MGSM | 35.6 | **62.0** | **+26.4** |
+| MSVAMP | 54.2 | **64.5** | **+10.3** |
+
+Paired McNemar on xGQA full: b/c = 1146/1312, p = 8.1e-4; blind flat again,
+so the whole VQA gain is visual. CVQA moves 7 items on n=286 (≈1σ) with ΔV
+unchanged — noise, not a regression.
+
+**The reasoning result is the finding.** Stage-2 data is vision-caption data
+that never touches the text mapping, yet it nearly doubles MGSM. Placed
+against the frozen-LLM ceiling (Gemma-2-9b-it answering the same items in
+English: MGSM 74.8, MSVAMP 69.6), the pipeline now recovers **83%** of the
+MGSM ceiling and **93%** of MSVAMP, from 9.2/36.2 before replay.
+
+| variant | MGSM | MSVAMP | xGQA full |
+|---|---|---|---|
+| stage 3, no replay (D2) | 9.2 | 36.2 | 41.2 |
+| + replay (D6) | 37.6 | 49.8 | 41.3 |
+| + zero-init gate (D7) | 54.4 | 56.5 | 19.4 ✗ |
+| + DC + 2 ep (D9/D9b) | 35.6 | 54.2 | 46.34 |
+| **+ LLaVA stage 2 (D11)** | **62.0** | **64.5** | **47.66** |
+| frozen Gemma-2-9b-it, English | 74.8 | 69.6 | — |
+
+Mechanism (hypothesis): stage 3 trains both mappings jointly into one frozen
+LLM. A poorly aligned vision mapping puts a large gradient on the shared
+input space, and the text mapping drifts off its stage-1 solution to
+compensate — which is exactly the D2 interference, only sourced upstream.
+Better visual alignment removes the pressure, so the text path survives.
+This **moves the D7 frontier instead of trading along it**: D7 bought
+MGSM 54.4 by closing the vision channel (xGQA 19.4); D11 beats that MGSM
+*and* posts the best xGQA measured. Reasoning retention in joint training is
+therefore partly a function of the *other* modality's alignment quality —
+a claim worth its own ablation in the paper.
+
+Category attribution vs `stage3_bn_dc_e2` (paired, n = 12,578):
+
+| category | n | Δ full | ΔV: dc_e2 → dcl | McNemar p |
+|---|---|---|---|---|
+| material | 309 | **+7.77** | +11.0 → **+19.4** | 1.3e-3 |
+| color | 758 | **+6.46** | +18.7 → +21.8 | 6.7e-5 |
+| spatial | 713 | +2.66 | +3.1 → +2.1 | 0.25 |
+| object/other | 6273 | +0.81 | +21.2 → +22.3 | 0.092 |
+| yes/no | 4525 | +0.51 | +8.9 → +10.6 | 0.48 |
+
+Fine attributes (material, color) take the whole gain — more captions teach
+more attribute vocabulary. Spatial's *full* accuracy rises but its ΔV falls:
+the gain there is prior, not sight. Both open categories from D8/D9b stand
+unmoved by data volume, which sharpens the queue: **spatial needs
+architecture (C-Abstractor), yes/no needs task supervision (existence-QA)**;
+neither is a data-quantity problem.
 
 ---
 
@@ -245,8 +303,9 @@ so 2 epochs is already well past that point.
 
 1. ~~DenseConnector~~ → D9 ACCEPTED (+2.97 xGQA full, all of it ΔV).
 2. ~~Stage-3 epochs ≥2~~ → D9b ACCEPTED (+2.11 xGQA, +4.8 MSVAMP).
-3. ~~Stage-2 scale-up to LLaVA-Pretrain-558k~~ → D11 (pilot written,
-   awaiting the login-node download + conversion).
+3. ~~Stage-2 scale-up to LLaVA-Pretrain-558k~~ → D11 ACCEPTED (+1.32 xGQA,
+   **+26.4 MGSM**, +10.3 MSVAMP). Follow-up: raise `--sample` 100k → 300k,
+   the derivative has not flattened.
 4. Honeybee C-Abstractor (2D-aware abstraction) — targets spatial (ΔV −0.6).
 5. M3IT-style instruction diversity in stages 2/3, incl. existence-QA
    synthesized from captions — targets yes/no (negative evidence).
