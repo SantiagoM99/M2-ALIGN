@@ -218,7 +218,16 @@ default to ben_Beng otherwise). `evaluate_all.sh` gained `VIS_LAYERS` and
 now harvests per-item xGQA predictions for paired analyses. Launcher
 `launch_v3.sh`: two chained jobs (train → eval), one GPU at a time.
 `S3_EPOCHS=2` per D9b. Outputs
-`stage3_<lang>_v3`, results harvested as `*_v3`. **Result**: _pending._
+`stage3_<lang>_v3`, results harvested as `*_v3`.
+
+Amended 2026-08-28 after D11: `launch_v3.sh` now takes `ROUND` and
+`S2_CKPT` (defaulting to the LLaVA-scaled `stage2_dc_llava` when present),
+and `seed_round_from_pilot.sh` transplants a finished bn pilot into a
+round's bn slot (~5-6 h of GPU saved). `evaluate_all.sh` runs the text
+benchmarks for every language MGSM/MSVAMP covers among ours — **bn, de, ru,
+zh** — with the right NLLB tag, so D11's reasoning claim stops resting on
+one language and n=250. **Result**: v3 running (stage2_dc arm, which is now
+the *control* for that 4-language comparison); v4 is the LLaVA arm.
 
 ### D11 — Stage-2 scale-up to LLaVA-Pretrain (2026-08-28) — ACCEPTED
 D4's derivative is the strongest evidence we have (745 → 11.5k pairs bought
@@ -297,6 +306,19 @@ Loops score 9% on MGSM against 65% for everything else, so they are almost
 pure loss — a repetition penalty at decoding is ~2-3 points of untapped
 headroom, deliberately left alone to preserve the D8 protocol parity
 (future work / separately-marked row).
+
+The frozen-LLM ceiling measured the same way (`text_eval_bn_v2_v2`, Gemma
+answering in English with no mapping): MGSM 74.8 raw / **75.0 clean**,
+MSVAMP 69.6 raw / **74.0 clean** — the extractor costs the ceiling 5.9% of
+MSVAMP rows, more than it costs us. Comparing like with like, D11 recovers
+**87% of the MGSM ceiling and 92% of MSVAMP** (raw-vs-raw gives 83%/93%, so
+the claim is robust to how degenerate rows are handled). Not parity, but the
+remaining gap is 9.7 points on MGSM where it was 65.6 before replay.
+
+One qualitative difference worth a sentence in the paper: the frozen LLM
+writes a median 499 characters of chain-of-thought per MGSM item, the mapped
+pipeline 227. It reasons correctly in half the tokens — or stops too early,
+which the repetition/length axis above could disambiguate.
 
 Category attribution vs `stage3_bn_dc_e2` (paired, n = 12,578):
 
