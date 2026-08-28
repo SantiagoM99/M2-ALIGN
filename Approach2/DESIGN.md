@@ -226,7 +226,18 @@ and `seed_round_from_pilot.sh` transplants a finished bn pilot into a
 round's bn slot (~5-6 h of GPU saved). `evaluate_all.sh` runs the text
 benchmarks for every language MGSM/MSVAMP covers among ours — **bn, de, ru,
 zh** — with the right NLLB tag, so D11's reasoning claim stops resting on
-one language and n=250. **Result**: v3 running (stage2_dc arm, which is now
+one language and n=250.
+
+Benchmark provenance: `fetch_text_benchmarks.py` (stdlib only, so it runs on
+a login node or a laptop) pulls MGSM from `juletxara/mgsm` and MSVAMP from
+`Mathoctopus/MSVAMP` — the same two releases Approach 1 uses — with the same
+field mapping as her `Stage1/tools/read_datasets.py` (MSVAMP `m_query` /
+`response`; MGSM question / numeric answer), and `--from-mindmerger` converts
+her local copies directly when they are reachable. Validated against the
+Bengali files behind every number above: MGSM identical, MSVAMP identical in
+all 1000 golds and in all 1000 questions after whitespace normalization (76
+rows carry a leading space in the July file). The bn evals keep using the
+original `MGSM.jsonl` / `MSVAMP.jsonl` so continuity is exact. **Result**: v3 running (stage2_dc arm, which is now
 the *control* for that 4-language comparison); v4 is the LLaVA arm.
 
 ### D11 — Stage-2 scale-up to LLaVA-Pretrain (2026-08-28) — ACCEPTED
