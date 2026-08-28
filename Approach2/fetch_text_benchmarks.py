@@ -31,6 +31,7 @@ goes into git: evaluation/ is gitignored (benchmark data stays out).
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import urllib.parse
@@ -90,6 +91,26 @@ def fetch_msvamp(lang: str) -> list[dict]:
     return rows
 
 
+# MindMerger layout (Maryam's Stage1/tools/read_datasets.py) — the same two
+# releases, stored locally: mgsm/mgsm_<code>.tsv (question TAB numeric answer)
+# and msvamp/test_<Name>.jsonl (m_query = localized question, response = gold).
+# Converting from these instead of the network gives byte-identical content to
+# what Approach 1 evaluates on, which is what protocol parity needs.
+
+def from_mindmerger(root: str, bench: str, lang: str) -> list[dict]:
+    if bench == "mgsm":
+        path = os.path.join(root, "mgsm", f"mgsm_{lang}.tsv")
+        with open(path, encoding="utf-8") as f:
+            return [{"question": r[0].strip(), "answer": r[1].replace(",", "").strip()}
+                    for r in csv.reader(f, delimiter="\t") if len(r) >= 2 and r[0].strip()]
+    path = os.path.join(root, "msvamp", f"test_{MSVAMP_NAME[lang]}.jsonl")
+    with open(path, encoding="utf-8") as f:
+        raw = [json.loads(l) for l in f if l.strip()]
+    return [{"question": (r.get("m_query") or r.get("query") or "").strip(),
+             "answer": str(r["response"]).strip()}
+            for r in raw if r.get("m_query") or r.get("query")]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Fetch MGSM/MSVAMP for extra languages.")
     ap.add_argument("--langs", nargs="+", default=["de", "ru", "zh"])
@@ -97,6 +118,9 @@ def main() -> None:
                     choices=["mgsm", "msvamp"])
     ap.add_argument("--out-dir", default="evaluation")
     ap.add_argument("--overwrite", action="store_true")
+    ap.add_argument("--from-mindmerger", metavar="DIR", default=None,
+                    help="Convert from a local MindMerger-layout datas/evaluation "
+                         "directory (Maryam's format) instead of downloading.")
     args = ap.parse_args()
 
     os.makedirs(args.out_dir, exist_ok=True)
@@ -111,7 +135,10 @@ def main() -> None:
             if os.path.exists(out) and not args.overwrite:
                 print(f"  {name} {lang}: exists — skipping"); continue
             try:
-                rows = fetch_mgsm(lang) if bench == "mgsm" else fetch_msvamp(lang)
+                if args.from_mindmerger:
+                    rows = from_mindmerger(args.from_mindmerger, bench, lang)
+                else:
+                    rows = fetch_mgsm(lang) if bench == "mgsm" else fetch_msvamp(lang)
             except Exception as e:
                 print(f"  {name} {lang}: FAILED — {type(e).__name__}: {e}"); continue
             if not rows:
