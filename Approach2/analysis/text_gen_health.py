@@ -40,7 +40,7 @@ def report(path: str) -> None:
     acc_clean = (sum(bool(r.get("correct")) for r in clean) / len(clean)) if clean else float("nan")
     acc_loop = (sum(bool(r.get("correct")) for r in loops) / len(loops)) if loops else float("nan")
 
-    print(f"{path.split('/')[-1]}")
+    print("/".join(path.rstrip("/").split("/")[-2:]))
     print(f"  n {n} | acc {acc:6.3f} | median chars {st.median(lens):6.1f}")
     print(f"  empty {len(empty):4d} ({len(empty)/n:5.1%}) | "
           f"no-extract {len(noext):4d} ({len(noext)/n:5.1%}) | "
