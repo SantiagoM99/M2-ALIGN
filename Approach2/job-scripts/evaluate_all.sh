@@ -161,10 +161,12 @@ harvest_dir () {
     base="$(basename "${f%.jsonl.summary.json}")"
     cp "$f" "$RESULTS_DIR/${base}${R}.jsonl.summary.json" 2>/dev/null || true
   done
-  # Per-item xGQA predictions too — category breakdowns + McNemar
-  # (analysis/xgqa_category_breakdown.py) need them; per-item MGSM/MSVAMP
-  # feed analysis/text_gen_health.py.
-  for f in "$dir"/eval_xgqa_*.jsonl "$dir"/eval_mgsm_*.jsonl "$dir"/eval_msvamp_*.jsonl; do
+  # Per-item predictions too. xGQA/CVQA feed the category breakdowns and
+  # paired McNemar; CVQA especially, because at n=286 per language only a
+  # pooled paired test over the low-resource group says anything at all
+  # (DESIGN.md D10). MGSM/MSVAMP feed analysis/text_gen_health.py.
+  for f in "$dir"/eval_xgqa_*.jsonl "$dir"/eval_cvqa_*.jsonl \
+           "$dir"/eval_mgsm_*.jsonl "$dir"/eval_msvamp_*.jsonl; do
     [ -f "$f" ] || continue
     base="$(basename "${f%.jsonl}")"
     cp "$f" "$RESULTS_DIR/${base}${R}.jsonl" 2>/dev/null || true

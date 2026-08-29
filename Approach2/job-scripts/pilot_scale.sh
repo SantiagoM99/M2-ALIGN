@@ -204,7 +204,7 @@ echo "=== Harvest results into git ==="
 RESULTS_DIR="$A2/results"
 mkdir -p "$RESULTS_DIR"
 cp "$S3_OUT"/eval_*.summary.json "$RESULTS_DIR/" 2>/dev/null || true
-cp "$S3_OUT"/eval_xgqa_*.jsonl "$RESULTS_DIR/" 2>/dev/null || true
+cp "$S3_OUT"/eval_xgqa_*.jsonl "$S3_OUT"/eval_cvqa_*.jsonl "$RESULTS_DIR/" 2>/dev/null || true
 cd "$PROJECT_ROOT"
 git add Approach2/results 2>/dev/null || true
 git commit -m "results: stage-2 scale pilot bn ($TAG, job ${SLURM_JOB_ID:-manual})" Approach2/results \
