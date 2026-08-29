@@ -16,6 +16,14 @@
 #
 # Expects the shared eval files at:  $PROJECT_ROOT/evaluation/{MGSM,MSVAMP}.jsonl
 # Submit from the repo root: sbatch Approach2/job-scripts/evaluate_text.sh
+#
+# Frozen-LLM ceiling for one language (no mapping, no checkpoint):
+#   EVAL_LANG=de EVAL_NLLB_TAG=deu_Latn VARIANTS=gemma \
+#   MGSM_PATH=$PWD/evaluation/MGSM_de.jsonl \
+#   MSVAMP_PATH=$PWD/evaluation/MSVAMP_de.jsonl \
+#   OUT=$PWD/Approach2/outputs/text_eval_de sbatch --export=ALL \
+#     Approach2/job-scripts/evaluate_text.sh
+# Re-running is free: an eval with a .summary.json is skipped.
 
 set -euo pipefail
 
@@ -62,13 +70,22 @@ done
 mkdir -p "$OUT"
 cd "$A2"
 
+# VARIANTS selects which rows to run: "gemma stage1 stage3" (default).
+# `VARIANTS=gemma` alone measures the frozen-LLM ceiling for a language —
+# no mapping, no checkpoint needed, which is what interpreting a stage-3
+# score requires (DESIGN.md D10).
+VARIANTS="${VARIANTS:-gemma stage1 stage3}"
+
 run_eval () {
   local bench="$1" data="$2" tag="$3"; shift 3
+  case " $VARIANTS " in *" $tag "*) ;; *) echo "--- skip $bench / $tag"; return ;; esac
+  local out="$OUT/eval_${bench}_${EVAL_LANG}_${tag}.jsonl"
+  [ -f "$out.summary.json" ] && { echo "--- skip $bench / $tag (summary exists)"; return; }
   echo "=== $bench / $tag ==="
   python -u evaluate_text.py \
     --data-path   "$data" \
     --benchmark   "$bench" \
-    --output-path "$OUT/eval_${bench}_${EVAL_LANG}_${tag}.jsonl" \
+    --output-path "$out" \
     --mt-path     "$MT_PATH" \
     --llm-path    "$LLM_PATH" \
     --nllb-tag    "$EVAL_NLLB_TAG" \
