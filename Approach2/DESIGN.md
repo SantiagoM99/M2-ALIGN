@@ -237,8 +237,52 @@ her local copies directly when they are reachable. Validated against the
 Bengali files behind every number above: MGSM identical, MSVAMP identical in
 all 1000 golds and in all 1000 questions after whitespace normalization (76
 rows carry a leading space in the July file). The bn evals keep using the
-original `MGSM.jsonl` / `MSVAMP.jsonl` so continuity is exact. **Result**: v3 running (stage2_dc arm, which is now
-the *control* for that 4-language comparison); v4 is the LLaVA arm.
+original `MGSM.jsonl` / `MSVAMP.jsonl` so continuity is exact.
+
+**Result** (jobs 19753766 + 19853876). The levers generalize: all 7 xGQA
+languages gain 3.5-5.5 points with the blind score flat, so the round-level
+gain is entirely visual.
+
+| | round B | v3 | Δ |
+|---|---|---|---|
+| xGQA full (7 langs) | 43.34 | **47.73** | +4.39 |
+| xGQA blind | 32.37 | 32.29 | −0.08 |
+| xGQA ΔV | +10.96 | **+15.43** | +4.47 |
+| CVQA full (10 langs) | 42.56 | **44.02** | +1.46 |
+| CVQA blind | 33.89 | 31.44 | −2.45 |
+| CVQA ΔV | +8.67 | **+12.58** | +3.91 |
+
+Pooled paired McNemar on xGQA, n = 88,046 shared items: b/c = 8155/12023,
+z = 27.2, p = 3.5e-163. Against the D8 references, xGQA is now 47.73 vs
+Qwen3-VL zero-shot 53.0 (gap 9.7 → 5.3) and Maryam's M2RB 55.59, while CVQA
+44.02 beats both (Qwen 40.75, M2RB 38.81) on a *lower* blind prior.
+
+**Replication / noise floor.** `stage3_bn_v3` retrains the D9b recipe from
+scratch, so comparing it against the `dc_e2` pilot measures run-to-run
+variance directly: xGQA −0.42, xGQA blind −0.16, MGSM −0.40, MSVAMP +0.30 —
+but **CVQA −2.80**. xGQA and the text benchmarks are stable to ~0.4 points,
+which every accepted lever clears by 3-5x; CVQA at n=286 has a noise floor
+of ±2.8 points, so no CVQA delta below ~3 points means anything, D11's −2.45
+included. Every CVQA claim in this document should be read against that bar.
+
+**Reasoning is not uniformly broken — Bengali is the outlier.** First
+measurement outside bn:
+
+| lang | MGSM | MSVAMP |
+|---|---|---|
+| bn | 35.2 | 54.5 |
+| de | 62.4 | 77.3 |
+| ru | **75.6** | 78.1 |
+| zh | 69.2 | 78.5 |
+
+de/ru/zh land 27-40 points above Bengali on MGSM, and their MSVAMP scores
+(77-78) exceed the *Bengali* frozen-LLM ceiling of 69.6 outright. This
+reframes D6/D9b/D11: those levers were fighting a failure concentrated in
+the low-resource language, not a general property of encoder injection.
+**Immediate next measurement**: there is no frozen-Gemma ceiling for
+de/ru/zh, so we cannot yet say whether ru's 75.6 is at ceiling or below it.
+That is a `--no-mapping` text eval in three languages — no training, no
+mapping, cheap — and it decides how D11's headline is phrased.
 
 ### D11 — Stage-2 scale-up to LLaVA-Pretrain (2026-08-28) — ACCEPTED
 D4's derivative is the strongest evidence we have (745 → 11.5k pairs bought
