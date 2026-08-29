@@ -425,6 +425,53 @@ unmoved by data volume, which sharpens the queue: **spatial needs
 architecture (C-Abstractor), yes/no needs task supervision (existence-QA)**;
 neither is a data-quantity problem.
 
+### D12 — Joint multilingual stage-1 mapping (2026-08-29) — PENDING
+
+**Why this and not another vision lever.** D10 measured two gaps, and the
+accepted levers move both the wrong way:
+
+| gap | round B | v3 |
+|---|---|---|
+| resource, CVQA full (LRL − HRL) | −7.80 | −7.29 |
+| resource, CVQA ΔV (LRL − HRL) | −1.40 | **−4.13** |
+| cultural (CVQA − xGQA, 6 shared langs) | +2.25 | **−1.18** |
+
+Every accepted lever so far — multi-layer features, more stage-3 epochs,
+more English captions — improves the *vision* side, which is
+language-independent by construction. Its benefit can only reach a language
+through a text mapping good enough to carry it, which predicts exactly what
+we see: high-resource languages convert the better visual channel into
+accuracy and low-resource ones do not. The cultural gap has a second, blunter
+cause: CC3M, WIT and LLaVA-Pretrain are Western English web imagery, so
+scaling stage 2 optimizes the distribution xGQA is drawn from.
+
+Judged by MindMerger's own standard this is a failure so far. Its thesis is
+that a frozen LLM already reasons and what non-English inputs lack is
+*understanding*, supplied by a multilingual encoder — so success is gap
+closure, not a higher mean.
+
+**The divergence.** MindMerger trains ONE mapping on every language shuffled
+together (`read_lego` / `read_nllb` in `Stage1/tools/read_datasets.py`
+accumulate across languages, then `random.shuffle`). We train eleven
+separate mappings (`train_stage1_all.sh` passes `--languages "$name"`, one
+per run). Sharing parameters across languages is precisely the mechanism by
+which a low-resource language borrows structure from a high-resource one,
+and we dropped it without testing it.
+
+**Design.** `launch_joint.sh`: one stage-1 mapping over all 11 languages
+(`train_stage1_joint.sh`), then the standard per-language stage 3 warm-started
+from it, then evals. Single variable vs v4 — the origin of the text mapping;
+stage 2, recipe, replay and epochs are unchanged (`train_stage3_all.sh` gained
+`STAGE1_CKPT` to pin a shared mapping, `evaluate_all.sh` gained `BENCHES` to
+order the benchmarks). `TRAIN_NUM=30000` per language x 11 ≈ 330k samples,
+about one per-language run's budget (100k x 3 epochs), so the joint mapping
+is handicapped on per-language data: winning under that handicap is the
+stronger result.
+
+**Metric**: `analysis/gap_report.py v4 vj` — the LRL−HRL gap and the
+CVQA−xGQA cultural gap. A round that lifts the mean while widening either
+gap does not count as progress here. **Result**: _pending._
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
@@ -434,9 +481,17 @@ neither is a data-quantity problem.
 3. ~~Stage-2 scale-up to LLaVA-Pretrain-558k~~ → D11 ACCEPTED (+1.32 xGQA,
    **+26.4 MGSM**, +10.3 MSVAMP). Follow-up: raise `--sample` 100k → 300k,
    the derivative has not flattened.
-4. Honeybee C-Abstractor (2D-aware abstraction) — targets spatial (ΔV −0.6).
-5. M3IT-style instruction diversity in stages 2/3, incl. existence-QA
+4. **Joint multilingual stage-1 mapping** → D12, pending. Promoted above the
+   vision levers on 2026-08-29: D10 shows those widen both the resource and
+   the cultural gap, which is the opposite of what this project is for.
+5. **Culturally diverse stage-2 imagery** — CC3M/WIT/LLaVA are Western
+   English web images, which is why scaling them buys xGQA and not CVQA.
+   Untested; the cheapest probe is reweighting toward WIT, whose Wikipedia
+   sourcing is already the most culturally varied thing in the mix.
+6. Honeybee C-Abstractor (2D-aware abstraction) — targets spatial (ΔV −0.6),
+   but it is another vision lever, so expect it to favour HRLs again.
+7. M3IT-style instruction diversity in stages 2/3, incl. existence-QA
    synthesized from captions — targets yes/no (negative evidence).
-6. LwF-KL do-no-harm loss — reasoning-preservation novelty candidate,
+8. LwF-KL do-no-harm loss — reasoning-preservation novelty candidate,
    complementary to D6.
-7. Gate ramp-up schedule — revisit D7's frontier.
+9. Gate ramp-up schedule — revisit D7's frontier.
