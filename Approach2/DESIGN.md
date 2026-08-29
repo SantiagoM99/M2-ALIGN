@@ -276,13 +276,46 @@ measurement outside bn:
 | zh | 69.2 | 78.5 |
 
 de/ru/zh land 27-40 points above Bengali on MGSM, and their MSVAMP scores
-(77-78) exceed the *Bengali* frozen-LLM ceiling of 69.6 outright. This
-reframes D6/D9b/D11: those levers were fighting a failure concentrated in
-the low-resource language, not a general property of encoder injection.
+(77-78) exceed the *Bengali* frozen-LLM ceiling of 69.6 outright.
+
+Read against the project's actual target — low-resource languages — this is
+the levers landing on the intended population, not a weakened claim. MGSM
+and MSVAMP intersect our 11 languages in bn, de, ru, zh: one low-resource
+language and three high-resource ones. The collapse appears in the former
+and not the latter, and D6/D9b/D11 recover it there while leaving the
+high-resource languages untouched, which is what a targeted fix looks like.
+The honest limit is n=1: Bengali is our only low-resource observation on
+these benchmarks, so "low-resource" rather than "Bengali" is a hypothesis
+the reasoning data cannot yet separate. The four remaining LRLs (jv, mn, si,
+ga) have no reasoning benchmark at all.
 **Immediate next measurement**: there is no frozen-Gemma ceiling for
 de/ru/zh, so we cannot yet say whether ru's 75.6 is at ceiling or below it.
 That is a `--no-mapping` text eval in three languages — no training, no
 mapping, cheap — and it decides how D11's headline is phrased.
+
+**Where the LRLs can be read: CVQA.** It is the only benchmark covering all
+five (bn, jv, mn, si, ga). Splitting the round B → v3 delta by resource
+level:
+
+| group | CVQA full B → v3 | ΔV B → v3 |
+|---|---|---|
+| low-resource (bn jv mn si ga) | 38.66 → 40.37 (+1.71) | +7.97 → +10.51 (**+2.54**) |
+| higher-resource (ru zh pt id ko) | 46.46 → 47.66 (+1.20) | +9.37 → +14.64 (**+5.27**) |
+
+The vision-extraction gap between the groups **widens**, −1.40 → −4.13: the
+accepted levers buy roughly twice as much ΔV for the languages that were
+already ahead. At n=286 per language (noise floor ±2.8, so ±1.3 on a
+5-language mean) the between-group difference is about 1σ — a signal, not a
+result. But it is the signal that matters most for an LRL-focused paper, and
+averaging cannot settle it. It needs a pooled paired test over the
+low-resource group (n ≈ 1430), which is why the harvest now keeps per-item
+CVQA predictions.
+
+If it holds, it is an argument for a lever aimed at LRLs specifically rather
+than more of the same: every accepted lever so far (multi-layer features,
+more epochs, more English captions) improves the *vision* side, which is
+language-independent by construction, so its benefit can only reach a
+language through a text mapping that is already good enough to carry it.
 
 ### D11 — Stage-2 scale-up to LLaVA-Pretrain (2026-08-28) — ACCEPTED
 D4's derivative is the strongest evidence we have (745 → 11.5k pairs bought
