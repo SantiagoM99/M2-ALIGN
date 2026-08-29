@@ -1,0 +1,12 @@
+{
+  "benchmark": "mgsm",
+  "scored": 250,
+  "correct": 180,
+  "accuracy": 0.72,
+  "data_path": "/home/santimn/links/projects/def-annielee/santimn/M2-ALIGN/evaluation/MGSM_zh.jsonl",
+  "ckpt": null,
+  "no_mapping": true,
+  "llm_path": "google/gemma-2-9b-it",
+  "mt_path": "facebook/nllb-200-distilled-600M",
+  "slurm_job_id": "19903402"
+}
