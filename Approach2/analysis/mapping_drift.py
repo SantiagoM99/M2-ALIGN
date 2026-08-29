@@ -58,13 +58,23 @@ def main() -> None:
     arms = {}
     for spec in args.arm:
         name, _, path = spec.partition("=")
-        sd = get_branch(path, args.branch)
-        missing = set(ref) ^ set(sd)
-        if missing:
-            raise SystemExit(f"{name}: key mismatch vs reference ({sorted(missing)[:4]})")
-        arms[name] = sd
+        arms[name] = get_branch(path, args.branch)
 
-    keys = sorted(ref)
+    # `gate` (D7) exists only in checkpoints trained after it was added, so
+    # stage-1 references predate it. Drift is measured over the shared
+    # weights; the gate is reported on its own below, since it is a scalar
+    # with a different meaning (1.0 = identity, i.e. untouched).
+    shared = set(ref)
+    for sd in arms.values():
+        shared &= set(sd)
+    extra = (set(ref) | set().union(*(set(sd) for sd in arms.values()))) - shared
+    if extra:
+        print(f"note: keys absent from at least one checkpoint, excluded from drift: "
+              f"{sorted(extra)}\n")
+
+    keys = sorted(shared)
+    if not keys:
+        raise SystemExit("no shared parameters between reference and arms")
     rflat = flat(ref, keys)
     print(f"branch = {args.branch} | reference = {args.ref}")
     print(f"parameters = {rflat.numel():,}  ||W1|| = {rflat.norm():.4f}\n")
@@ -84,6 +94,12 @@ def main() -> None:
                 a, b = deltas[names[i]], deltas[names[j]]
                 cos = torch.nn.functional.cosine_similarity(a, b, dim=0).item()
                 print(f"  {names[i]} vs {names[j]}: {cos:+.4f}")
+
+    gates = {n: sd["gate"] for n, sd in arms.items() if "gate" in sd}
+    if gates:
+        print("\ngate (1.0 = identity, the prefix passes through untouched):")
+        for n, g in gates.items():
+            print(f"  {n:10} {g.flatten().tolist()}")
 
     if args.per_tensor:
         print("\nper-tensor relative drift:")
