@@ -366,11 +366,38 @@ MGSM ceiling and **93%** of MSVAMP, from 9.2/36.2 before replay.
 | **+ LLaVA stage 2 (D11)** | **62.0** | **64.5** | **47.66** |
 | frozen Gemma-2-9b-it, English | 74.8 | 69.6 | — |
 
-Mechanism (hypothesis): stage 3 trains both mappings jointly into one frozen
-LLM. A poorly aligned vision mapping puts a large gradient on the shared
-input space, and the text mapping drifts off its stage-1 solution to
-compensate — which is exactly the D2 interference, only sourced upstream.
-Better visual alignment removes the pressure, so the text path survives.
+Mechanism: **the first hypothesis was tested and refuted.** It held that a
+poorly aligned vision mapping puts large gradients on the shared input space,
+so the text mapping drifts off its stage-1 solution to compensate, and better
+visual alignment removes that pressure. `analysis/mapping_drift.py` states
+the prediction (the dcl arm should drift less) and measures it:
+
+| arm | ‖ΔW‖ / ‖W₁‖ on `mapping_txt` | `end_boundary` |
+|---|---|---|
+| dc_e2 | 6.17% | 16.19% |
+| dcl | **6.44%** | **23.86%** |
+
+dcl drifts marginally *more*, not less, so the prediction fails and the
+drift-magnitude story is dead. Two things in the same measurement point
+elsewhere: the cosine between the two arms' update directions is only
+**+0.51** — they moved the text mapping to different destinations, not
+different distances — and the parameter that separates them most is
+`end_boundary`, the embedding marking the seam between the injected prefix
+and the native text.
+
+Two caveats before that becomes a new story. It is post-hoc, so it needs its
+own falsifiable test rather than a retelling. And weight distance is a poor
+proxy for function: two 2-layer MLPs can sit 6% apart and compute nearly the
+same map. The right instrument is functional
+(`analysis/mapping_function_drift.py`: encode benchmark questions with NLLB,
+push them through each arm's mapping, compare the produced prefixes). The
+drift-magnitude comparison also has no noise floor yet — `stage3_bn_v3`
+retrains the dc_e2 recipe, so it supplies one for free, and if same-recipe
+runs differ by more than the 0.27 points between the arms, none of this
+means anything.
+
+**D11's result stands regardless**; what does not stand is the explanation
+for it.
 This **moves the D7 frontier instead of trading along it**: D7 bought
 MGSM 54.4 by closing the vision channel (xGQA 19.4); D11 beats that MGSM
 *and* posts the best xGQA measured. Reasoning retention in joint training is
