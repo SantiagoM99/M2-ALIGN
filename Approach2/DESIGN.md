@@ -378,23 +378,39 @@ the prediction (the dcl arm should drift less) and measures it:
 | dcl | **6.44%** | **23.86%** |
 
 dcl drifts marginally *more*, not less, so the prediction fails and the
-drift-magnitude story is dead. Two things in the same measurement point
-elsewhere: the cosine between the two arms' update directions is only
-**+0.51** — they moved the text mapping to different destinations, not
-different distances — and the parameter that separates them most is
-`end_boundary`, the embedding marking the seam between the injected prefix
-and the native text.
+drift-magnitude story is dead.
 
-Two caveats before that becomes a new story. It is post-hoc, so it needs its
-own falsifiable test rather than a retelling. And weight distance is a poor
-proxy for function: two 2-layer MLPs can sit 6% apart and compute nearly the
-same map. The right instrument is functional
-(`analysis/mapping_function_drift.py`: encode benchmark questions with NLLB,
-push them through each arm's mapping, compare the produced prefixes). The
-drift-magnitude comparison also has no noise floor yet — `stage3_bn_v3`
-retrains the dc_e2 recipe, so it supplies one for free, and if same-recipe
-runs differ by more than the 0.27 points between the arms, none of this
-means anything.
+`stage3_bn_v3` retrains the dc_e2 recipe, which supplies the missing noise
+floor for free, and it separates the two quantities cleanly:
+
+| pair | cosine of update direction | drift |
+|---|---|---|
+| dc_e2 vs **v3** (same recipe) | **+0.928** | 6.17 / 6.30 |
+| dc_e2 vs dcl (different stage 2) | **+0.515** | 6.17 / 6.44 |
+| v3 vs dcl (different stage 2) | **+0.514** | 6.30 / 6.44 |
+
+Magnitude carries no signal: same-recipe runs differ by 0.13 points against
+0.27 between arms, the same order. Direction does. Retraining reproduces the
+update direction at 0.93, while changing the stage-2 checkpoint drops it to
+0.51 — against both runs, 0.5147 and 0.5140, far outside the run-to-run
+spread. The falsification condition was named before the measurement ("if
+same-recipe runs also sit near 0.51, this is noise") and did not trigger.
+
+**Revised claim, and it is stronger than the one it replaces**: the stage-2
+checkpoint *determines where joint training takes the text mapping*. English
+caption data, which never touches the text path, reroutes it to a
+substantially different solution — far more than retraining does. The two
+mappings are not independent; they are coupled through the frozen LLM's
+shared input space, which is the coupling D11's effect requires in order to
+exist at all. The parameter separating the arms most is `end_boundary`, the
+embedding marking the seam between injected prefix and native text. The gate
+sits at ~1.009 in all three (identity, no differential).
+
+Still open, and post-hoc, is *which* destination is better and why. Weight
+geometry cannot answer that — two 2-layer MLPs can sit 6% apart and compute
+nearly the same map — so the instrument is functional:
+`analysis/mapping_function_drift.py` encodes benchmark questions with NLLB,
+pushes them through each arm's mapping and compares the produced prefixes.
 
 **D11's result stands regardless**; what does not stand is the explanation
 for it.
