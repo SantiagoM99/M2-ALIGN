@@ -16,7 +16,8 @@
 # between rounds and were already measured). Each eval is skipped when its
 # .summary.json already exists, so re-running only fills gaps.
 #
-# Env: DT (required), ROUND (optional round tag), TEXT_LANGS (default
+# Env: DT (required), ROUND (optional round tag), BENCHES (default
+#      "xgqa cvqa" — order matters), TEXT_LANGS (default
 #      "bn de ru zh"), VIS_LAYERS (default ""
 #      — MUST match what the round's checkpoints were trained with).
 
@@ -101,13 +102,20 @@ run_one () {  # <kind:xgqa|cvqa> <lang> <blind:0|1>
   fi
 }
 
-for L in $XGQA_LANGS; do
-  run_one xgqa "$L" 0
-  run_one xgqa "$L" 1
-done
-for L in $CVQA_LANGS; do
-  run_one cvqa "$L" 0
-  run_one cvqa "$L" 1
+# BENCHES sets which VQA benchmarks run and IN WHAT ORDER. Put cvqa first
+# when the question is about the low-resource or cultural gap: CVQA is the
+# only benchmark covering all five LRLs and it is ~44x cheaper per language
+# than xGQA (286 vs 12,578 items), so a truncated job still answers it.
+for bench in ${BENCHES:-xgqa cvqa}; do
+  case "$bench" in
+    xgqa) langs="$XGQA_LANGS" ;;
+    cvqa) langs="$CVQA_LANGS" ;;
+    *) echo "### unknown benchmark: $bench"; continue ;;
+  esac
+  for L in $langs; do
+    run_one "$bench" "$L" 0
+    run_one "$bench" "$L" 1
+  done
 done
 
 echo "=== Text evals MGSM/MSVAMP (stage-3 variant) ==="

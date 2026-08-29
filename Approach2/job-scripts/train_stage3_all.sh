@@ -100,7 +100,11 @@ for L in $LANGS; do
     echo "### stage3 $L: no stage3b data, skipping"
     continue
   fi
-  if [ "$L" = bn ]; then
+  # STAGE1_CKPT pins ONE shared text mapping for every language (the joint
+  # mapping of DESIGN.md D12); unset keeps the per-language checkpoints.
+  if [ -n "${STAGE1_CKPT:-}" ]; then
+    S1_CKPT="$STAGE1_CKPT"
+  elif [ "$L" = bn ]; then
     S1_CKPT="$A2/outputs/stage1/mapping/pytorch_model.bin"
   else
     S1_CKPT="$A2/outputs/stage1_$L/mapping/pytorch_model.bin"
