@@ -1,0 +1,13 @@
+{
+  "scored": 12578,
+  "skipped": 0,
+  "correct": 4111,
+  "accuracy": 0.3268405151852441,
+  "data_path": "/scratch/santimn/datatransfer/Stage3/data/xgqa/ko.jsonl",
+  "ckpt": "/lustre09/project/6072380/santimn/M2-ALIGN/Approach2/outputs/stage3_ko_v4/mapping/pytorch_model.bin",
+  "llm_path": "google/gemma-2-9b-it",
+  "vis_path": "google/siglip2-so400m-patch14-384",
+  "mt_path": "facebook/nllb-200-distilled-600M",
+  "blind": true,
+  "slurm_job_id": "19854283"
+}
