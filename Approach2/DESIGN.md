@@ -288,10 +288,43 @@ The honest limit is n=1: Bengali is our only low-resource observation on
 these benchmarks, so "low-resource" rather than "Bengali" is a hypothesis
 the reasoning data cannot yet separate. The four remaining LRLs (jv, mn, si,
 ga) have no reasoning benchmark at all.
-**Immediate next measurement**: there is no frozen-Gemma ceiling for
-de/ru/zh, so we cannot yet say whether ru's 75.6 is at ceiling or below it.
-That is a `--no-mapping` text eval in three languages — no training, no
-mapping, cheap — and it decides how D11's headline is phrased.
+**Per-language ceilings (measured 2026-08-29, `launch_ceilings.sh`).** Frozen
+Gemma-2-9b-it answering each language's own questions with no mapping:
+
+| lang | MGSM ceiling | v3 | % of ceiling | MSVAMP ceiling | v3 | % of ceiling |
+|---|---|---|---|---|---|---|
+| **bn** | 74.8 | 35.2 | **47.1%** | 69.6 | 54.5 | **78.3%** |
+| de | 70.8 | 62.4 | 88.1% | 80.7 | 77.3 | 95.8% |
+| ru | 76.8 | 75.6 | **98.4%** | 77.9 | 78.1 | **100.3%** |
+| zh | 72.0 | 69.2 | 96.1% | 80.9 | 78.5 | 97.0% |
+
+The bridge already works for de/ru/zh — Russian is at ceiling on both
+benchmarks. The system's entire deficit is Bengali's.
+
+**This is the project's thesis, measured against the right denominator.**
+Each language against its own ceiling, not against English and not against a
+mean. D11's arm on Bengali:
+
+| Bengali | deficit vs its own ceiling |
+|---|---|
+| v3 (control stage 2, 11.5k pairs) | MGSM −39.6, MSVAMP −15.1 |
+| dcl (LLaVA stage 2, ~111k pairs) | MGSM −12.8, MSVAMP −5.1 |
+
+Visual grounding removes **68% of the MGSM deficit and 66% of the MSVAMP
+deficit**. Two benchmarks, independent item sets, the same fraction.
+
+It also kills the obvious confound. Gemma's Bengali MGSM ceiling (74.8) is
+the *highest* of the four, above German (70.8) and Chinese (72.0); all four
+sit in a 70-77 band, so the spread is noise at n=250, but that is the point —
+the frozen LLM reads Bengali grade-school maths perfectly well. The 40-point
+deficit was never the language's nor the LLM's, it was the bridge's, and
+scaling English caption data recovered two thirds of it.
+
+**Prediction for v4, recorded before it lands**: de/ru/zh should move very
+little (≤3 points — they have 1-8 points of headroom and Russian has none),
+while Bengali holds the pilot's 62.0/64.5. If de/ru/zh improve substantially
+under the LLaVA arm, the effect is not low-resource-specific and this section
+needs rewriting.
 
 **Where the LRLs can be read: CVQA.** It is the only benchmark covering all
 five (bn, jv, mn, si, ga). Splitting the round B → v3 delta by resource
