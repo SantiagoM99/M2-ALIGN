@@ -126,7 +126,13 @@ echo "=== Text evals MGSM/MSVAMP (stage-3 variant) ==="
 # keeps its historical output filename, so old summaries still skip.
 TXT_OUT="$A2/outputs/text_eval_bn_v2$R"
 TEXT_LANGS="${TEXT_LANGS:-bn de ru zh}"
-declare -A TEXT_NLLB=( [bn]=ben_Beng [de]=deu_Latn [ru]=rus_Cyrl [zh]=zho_Hans )
+# jv/mn/si/ga are covered by neither MGSM nor MSVAMP; their files come from
+# build_translated_benchmark.py and are machine-translated (see its docstring
+# for why the percent-of-ceiling metric tolerates that). Add them with
+# TEXT_LANGS="bn de ru zh jv mn si ga" once the files exist.
+declare -A TEXT_NLLB=( [bn]=ben_Beng [de]=deu_Latn [ru]=rus_Cyrl [zh]=zho_Hans
+                       [jv]=jav_Latn [mn]=khk_Cyrl [si]=sin_Sinh [ga]=gle_Latn
+                       [sw]=swh_Latn [pt]=por_Latn [id]=ind_Latn [ko]=kor_Hang )
 mkdir -p "$TXT_OUT"
 for L in $TEXT_LANGS; do
   S3_L="$A2/outputs/stage3_$L$R/mapping/pytorch_model.bin"
