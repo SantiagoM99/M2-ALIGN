@@ -533,10 +533,13 @@ that a frozen LLM already reasons and what non-English inputs lack is
 *understanding*, supplied by a multilingual encoder — so success is gap
 closure, not a higher mean.
 
-**The divergence, and who shares it.** MindMerger trains ONE mapping on every
-language shuffled together — `Stage1/train.py:225` passes nine languages to
-`read_lego`, which accumulates across them and then `random.shuffle`s the
-combined set. Approach 2 trains eleven separate mappings
+**The divergence, and who shares it.** MindMerger's mapping stage trains ONE
+mapping over nine languages at once. In the upstream repo,
+`MindMerger/run_training.py:35` selects
+`['Bengali','Thai','Swahili','Japanese','Chinese','German','French','Russian','Spanish']`
+for the math task and hands them to `read_lego`
+(`mindmerger_tools/read_datasets.py:36`), which accumulates every language
+into a single `dataset_train`. Approach 2 trains eleven separate mappings
 (`train_stage1_all.sh` passes `--languages "$name"`, one per run).
 
 Approach 1 does the same as us: its stage-1 job invokes
