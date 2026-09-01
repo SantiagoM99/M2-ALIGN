@@ -533,13 +533,21 @@ that a frozen LLM already reasons and what non-English inputs lack is
 *understanding*, supplied by a multilingual encoder — so success is gap
 closure, not a higher mean.
 
-**The divergence.** MindMerger trains ONE mapping on every language shuffled
-together (`read_lego` / `read_nllb` in `Stage1/tools/read_datasets.py`
-accumulate across languages, then `random.shuffle`). We train eleven
-separate mappings (`train_stage1_all.sh` passes `--languages "$name"`, one
-per run). Sharing parameters across languages is precisely the mechanism by
-which a low-resource language borrows structure from a high-resource one,
-and we dropped it without testing it.
+**The divergence, and who shares it.** MindMerger trains ONE mapping on every
+language shuffled together — `Stage1/train.py:225` passes nine languages to
+`read_lego`, which accumulates across them and then `random.shuffle`s the
+combined set. Approach 2 trains eleven separate mappings
+(`train_stage1_all.sh` passes `--languages "$name"`, one per run).
+
+Approach 1 does the same as us: its stage-1 job invokes
+`--nllb_languages Bengali` (`Stage1/job-scripts/train.sh:89`), one language
+per run. So the two approaches are configured alike — the cross-approach
+comparison is apples to apples — but **both deviate from the baseline they
+cite**, and neither has tested the joint setting. Sharing parameters across
+languages is precisely the mechanism by which a low-resource language borrows
+structure from a high-resource one. A flat result closes the question; not
+running it leaves a reviewer's objection open. If it wins, the fix is one
+argument and it applies to Approach 1 too.
 
 **Design.** `launch_joint.sh`: one stage-1 mapping over all 11 languages
 (`train_stage1_joint.sh`), then the standard per-language stage 3 warm-started
