@@ -320,6 +320,13 @@ the frozen LLM reads Bengali grade-school maths perfectly well. The 40-point
 deficit was never the language's nor the LLM's, it was the bridge's, and
 scaling English caption data recovered two thirds of it.
 
+**No contamination.** The D6 replay is built from GSM8K's *train* split
+(`build_math_replay.py`: `load_dataset("openai/gsm8k", "main", split="train")`,
+7,473 problems); MGSM's 250 items come from GSM8K's *test* split. Disjoint.
+MSVAMP derives from SVAMP and shares no origin with GSM8K at all — which is
+why the two benchmarks agreeing on the recovery slope (0.71 vs 0.73) matters:
+one shares a source with the replay data and the other cannot.
+
 **Prediction for v4, recorded before it lands**: de/ru/zh should move very
 little (≤3 points — they have 1-8 points of headroom and Russian has none),
 while Bengali holds the pilot's 62.0/64.5. If de/ru/zh improve substantially
