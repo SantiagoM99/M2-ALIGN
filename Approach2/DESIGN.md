@@ -568,6 +568,62 @@ gap does not count as progress here. **Result**: _pending._
 
 ---
 
+## Positioning (literature sweep, 2026-09-01)
+
+11 searches over arXiv and the ACL Anthology, 10 abstracts read at source.
+Not a substitute for a related-work pass on a draft, but enough to fix the
+claim.
+
+**Occupied — do not claim these.**
+
+| work | setup | why it does not cover us |
+|---|---|---|
+| MERLIN (arXiv 2509.08105, EACL'26) | NLLB-600M + Gemma-2-9b, text only, DoRA in the decoder | no vision; LLM not frozen. Reports MGSM 76.2 / MSVAMP 79.2 with **our exact components** |
+| LLINK, "Languages are Modalities" (2510.27254) | frozen decoder, contrastive projector + soft slots | text only, one bridge. **The phrase is taken** |
+| MindMerger, LangBridge, SOLAR (2606.26466) | text encoder → frozen LLM | one bridge |
+| mBLIP (ACL'24 ALVR) | frozen multilingual LLM + vision bridge | requires MT'd multimodal data in 95 languages; no text-only eval; multilinguality lives in the LLM, not in a bridge |
+| X-Fusion (ICCV'25) | frozen LLM + vision, dual tower, "preserving language capabilities" | monolingual, no multilingual bridge |
+| VFA (2608.26155) | task-vector merging | fine-tunes; measures the text→vision direction |
+| AlignVLM (2502.01341) | Align connector: convex combination of LLM vocab embeddings | **trains the full LLM and reports no text-only benchmark** |
+| Cai et al. (2505.19616) | owns the term *modality interference* | spurious signals at inference, fixed by fine-tuning |
+| TowerVision (2510.21849) | multilingual VLM design study | fine-tunes; no text-only reasoning eval |
+| Puranegedara et al. (2508.09091) | fuses all intermediate layers of the text encoder into the LLM | kills the "text-side DenseConnector" idea outright |
+
+**What survives.**
+
+1. Two learned prefix bridges — multilingual text and vision — into one
+   frozen LLM, sharing an input space. No instance found; single-bridge work
+   is everywhere.
+2. **Degradation with zero weight updates.** Every account of multimodal
+   text degradation in the literature attributes it to catastrophic
+   forgetting and mitigates it on weights (continual learning, task vectors,
+   distillation from a frozen backbone). Gemma is never modified here, so
+   nothing is forgotten: the loss happens entirely in the *input* to a fixed
+   function. The field's standard explanation and its standard remedies do
+   not apply.
+3. The deficit-proportional recovery law (D11), governed by the *other*
+   modality's alignment quality.
+4. Multilingual VQA with no translated multimodal data at all — mBLIP
+   explicitly requires it.
+
+**Consequences.**
+
+- Terminology: cite Cai et al. and LLINK, and find our own words for the
+  phenomenon.
+- **Required experiment**: the AlignVLM connector under our frozen setting.
+  A reviewer will say the interference is an artifact of a plain MLP
+  projection. Constraining the prefix to the convex hull of Gemma's
+  embeddings either leaves the interference standing (the law is robust) or
+  removes it (we found the fix). Note the cost: Gemma's 256k vocabulary makes
+  `P_vocab` large per patch, and logits memory already dominates here.
+- The cultural gap is promoted. The multilingual-VLM survey (2509.22123, 33
+  models / 23 benchmarks) names "language neutrality vs cultural awareness"
+  as the field's central tension, and TowerVision works that line. Our
+  measurement — scaling Western web captions widens the CVQA−xGQA gap, with a
+  blind control — lands directly in it.
+
+---
+
 ## Improvement queue (evidence-ranked, 2026-08-26)
 
 1. ~~DenseConnector~~ → D9 ACCEPTED (+2.97 xGQA full, all of it ΔV).
