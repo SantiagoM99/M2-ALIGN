@@ -320,6 +320,31 @@ the frozen LLM reads Bengali grade-school maths perfectly well. The 40-point
 deficit was never the language's nor the LLM's, it was the bridge's, and
 scaling English caption data recovered two thirds of it.
 
+**Same-task limitation, and what answers it.** The replay trains on GSM8K
+train and MGSM *is* GSM8K test, so MGSM alone cannot support a
+generalization claim (Santiago, 2026-09-02). Three findings settle what to
+do about it:
+
+- MetaMathQA does not fix it. Its `type` field shows 240k/395k rows
+  (**60.8%**) are `GSM_*` — rephrasings of GSM8K train. It dilutes the
+  overlap, it does not remove it.
+- The `MATH_*` subset (155k, 39.2%) would remove it entirely — MATH train
+  shares no source with either evaluation — but it is unusable here: 7 of 8
+  sampled `MATH_AnsAug` queries carry LaTeX (`$\dbinom{14}{11}$`,
+  `$10101_3$`), and this pipeline must NLLB-translate the question. The
+  translation would be noise.
+- **MSVAMP already is the out-of-source evaluation.** It derives from SVAMP,
+  which shares no origin with GSM8K, and the D11 law holds there
+  independently (slope 0.73 against 0.71 on MGSM, disjoint items). Present it
+  as the out-of-distribution arm, not as a second math benchmark.
+
+Decision: move the replay to MetaMathQA's `GSM_*` rows for **volume and
+phrasing diversity** — 30k per language, MindMerger's scale and the same
+source Approach 1 uses (`Stage3/load_text.py:162`) — and justify it that way,
+never as a generalization argument. **Stated limitation**: every reasoning
+benchmark here is a math word problem. XNLI and X-CSQA would not help, since
+neither covers jv/mn/si/ga.
+
 **No contamination.** The D6 replay is built from GSM8K's *train* split
 (`build_math_replay.py`: `load_dataset("openai/gsm8k", "main", split="train")`,
 7,473 problems); MGSM's 250 items come from GSM8K's *test* split. Disjoint.
