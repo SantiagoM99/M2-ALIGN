@@ -670,6 +670,57 @@ arm is `stage3_bn_v4` reading English, not a system *trained* in English. It
 is the right denominator for a drop measured inside our system; it is not
 their baseline, which was English-trained.
 
+### E2 — Zero-shot cross-lingual multimodal transfer (2026-09-05) — WORKS, AND FAILS INFORMATIVELY
+
+`stage3_bn_v4`, trained on Bengali VQA only, evaluated on nine other CVQA
+languages. None was ever seen with an image. Threshold declared before the
+run: retain ≥50% of the supervised arm's ΔV.
+
+| | supervised ΔV | zero-shot ΔV | retention |
+|---|---|---|---|
+| average over 9 | +10.45 | **+6.96** | **67%** |
+
+Per-language retention runs 12% to 218%, which at n=286 is mostly noise — the
+Russian 218% reflects an anomalously low *supervised* ΔV (+5.50), not a
+zero-shot system beating its teacher. The pooled paired test is the readable
+statistic:
+
+| group | n | blind-only | image-only | p |
+|---|---|---|---|---|
+| all 9 | 2657 | 182 | **353** | **2.0e-13** |
+| ru zh pt id si | 1432 | 81 | 223 | 6.1e-16 |
+| **jv mn ga** | 935 | 81 | 94 | **0.36** |
+| ko | 290 | 20 | 36 | 0.045 |
+
+**The pixels genuinely contribute** in a language the model never saw with an
+image — a positive answer to the question xGQA left open (Pfeiffer et al.
+report a 38-point drop and "latent multilingual multimodal misalignment").
+
+**And it fails completely for jv, mn and ga**, where ΔV is +0.9 to +1.9 and
+the paired test is flat. None of the obvious explanations survives:
+
+- Not typology: Sinhala is Indo-Aryan like Bengali and retains 86%, but
+  Russian — Slavic — retains more.
+- Not script: Mongolian is Cyrillic like Russian; one fails, the other is the
+  best transfer in the set.
+- Not the frozen LLM's competence in the language: Sinhala's MGSM ceiling is
+  37.6 and it transfers well; Javanese's is 47.2, higher, and it transfers at
+  13%.
+- Not the blind prior: jv/mn/ga sit at 34.3-34.6 blind, the same band as
+  si (33.3), pt (32.8) and ru (34.0).
+
+What remains untested is **the quality of each language's text mapping**,
+which this project has never measured. `analysis/` has no instrument for it;
+the sibling ALIGNFREEZE work (`scripts/2027_eacl/sufficiency_scoring.py`)
+scores exactly that, label-free, as retrieval@1 over held-out parallel
+sentences — and MERLIN uses Retrieval@5 for its layer-wise analysis, so the
+measure is already established in this lineage.
+
+**Next**: retrieval@1 per language, correlated against transfer retention. If
+it predicts, the paper gains a mechanism *and* a cheap way to say in advance
+which languages will transfer — without any multimodal data or evaluation in
+the target language.
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
