@@ -1,0 +1,14 @@
+{
+  "benchmark": "cvqa",
+  "scored": 225,
+  "skipped": 0,
+  "correct": 75,
+  "accuracy": 0.3333333333333333,
+  "data_path": "/scratch/santimn/datatransfer/Stage3/data/cvqa/si.jsonl",
+  "ckpt": "/lustre09/project/6072380/santimn/M2-ALIGN/Approach2/outputs/stage3_bn_v4/mapping/pytorch_model.bin",
+  "llm_path": "google/gemma-2-9b-it",
+  "vis_path": "google/siglip2-so400m-patch14-384",
+  "mt_path": "facebook/nllb-200-distilled-600M",
+  "blind": true,
+  "slurm_job_id": "20279771"
+}
