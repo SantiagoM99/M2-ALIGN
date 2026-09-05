@@ -647,6 +647,29 @@ claim.
   measurement — scaling Western web captions widens the CVQA−xGQA gap, with a
   blind control — lands directly in it.
 
+### The English arm of xGQA (2026-09-05)
+
+Every "drop of X points from English" claim needs an English arm on the SAME
+items, and `$DT/Stage3/data/xgqa/` had none. The HF mirror `floschne/xgqa`
+carries an `en` split but only 9,666 rows against our 12,578, so a comparison
+against it would fold an item-set difference into the language difference.
+
+Our per-language rows keep GQA's question `id`, so the join is exact:
+`fetch_gqa_english.py` pulls GQA test-dev questions keyed by `question_id`
+from `theblackcat102/gqa-testdev-balanced` (dev 10,062 + test 2,516 = 12,578,
+the exact size of our files), and `build_xgqa_english.py` emits the English
+file. Verified: **matched 12,578/12,578 (100%), 0 missing, 0 gold
+disagreements with GQA**. The gold is taken from our file so every language is
+scored against identical labels.
+
+Rows carry `nllb_lang_tag: eng_Latn`, which `evaluate_vqa.row_nllb_tag` reads
+before falling back to `source_language` (`en` is not in `ISO_TO_NLLB`).
+
+**Caveat to state when comparing against Pfeiffer et al.'s 38 points**: this
+arm is `stage3_bn_v4` reading English, not a system *trained* in English. It
+is the right denominator for a drop measured inside our system; it is not
+their baseline, which was English-trained.
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
