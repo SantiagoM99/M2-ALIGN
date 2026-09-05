@@ -142,11 +142,13 @@ def main() -> None:
     logger.info("Loaded %d eval rows from %s", len(rows), args.data_path)
 
     tokenizer_mt = NllbTokenizer.from_pretrained(args.mt_path)
-    tokenizer_llm = AutoTokenizer.from_pretrained(args.llm_path, use_fast=True)
+    tokenizer_llm = AutoTokenizer.from_pretrained(
+        args.llm_path, use_fast=True, local_files_only=args.local_files_only)
     if tokenizer_llm.pad_token is None:
         tokenizer_llm.pad_token = tokenizer_llm.eos_token
     tokenizer_llm.padding_side = "left"
-    image_processor = AutoImageProcessor.from_pretrained(args.vis_path)
+    image_processor = AutoImageProcessor.from_pretrained(
+        args.vis_path, local_files_only=args.local_files_only)
 
     model = DualEncoderMerger(
         mt_path=args.mt_path,
