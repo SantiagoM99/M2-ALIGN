@@ -64,18 +64,23 @@ except ImportError:
 class VQADataset(Dataset):
     """VQA rows with images stored as ``{images_dir}/{vg_image_id}.jpg``."""
 
-    def __init__(self, rows: list[dict], images_dir: str) -> None:
+    def __init__(self, rows: list[dict], images_dir: str, load_images: bool = True) -> None:
         self.rows = rows
         self.images_dir = images_dir
+        # --no-vision keeps the same rows and the same task, but there is no
+        # vision branch to feed, so decoding ~34k JPEGs per epoch is pure waste.
+        self.load_images = load_images
 
     def __len__(self) -> int:
         return len(self.rows)
 
     def __getitem__(self, idx: int) -> dict | None:
         row = self.rows[idx]
-        image = self._load_image(row["vg_image_id"])
-        if image is None:
-            return None
+        image = None
+        if self.load_images:
+            image = self._load_image(row["vg_image_id"])
+            if image is None:
+                return None
         return {
             "image": image,
             "query": row["query"],
@@ -98,9 +103,11 @@ def collate_vqa(batch: list[dict | None], image_processor) -> dict | None:
     valid = [x for x in batch if x is not None]
     if not valid:
         return None
-    pixel_values = image_processor(
-        images=[x["image"] for x in valid], return_tensors="pt"
-    )["pixel_values"]
+    pixel_values = None
+    if image_processor is not None and valid[0]["image"] is not None:
+        pixel_values = image_processor(
+            images=[x["image"] for x in valid], return_tensors="pt"
+        )["pixel_values"]
     return {
         "pixel_values": pixel_values,
         "queries": [x["query"] for x in valid],
@@ -190,15 +197,19 @@ def build_batch_inputs(batch, tokenizer_mt, tokenizer_llm, args, device):
     labels, mask_label = llm_input_features(
         batch["answers"], tokenizer_llm, args.max_gen_len, add_bos=False, add_eos=True, device=device
     )
-    return {
+    inputs = {
         "input_ids_mt": input_ids_mt,
         "attention_mask_mt": mask_mt,
-        "pixel_values": batch["pixel_values"].to(device),
         "input_ids_prompt": input_ids_prompt,
         "mask_prompt": mask_prompt,
         "labels": labels,
         "mask_label": mask_label,
     }
+    # Omitted entirely under --no-vision: the model raises if it is handed
+    # pixel_values with no vision branch to consume them.
+    if batch.get("pixel_values") is not None:
+        inputs["pixel_values"] = batch["pixel_values"].to(device)
+    return inputs
 
 
 def run_validation(model, val_loader, tokenizer_mt, tokenizer_llm, args, device) -> float:
@@ -233,8 +244,10 @@ def main(args, logger) -> None:
     if tokenizer_llm.pad_token is None:
         tokenizer_llm.pad_token = tokenizer_llm.eos_token
     tokenizer_llm.padding_side = "left"
-    image_processor = AutoImageProcessor.from_pretrained(
-        args.vis_path, local_files_only=args.local_files_only)
+    image_processor = None
+    if not args.no_vision:
+        image_processor = AutoImageProcessor.from_pretrained(
+            args.vis_path, local_files_only=args.local_files_only)
 
     model = DualEncoderMerger(
         mt_path=args.mt_path,
@@ -278,11 +291,11 @@ def main(args, logger) -> None:
 
     _collate = partial(collate_vqa, image_processor=image_processor)
     train_loader = DataLoader(
-        VQADataset(train_rows, args.images_dir), batch_size=args.train_batch_size,
+        VQADataset(train_rows, args.images_dir, load_images=not args.no_vision), batch_size=args.train_batch_size,
         shuffle=True, collate_fn=_collate, num_workers=args.num_workers,
     )
     val_loader = DataLoader(
-        VQADataset(val_rows, args.images_dir), batch_size=args.eval_batch_size,
+        VQADataset(val_rows, args.images_dir, load_images=not args.no_vision), batch_size=args.eval_batch_size,
         shuffle=False, collate_fn=_collate, num_workers=args.num_workers,
     )
 
