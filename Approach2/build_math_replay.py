@@ -1,4 +1,4 @@
-"""Build math-CoT replay data for Stage 3: GSM8K train → NLLB-translated questions.
+"""Build math-CoT replay data for Stage 3: GSM8K or MetaMathQA → NLLB-translated questions.
 
 Each output row pairs a *target-language* math question (translated from
 GSM8K with the same frozen NLLB used by the pipeline) with the original
@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import random
 import re
 
 import torch
@@ -55,7 +56,22 @@ def main() -> None:
                         help="Target language for the questions (FLORES-200 tag).")
     parser.add_argument("--mt-path", type=str, default="facebook/nllb-200-distilled-600M")
     parser.add_argument("--n", type=int, default=0,
-                        help="Max problems (0 = all of GSM8K train, 7473).")
+                        help="Max problems (0 = all of the pool).")
+    parser.add_argument("--source", choices=["gsm8k", "metamath"], default="gsm8k",
+                        help="Replay pool. 'metamath' = meta-math/MetaMathQA, the "
+                             "source MindMerger's scale, MERLIN and Approach 1 all "
+                             "use (30k/language). NOT a generalization argument: "
+                             "60.8%% of its rows are GSM_* rephrasings of GSM8K "
+                             "train, the same split MGSM's test items come from. "
+                             "Adopt it for volume and phrasing diversity only.")
+    parser.add_argument("--metamath-types", type=str, default="GSM_",
+                        help="Comma-separated prefixes of MetaMathQA's `type` to "
+                             "keep. Default GSM_ (grade-school word problems). "
+                             "MATH_ exists and shares no source with either "
+                             "evaluation, but 7 of 8 sampled MATH_ rows carry "
+                             "LaTeX, which NLLB destroys — see DESIGN.md.")
+    parser.add_argument("--seed", type=int, default=13,
+                        help="Sampling seed; fixed so larger --n is a superset.")
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--max-src-len", type=int, default=512)
     parser.add_argument("--no-translate", action="store_true",
@@ -64,11 +80,25 @@ def main() -> None:
     args = parser.parse_args()
 
     from datasets import load_dataset
-    ds = load_dataset("openai/gsm8k", "main", split="train")
-    rows = [{"question": r["question"], "answer": clean_solution(r["answer"])} for r in ds]
-    if args.n > 0:
-        rows = rows[: args.n]
-    print(f"GSM8K train: {len(rows)} problems")
+    if args.source == "gsm8k":
+        ds = load_dataset("openai/gsm8k", "main", split="train")
+        rows = [{"question": r["question"], "answer": clean_solution(r["answer"])} for r in ds]
+        label = "GSM8K train"
+    else:
+        keep = tuple(t.strip() for t in args.metamath_types.split(",") if t.strip())
+        ds = load_dataset("meta-math/MetaMathQA", split="train")
+        rows = [
+            # `response` already ends in "The answer is: N", which
+            # extract_math_answer parses (its regex accepts "is:").
+            {"question": r["query"].strip(), "answer": r["response"].strip()}
+            for r in ds
+            if str(r.get("type", "")).startswith(keep)
+            and r.get("query", "").strip() and r.get("response", "").strip()
+        ]
+        label = f"MetaMathQA[{'|'.join(keep)}]"
+    if args.n > 0 and args.n < len(rows):
+        rows = random.Random(args.seed).sample(rows, args.n)
+    print(f"{label}: {len(rows)} problems")
 
     if args.no_translate:
         out_rows = [
