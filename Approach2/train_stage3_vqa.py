@@ -241,7 +241,7 @@ def main(args, logger) -> None:
         llm_bos_token_id=tokenizer_llm.bos_token_id,
         llm_pad_token_id=tokenizer_llm.pad_token_id,
         use_text_branch=True,
-        use_vision_branch=True,
+        use_vision_branch=not args.no_vision,
         max_vis_tokens=args.max_vis_tokens,
         vis_layers=args.vis_layers,
         local_files_only=args.local_files_only,
@@ -249,8 +249,10 @@ def main(args, logger) -> None:
 
     if args.stage1_ckpt:
         load_mapping_checkpoint(args.stage1_ckpt, model, logger)
-    if args.stage2_ckpt:
+    if args.stage2_ckpt and not args.no_vision:
         load_mapping_checkpoint(args.stage2_ckpt, model, logger)
+    elif args.stage2_ckpt:
+        logger.info("--no-vision: ignoring --stage2-ckpt (there is no vision branch).")
 
     if args.freeze_text_mapping:
         for p in model.mapping_txt.parameters():
@@ -409,6 +411,16 @@ if __name__ == "__main__":
     parser.add_argument("--output-dir", type=str, required=True)
     parser.add_argument("--stage1-ckpt", type=str, default=None,
                         help="Stage 1 text-mapping checkpoint to warm-start from.")
+    parser.add_argument("--no-vision", action="store_true",
+                        help="Disable the vision branch: train the SAME joint stage "
+                             "(same VQA data, same replay, same epochs) with no "
+                             "visual prefix at all. This is the control for "
+                             "'what does adding the vision bridge cost the text "
+                             "bridge?' — without it, D11's law is compatible with "
+                             "both 'vision costs and better vision costs less' and "
+                             "'vision helps and better vision helps more'. Training "
+                             "is blind: the VQA answers must come from the question "
+                             "alone. See DESIGN.md H1.")
     parser.add_argument("--stage2-ckpt", type=str, default=None,
                         help="Stage 2 vision-mapping checkpoint to warm-start from.")
     parser.add_argument("--mt-path", type=str, default="facebook/nllb-200-distilled-600M")
