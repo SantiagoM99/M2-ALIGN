@@ -144,8 +144,10 @@ def main(args, logger) -> None:
     train_rows, val_rows = rows[:split], rows[split:]
     logger.info("Dataset: train=%d val=%d languages=%s", len(train_rows), len(val_rows), languages)
 
-    tokenizer_mt = NllbTokenizer.from_pretrained(args.mt_path)
-    tokenizer_llm = AutoTokenizer.from_pretrained(args.llm_path, use_fast=True)
+    tokenizer_mt = NllbTokenizer.from_pretrained(
+        args.mt_path, local_files_only=args.local_files_only)
+    tokenizer_llm = AutoTokenizer.from_pretrained(
+        args.llm_path, use_fast=True, local_files_only=args.local_files_only)
     if tokenizer_llm.pad_token is None:
         tokenizer_llm.pad_token = tokenizer_llm.eos_token
     tokenizer_llm.padding_side = "left"

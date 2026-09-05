@@ -109,7 +109,8 @@ def main() -> None:
     else:
         from transformers import AutoModelForSeq2SeqLM, NllbTokenizer
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        tokenizer = NllbTokenizer.from_pretrained(args.mt_path)
+        tokenizer = NllbTokenizer.from_pretrained(
+            args.mt_path, local_files_only=args.local_files_only)
         tokenizer.src_lang = "eng_Latn"
         model = AutoModelForSeq2SeqLM.from_pretrained(
             args.mt_path,

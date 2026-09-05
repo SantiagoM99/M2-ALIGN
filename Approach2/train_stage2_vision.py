@@ -146,11 +146,13 @@ def main(args, logger) -> None:
     train_rows, val_rows = rows[:split], rows[split:]
     logger.info("Dataset: train=%d val=%d", len(train_rows), len(val_rows))
 
-    tokenizer_llm = AutoTokenizer.from_pretrained(args.llm_path, use_fast=True)
+    tokenizer_llm = AutoTokenizer.from_pretrained(
+        args.llm_path, use_fast=True, local_files_only=args.local_files_only)
     if tokenizer_llm.pad_token is None:
         tokenizer_llm.pad_token = tokenizer_llm.eos_token
     tokenizer_llm.padding_side = "left"
-    image_processor = AutoImageProcessor.from_pretrained(args.vis_path)
+    image_processor = AutoImageProcessor.from_pretrained(
+        args.vis_path, local_files_only=args.local_files_only)
 
     model = DualEncoderMerger(
         mt_path=None,
