@@ -860,8 +860,29 @@ confound-free dose-response is v3 → v4: both have real images, both are
 answerable, only alignment quality differs — and that is D11, which for
 Bengali is +26.8 MGSM.
 
-**Outstanding**: the per-item files for this arm were never harvested (the
-launcher copied only `*.summary.json`; fixed in this commit across
+**The confound was tested and does not hold** (2026-09-06, per-item files
+recovered). `analysis/text_gen_health.py`, `--no-vision` against v3:
+
+| | median chars | empty | no-extract | loops | clean-subset acc |
+|---|---|---|---|---|---|
+| MGSM `--no-vision` | 307 | 6.0% | 9.2% | 0.8% | **26.2%** (n=225) |
+| MGSM v3 | 242 | 0.8% | 1.6% | 3.6% | **37.1%** (n=237) |
+| MSVAMP `--no-vision` | 234 | 2.3% | 5.3% | 0.5% | **48.8%** (n=942) |
+| MSVAMP v3 | 136 | 0.1% | 1.2% | 2.3% | **56.2%** (n=964) |
+
+The prediction was that the unanswerable VQA task would push the model toward
+short ungrounded answers. It did the opposite — outputs are **longer** (307 vs
+242, 234 vs 136), not shorter, so the "collapsed to VQA-style short answers"
+mechanism is refuted. Degeneration is genuinely higher (6.0% vs 0.8% empty)
+but does not account for the gap: **on the clean subset the deficit survives
+at 10.9 points on MGSM and 7.4 on MSVAMP.** H1's conclusion stands on cleaned
+data, and the `--no-vision` arm can be reported as a real ablation rather than
+a broken run.
+
+**Outstanding**: `eval_mgsm_bn_stage3_dcl.jsonl` / `eval_msvamp_bn_stage3_dcl.jsonl`
+are still missing, so the cleaned comparison against the *matched* v4 arm
+cannot be run yet — only against v3. Copy from `outputs/stage3_bn_dcl/`.
+The harvest glob was fixed across
 `pilot_no_vision`, `pilot_dense`, `pilot_scale`, `pilot_reasoning`,
 `pilot_replay_scale` — `evaluate_all.sh` was already correct). Without them
 `analysis/text_gen_health.py` cannot check whether the `--no-vision` arm
