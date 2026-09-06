@@ -721,6 +721,140 @@ it predicts, the paper gains a mechanism *and* a cheap way to say in advance
 which languages will transfer — without any multimodal data or evaluation in
 the target language.
 
+### E3 — Zero-shot multimodal transfer on xGQA (2026-09-06) — TRANSFER IS ESSENTIALLY FREE
+
+`stage3_bn_v4`, trained on Bengali VQA only, evaluated on seven xGQA languages
+it never saw with an image. n=12,578 per language, and the item sets are
+parallel — the same GQA questions translated — so image content is held
+constant and language is the only variable. (E2 could not do this: CVQA varies
+language *and* culturally-specific images at n=286.)
+
+| lang | full | blind | ΔV | ΔV retention | McNemar p |
+|---|---|---|---|---|---|
+| **bn*** | 47.66 | 30.83 | **+16.83** | (reference) | 2.0e-263 |
+| en | 50.86 | 33.40 | +17.46 | 104% | 3.3e-269 |
+| de | 49.24 | 31.64 | +17.59 | 105% | 3.9e-300 |
+| ru | 48.39 | 31.11 | +17.28 | 103% | 2.0e-265 |
+| zh | 48.88 | 32.11 | +16.77 | 100% | 4.9e-254 |
+| pt | 48.65 | 31.89 | +16.76 | 100% | 1.6e-258 |
+| id | 48.00 | 31.36 | +16.65 | 99% | 9.1e-269 |
+| ko | 47.33 | 32.01 | +15.32 | 91% | 1.0e-220 |
+
+\* in-language and supervised; every other row is zero-shot from Bengali.
+
+Mean ΔV over the six unseen languages is **+16.73 against the supervised
++16.83 — 99.4% retention**, and ΔV spans only 15.3–17.6 across all seven.
+A paired bootstrap over the 12,578 shared question ids (2,000 resamples) puts
+six of seven **statistically indistinguishable from the in-language supervised
+model**; only Korean is lower, by 1.51 points [−2.46, −0.56], and it still
+retains 91%.
+
+**Absolute accuracy goes up, not down**: source 47.66 → 48.42 mean over the six
+unseen, **+0.75 points**. Pfeiffer et al. report roughly −38 for zero-shot
+transfer on this benchmark.
+
+**Do not report that as a 38-point win.** The protocols differ in ways that
+favour us and must be stated: they transfer from English and fine-tune a
+multimodal transformer; we transfer from Bengali into a frozen LLM that
+already speaks all seven target languages, with NLLB doing the language work.
+
+**The mechanism is architectural, and it is checkable in the code rather than
+inferred from the numbers.** `model.py:325` — `mapping_vis` consumes only
+`encoder_vis(pixel_values)`. No language input, no cross-attention with the
+question; the visual prefix is computed independently of the question text.
+So the visual pathway *cannot* be language-specific, and cross-lingual visual
+transfer costs nothing by construction.
+
+That is the honest claim, and it is a better one than "we transfer better":
+**we do not transfer better, we decoupled the two axes so that there is
+almost nothing left to transfer.** The residual variation across languages is
+therefore attributable to the text bridge alone — which is what E2 and E4
+independently point at.
+
+**Scope limit.** All seven languages here are mid-to-high resource and all are
+well served by NLLB. jv/mn/ga — the E2 failures — are not in xGQA at all. E3
+says nothing about them, and the 99.4% must never be quoted as a
+low-resource result.
+
+---
+
+### E4 — D11 tested out of sample on four LRLs (2026-09-06) — THE LAW DOES NOT HOLD
+
+D11's recovery law was fitted on bn/de/ru/zh: refitting through the origin on
+those 8 cells gives gain = **0.677 × deficit**, r = **+0.989**. jv/si/ga/mn
+were never used to fit it and now have both v3 and v4 arms.
+
+| lang | bench | ceiling | v3 | v4 | deficit | gain | predicted | residual |
+|---|---|---|---|---|---|---|---|---|
+| jv | MGSM | 47.2 | 42.4 | 40.4 | 4.8 | −2.0 | +3.2 | −5.2 |
+| jv | MSVAMP | 53.6 | 52.4 | 45.9 | 1.2 | **−6.5** | +0.8 | −7.3 |
+| si | MGSM | 37.6 | 34.8 | 32.4 | 2.8 | −2.4 | +1.9 | −4.3 |
+| si | MSVAMP | 35.0 | 38.7 | 39.7 | −3.7 | +1.0 | −2.5 | +3.5 |
+| ga | MGSM | 43.2 | 33.6 | 33.2 | **9.6** | −0.4 | +6.5 | −6.9 |
+| ga | MSVAMP | 61.4 | 56.9 | 57.3 | 4.5 | +0.4 | +3.0 | −2.6 |
+| mn | MGSM | 17.2 | 16.4 | 14.4 | 0.8 | −2.0 | +0.5 | −2.5 |
+| mn | MSVAMP | 27.0 | 25.7 | 26.0 | 1.3 | +0.3 | +0.9 | −0.6 |
+
+Mean predicted gain **+1.8**, mean observed **−1.4**; out-of-sample RMSE
+**4.65** against a ±0.4 noise floor. Pooled paired McNemar over the four LRLs
+has v4 **significantly worse** than v3 (v4-only 323, v3-only 388, **p=0.016**),
+driven by Javanese MSVAMP (p=1.8e-06). The same pooled test on the fitted
+four is null (p=0.22), as it should be — they are at ceiling.
+
+The sharpest single miss is **Irish MGSM: a genuine 9.6-point deficit, 6.5
+predicted, 0 delivered.** Sinhala cannot test the law at all — its deficits
+are 2.8 and −3.7, i.e. it is already at its ceiling.
+
+**D11 must be restated.** It is not a law about deficits. It holds where the
+text bridge works and fails where it does not, and scaling *visual* pretraining
+buys nothing for a language whose *text* pathway is broken. The r=+0.989 was
+fitted on four languages that all have working text bridges.
+
+**The convergence is the finding.** The three languages where D11 fails —
+**jv, ga, mn** — are exactly the three where E2's visual transfer was flat
+(p=0.36). Two experiments, different benchmarks, different modalities,
+different metrics, same three languages. Sinhala, the fourth LRL, is the one
+that transfers well in E2 (86%) and is also the one with no deficit to test.
+
+---
+
+### H1 — Is the vision branch a tax on the text bridge? (2026-09-06) — NO
+
+The control the launcher header asks for: identical stage 3 — same VQA data,
+replay, epochs, lr — with `--no-vision`. Bengali:
+
+| arm | visual alignment | MGSM | MSVAMP |
+|---|---|---|---|
+| stage 1 only | — | 11.6 | 34.1 |
+| stage 3, `--no-vision` | none | 23.6 | 46.0 |
+| stage 3 v3 | weak (11.5k pairs) | 35.2 | 54.5 |
+| stage 3 v4 | strong (~111k pairs) | **62.0** | **64.5** |
+| frozen-LLM ceiling | — | 74.8 | 69.6 |
+
+**Monotone in visual alignment quality on both benchmarks.** "Vision costs,
+and better vision costs less" is refuted in its strong form: removing vision
+does not free the text bridge, it costs 38.4 MGSM points against the matched
+v4 arm and 11.6 against the weaker v3 arm.
+
+**The caveat that keeps this honest.** `--no-vision` does not merely remove an
+input, it makes the VQA task *unanswerable* — ~34k examples per epoch asking
+what colour a shirt is with no shirt. Some of the 38.4 is therefore "training
+on an impossible task damages generation", not "pixels help maths". The
+`--no-vision` arm is a **lower anchor, not a clean third dose**. The
+confound-free dose-response is v3 → v4: both have real images, both are
+answerable, only alignment quality differs — and that is D11, which for
+Bengali is +26.8 MGSM.
+
+**Outstanding**: the per-item files for this arm were never harvested (the
+launcher copied only `*.summary.json`; fixed in this commit across
+`pilot_no_vision`, `pilot_dense`, `pilot_scale`, `pilot_reasoning`,
+`pilot_replay_scale` — `evaluate_all.sh` was already correct). Without them
+`analysis/text_gen_health.py` cannot check whether the `--no-vision` arm
+collapsed to short answers, which is the specific prediction of the confound
+above. Re-copy from `outputs/stage3_bn_novis/` on the cluster.
+
+---
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)

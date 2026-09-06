@@ -105,6 +105,7 @@ for s in "$S3_OUT"/eval_*.summary.json; do echo "$s"; cat "$s"; echo; done
 
 mkdir -p "$A2/results"
 cp "$S3_OUT"/eval_*.summary.json "$A2/results/" 2>/dev/null || true
+cp "$S3_OUT"/eval_*.jsonl "$A2/results/" 2>/dev/null || true   # per-item files: needed for the paired tests
 cd "$PROJECT_ROOT"
 git add Approach2/results 2>/dev/null || true
 git commit -m "results: H1 control, stage 3 without the vision branch (job ${SLURM_JOB_ID:-manual})" Approach2/results \

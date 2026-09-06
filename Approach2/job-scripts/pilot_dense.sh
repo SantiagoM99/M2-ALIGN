@@ -195,6 +195,7 @@ echo "=== Harvest results into git ==="
 RESULTS_DIR="$A2/results"
 mkdir -p "$RESULTS_DIR"
 cp "$S3_OUT"/eval_*.summary.json "$RESULTS_DIR/" 2>/dev/null || true
+cp "$S3_OUT"/eval_*.jsonl "$RESULTS_DIR/" 2>/dev/null || true   # per-item files: needed for the paired tests
 # Per-item xGQA predictions too — needed for category breakdowns and
 # McNemar paired tests against other checkpoints.
 cp "$S3_OUT"/eval_xgqa_*.jsonl "$RESULTS_DIR/" 2>/dev/null || true

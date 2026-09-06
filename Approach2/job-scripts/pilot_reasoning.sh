@@ -159,6 +159,7 @@ echo "=== Harvest results into git ==="
 RESULTS_DIR="$A2/results"
 mkdir -p "$RESULTS_DIR"
 cp "$OUT"/eval_*.summary.json "$RESULTS_DIR/" 2>/dev/null || true
+cp "$OUT"/eval_*.jsonl "$RESULTS_DIR/" 2>/dev/null || true   # per-item files: needed for the paired tests
 cd "$PROJECT_ROOT"
 git add Approach2/results 2>/dev/null || true
 git commit -m "results: reasoning pilot bn ($TAG, job ${SLURM_JOB_ID:-manual})" Approach2/results \

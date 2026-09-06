@@ -143,6 +143,7 @@ for s in "$S3_OUT"/eval_*.summary.json; do echo "$s"; cat "$s"; echo; done
 echo "=== Harvest ==="
 mkdir -p "$A2/results"
 cp "$S3_OUT"/eval_*.summary.json "$A2/results/" 2>/dev/null || true
+cp "$S3_OUT"/eval_*.jsonl "$A2/results/" 2>/dev/null || true   # per-item files: needed for the paired tests
 cp "$S3_OUT"/eval_xgqa_*.jsonl "$A2/results/" 2>/dev/null || true
 cd "$PROJECT_ROOT"
 git add Approach2/results 2>/dev/null || true
