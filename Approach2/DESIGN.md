@@ -945,6 +945,68 @@ regression target.
 
 ---
 
+### X1-X3 — the mechanism slate (2026-09-06) — PREDICTIONS RECORDED BEFORE LAUNCH
+
+Everything below is written before any of the three runs. Each states what
+would refute it, so a null result is reportable rather than embarrassing.
+
+**X1 — source or target?** `job-scripts/source_ablation.sh`, evaluation only,
+no training: all eleven `stage3_<L>_v4` checkpoints already exist. CVQA
+transfer into jv/mn/ga (plus si as a positive control) from bn, id, ru and
+zh. SRC=bn is free — those summaries exist and are skipped.
+
+- *H_source* — jv/mn/ga fail because **Bengali** is a bad source for them.
+  Predicts id→jv works where bn→jv does not (both Austronesian; Indonesian
+  retains 99% on xGQA, so its own bridge is known healthy).
+- *H_align* — they fail because **their own** text bridge is misaligned.
+  Predicts flat from every source alike.
+- **Refutation of the harness rather than the hypothesis**: if Sinhala also
+  goes flat under a new source, something is wrong with the run, because it
+  retains 86% from Bengali (n=225, p=3.6e-05). Check that before reading
+  anything else.
+
+Read with `analysis/source_ablation_report.py` — pooled paired McNemar over
+the failing group, never per-language dV, for the reason in the caveat above.
+
+**X2 — the instrument.** `alignment_score.py` + `job-scripts/alignment_score.sh`,
+3h partition, no generation and no labels: NLLB encoder forwards plus a Gemma
+embedding lookup over 1,000 held-out parallel sentences per language. Two
+references — `bridge` (prefix(L) vs prefix(en), is the mapping
+language-consistent?) and `llm` (prefix(L) vs Gemma's own embedding, does it
+land where the LLM already represents that meaning?).
+
+**Pre-registered discriminating prediction**: the score must correlate with
+transfer retention and **must not** correlate with % of frozen-LLM ceiling.
+Correlating with both means it is measuring general bridge quality, the
+mechanism claim is unsupported, and the result degrades to description.
+`analysis/alignment_vs_transfer.py` prints that verdict automatically —
+Spearman with an exact permutation p, because n=9-11 languages.
+
+Second refutation condition, structural: **the primary statistic is `margin`,
+not retrieval@1.** The prefix space is 3584-dimensional; R@1 over N=1000 may
+saturate at 1.000 for every language, which is the metric bottoming out, not
+a finding.
+
+X2 also scores `stage1_joint` when it exists — so it prices D12 **before**
+eleven stage-3 runs. If the joint mapping does not raise jv/mn/ga's margin,
+X3 will not fix their transfer either.
+
+**X3 — the intervention.** Already implemented and chained:
+`launch_joint.sh` (D12). One shared multilingual stage-1 mapping instead of
+eleven per-language ones, everything else identical to v4.
+
+**Pre-registered differential prediction**: it must lift **jv/mn/ga** and
+leave **de/ru/zh flat** — those are at 97-99% of ceiling and 99-105% ΔV
+retention, with nowhere to go. A uniform lift across all languages refutes
+the alignment mechanism just as surely as no lift does, because it would mean
+D12 improved something general rather than the specific thing X2 measures.
+Judge with `analysis/gap_report.py v4 vj`, not with the mean.
+
+**Launch order matters.** X1 first (no training, decides which hypothesis is
+live), X2 second (cheap, and prices X3), X3 last (the expensive one).
+
+---
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
