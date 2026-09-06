@@ -771,7 +771,22 @@ almost nothing left to transfer.** The residual variation across languages is
 therefore attributable to the text bridge alone — which is what E2 and E4
 independently point at.
 
-**Scope limit.** All seven languages here are mid-to-high resource and all are
+**What the trainable parameters actually saw.** Worth stating precisely,
+because it makes the result stronger than "never seen with an image".
+`stage3_bn_v4`'s two mappings (58.1M params) were trained on, in full:
+stage 1 Bengali→English text (`train_stage1.sh:25`, `LANGUAGES=Bengali`;
+`outputs/stage1/` is the Bengali-only mapping), stage 2 English LLaVA-Pretrain
+captions, and stage 3 Bengali VQA + Bengali maths replay + the
+`Bengali_to_English` translation replay (`pilot_dense.sh:46-47`). **de, ru, zh,
+pt, id and ko appear in no training signal at any stage, in any modality.**
+The only components that have ever seen them are frozen NLLB and frozen Gemma.
+
+**English is not a clean zero-shot cell** and should be reported separately or
+dropped: it is the target side of the stage-1 translation data and the whole
+of stage 2. Its 104% is unsurprising. The six-language mean of 99.4% excludes
+it.
+
+**Scope limit.** All six clean languages are mid-to-high resource and all are
 well served by NLLB. jv/mn/ga — the E2 failures — are not in xGQA at all. E3
 says nothing about them, and the 99.4% must never be quoted as a
 low-resource result.
