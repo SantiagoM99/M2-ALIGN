@@ -1,0 +1,272 @@
+{
+  "label": "stage3_ga_v4",
+  "ckpt": "/lustre09/project/6072380/santimn/M2-ALIGN/Approach2/outputs/stage3_ga_v4/mapping/pytorch_model.bin",
+  "n_per_language": 1000,
+  "held_out": "last N rows of each <Language>_to_English.jsonl",
+  "languages": {
+    "bn": {
+      "language": "Bengali",
+      "nllb_tag": "ben_Beng",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.947,
+        "retrieval@5": 0.969,
+        "median_rank": 1,
+        "cos_matched": 0.9954,
+        "cos_mismatched": 0.9831,
+        "margin": 0.0123,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.001,
+        "retrieval@5": 0.006,
+        "median_rank": 498,
+        "cos_matched": 0.0043,
+        "cos_mismatched": 0.0042,
+        "margin": 0.0001,
+        "chance@1": 0.001
+      }
+    },
+    "de": {
+      "language": "German",
+      "nllb_tag": "deu_Latn",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.994,
+        "retrieval@5": 0.999,
+        "median_rank": 1,
+        "cos_matched": 0.9972,
+        "cos_mismatched": 0.9857,
+        "margin": 0.0115,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.0,
+        "retrieval@5": 0.006,
+        "median_rank": 495,
+        "cos_matched": 0.004,
+        "cos_mismatched": 0.004,
+        "margin": 0.0,
+        "chance@1": 0.001
+      }
+    },
+    "ru": {
+      "language": "Russian",
+      "nllb_tag": "rus_Cyrl",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.998,
+        "retrieval@5": 0.998,
+        "median_rank": 1,
+        "cos_matched": 0.9968,
+        "cos_mismatched": 0.9859,
+        "margin": 0.0109,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.001,
+        "retrieval@5": 0.005,
+        "median_rank": 497,
+        "cos_matched": 0.007,
+        "cos_mismatched": 0.0069,
+        "margin": 0.0001,
+        "chance@1": 0.001
+      }
+    },
+    "zh": {
+      "language": "Chinese",
+      "nllb_tag": "zho_Hans",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.952,
+        "retrieval@5": 0.965,
+        "median_rank": 1,
+        "cos_matched": 0.9949,
+        "cos_mismatched": 0.9844,
+        "margin": 0.0105,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.001,
+        "retrieval@5": 0.006,
+        "median_rank": 498,
+        "cos_matched": 0.0033,
+        "cos_mismatched": 0.0032,
+        "margin": 0.0,
+        "chance@1": 0.001
+      }
+    },
+    "pt": {
+      "language": "Portuguese",
+      "nllb_tag": "por_Latn",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.984,
+        "retrieval@5": 0.992,
+        "median_rank": 1,
+        "cos_matched": 0.9972,
+        "cos_mismatched": 0.9861,
+        "margin": 0.0111,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.001,
+        "retrieval@5": 0.007,
+        "median_rank": 491,
+        "cos_matched": 0.0059,
+        "cos_mismatched": 0.0058,
+        "margin": 0.0001,
+        "chance@1": 0.001
+      }
+    },
+    "id": {
+      "language": "Indonesian",
+      "nllb_tag": "ind_Latn",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.994,
+        "retrieval@5": 0.997,
+        "median_rank": 1,
+        "cos_matched": 0.997,
+        "cos_mismatched": 0.9863,
+        "margin": 0.0106,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.001,
+        "retrieval@5": 0.005,
+        "median_rank": 495,
+        "cos_matched": 0.0026,
+        "cos_mismatched": 0.0025,
+        "margin": 0.0001,
+        "chance@1": 0.001
+      }
+    },
+    "ko": {
+      "language": "Korean",
+      "nllb_tag": "kor_Hang",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.928,
+        "retrieval@5": 0.952,
+        "median_rank": 1,
+        "cos_matched": 0.995,
+        "cos_mismatched": 0.9837,
+        "margin": 0.0113,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.001,
+        "retrieval@5": 0.004,
+        "median_rank": 502,
+        "cos_matched": 0.0038,
+        "cos_mismatched": 0.0038,
+        "margin": 0.0001,
+        "chance@1": 0.001
+      }
+    },
+    "jv": {
+      "language": "Javanese",
+      "nllb_tag": "jav_Latn",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.963,
+        "retrieval@5": 0.984,
+        "median_rank": 1,
+        "cos_matched": 0.9957,
+        "cos_mismatched": 0.9841,
+        "margin": 0.0116,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.001,
+        "retrieval@5": 0.004,
+        "median_rank": 493,
+        "cos_matched": 0.0052,
+        "cos_mismatched": 0.0052,
+        "margin": 0.0,
+        "chance@1": 0.001
+      }
+    },
+    "mn": {
+      "language": "Mongolian",
+      "nllb_tag": "khk_Cyrl",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.816,
+        "retrieval@5": 0.896,
+        "median_rank": 1,
+        "cos_matched": 0.9916,
+        "cos_mismatched": 0.9797,
+        "margin": 0.0119,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.001,
+        "retrieval@5": 0.004,
+        "median_rank": 494,
+        "cos_matched": -0.0029,
+        "cos_mismatched": -0.003,
+        "margin": 0.0001,
+        "chance@1": 0.001
+      }
+    },
+    "si": {
+      "language": "Sinhalese",
+      "nllb_tag": "sin_Sinh",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.934,
+        "retrieval@5": 0.957,
+        "median_rank": 1,
+        "cos_matched": 0.9946,
+        "cos_mismatched": 0.9813,
+        "margin": 0.0133,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.001,
+        "retrieval@5": 0.005,
+        "median_rank": 494,
+        "cos_matched": 0.0027,
+        "cos_mismatched": 0.0025,
+        "margin": 0.0002,
+        "chance@1": 0.001
+      }
+    },
+    "ga": {
+      "language": "Irish",
+      "nllb_tag": "gle_Latn",
+      "bridge": {
+        "n": 1000,
+        "retrieval@1": 0.941,
+        "retrieval@5": 0.965,
+        "median_rank": 1,
+        "cos_matched": 0.9946,
+        "cos_mismatched": 0.9815,
+        "margin": 0.0132,
+        "chance@1": 0.001
+      },
+      "llm": {
+        "n": 1000,
+        "retrieval@1": 0.001,
+        "retrieval@5": 0.005,
+        "median_rank": 500,
+        "cos_matched": 0.0045,
+        "cos_mismatched": 0.0045,
+        "margin": -0.0,
+        "chance@1": 0.001
+      }
+    }
+  }
+}
