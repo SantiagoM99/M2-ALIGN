@@ -870,6 +870,60 @@ above. Re-copy from `outputs/stage3_bn_novis/` on the cluster.
 
 ---
 
+### Sufficiency is not alignment (2026-09-06) — REFUTES THE LOOSE MECHANISM CLAIM
+
+E2 and E4 both ended with "the text bridge is what remains untested". Before
+spending compute on that, the cheapest version of the claim was checked
+against data already on disk: **is the text bridge simply worse for the
+languages that fail?** Percentage of each language's own frozen-LLM ceiling
+reached by the v4 mapping (raw extraction, no cleaning):
+
+| lang | MGSM v4 | ceiling | % | MSVAMP v4 | ceiling | % | CVQA transfer retention |
+|---|---|---|---|---|---|---|---|
+| bn | 62.0 | 74.8 | 83% | 64.5 | 69.6 | 93% | (source) |
+| de | 70.0 | 70.8 | 99% | 78.4 | 80.7 | 97% | (not in CVQA) |
+| ru | 75.2 | 76.8 | 98% | 76.5 | 77.9 | 98% | 218% |
+| zh | 68.0 | 72.0 | 94% | 80.4 | 80.9 | 99% | 48% |
+| si | 32.4 | 37.6 | 86% | 39.7 | 35.0 | 113% | 86% |
+| **jv** | 40.4 | 47.2 | **86%** | 45.9 | 53.6 | **86%** | **13%** |
+| **mn** | 14.4 | 17.2 | **84%** | 26.0 | 27.0 | **96%** | **25%** |
+| **ga** | 33.2 | 43.2 | **77%** | 57.3 | 61.4 | **93%** | **12%** |
+
+**The text bridge is sufficient in every language, including all three that
+fail.** Javanese reaches 86% of its ceiling on both benchmarks and transfers
+at 13%; Chinese reaches 94–99% and transfers at 48%; Sinhala reaches 86%/113%
+and transfers at 86%. There is no relationship.
+
+So "jv/mn/ga fail because their text bridge is worse" is **false as stated**.
+Whatever is broken is not decodability of the prefix by the frozen LLM.
+
+**The distinction this forces.** Two different properties were being conflated:
+
+- **Sufficiency** — can Gemma reason from the mapped prefix? Measured by % of
+  ceiling. High everywhere (77–99%).
+- **Alignment** — does language L's prefix land in the *same region* of prefix
+  space as the source language's, so that a visual prefix tuned during
+  Bengali stage 3 still composes with it? **Never measured.**
+
+Transfer needs alignment; monolingual reasoning needs only sufficiency. That
+is why a language can be fluent and untransferable at once, and it is the
+reason the instrument has to be contrastive (retrieval@1, matched vs
+mismatched margin) rather than a task score.
+
+**Discriminating prediction for the retrieval@1 run**: the alignment score
+must correlate with transfer retention and **not** with % of ceiling. If it
+correlates with both, it is measuring general bridge quality, the mechanism
+claim is unsupported, and the finding degrades to a description.
+
+**Caveat on the dependent variable.** CVQA retention is noisy — n=200–412 per
+language, ±2.8 on ΔV, and it disagrees with xGQA for zh (48% vs 100%), ko
+(50% vs 91%) and id (67% vs 99%). Only the pooled jv/mn/ga group result
+(n=935, p=0.36 flat, against n=1432, p=6.1e-16 for the strong group) is
+solid enough to build on. Per-language CVQA retention must not be used as a
+regression target.
+
+---
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
