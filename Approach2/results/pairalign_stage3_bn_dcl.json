@@ -1,0 +1,1658 @@
+{
+  "label": "stage3_bn_dcl",
+  "ckpt": "/lustre09/project/6072380/santimn/M2-ALIGN/Approach2/outputs/stage3_bn_dcl/mapping/pytorch_model.bin",
+  "n_sentences": 997,
+  "languages": [
+    "bn",
+    "de",
+    "ru",
+    "zh",
+    "pt",
+    "id",
+    "ko",
+    "jv",
+    "mn",
+    "si",
+    "ga",
+    "en"
+  ],
+  "note": "matrix[src][tgt] = retrieving tgt's sentence among src's, i.e. how well a prefix in tgt lands where src's prefixes live",
+  "matrix": {
+    "centered": {
+      "bn": {
+        "de": {
+          "retrieval@1": 0.9378,
+          "retrieval@5": 0.9639,
+          "median_rank": 1,
+          "margin": 0.766
+        },
+        "ru": {
+          "retrieval@1": 0.9228,
+          "retrieval@5": 0.9619,
+          "median_rank": 1,
+          "margin": 0.757
+        },
+        "zh": {
+          "retrieval@1": 0.9007,
+          "retrieval@5": 0.9418,
+          "median_rank": 1,
+          "margin": 0.7558
+        },
+        "pt": {
+          "retrieval@1": 0.9579,
+          "retrieval@5": 0.985,
+          "median_rank": 1,
+          "margin": 0.7841
+        },
+        "id": {
+          "retrieval@1": 0.9278,
+          "retrieval@5": 0.9589,
+          "median_rank": 1,
+          "margin": 0.7689
+        },
+        "ko": {
+          "retrieval@1": 0.8816,
+          "retrieval@5": 0.9398,
+          "median_rank": 1,
+          "margin": 0.7479
+        },
+        "jv": {
+          "retrieval@1": 0.8937,
+          "retrieval@5": 0.9368,
+          "median_rank": 1,
+          "margin": 0.7282
+        },
+        "mn": {
+          "retrieval@1": 0.9208,
+          "retrieval@5": 0.9629,
+          "median_rank": 1,
+          "margin": 0.7531
+        },
+        "si": {
+          "retrieval@1": 0.9589,
+          "retrieval@5": 0.9769,
+          "median_rank": 1,
+          "margin": 0.7945
+        },
+        "ga": {
+          "retrieval@1": 0.8947,
+          "retrieval@5": 0.9298,
+          "median_rank": 1,
+          "margin": 0.7186
+        },
+        "en": {
+          "retrieval@1": 0.9529,
+          "retrieval@5": 0.9739,
+          "median_rank": 1,
+          "margin": 0.776
+        }
+      },
+      "de": {
+        "bn": {
+          "retrieval@1": 0.9348,
+          "retrieval@5": 0.9669,
+          "median_rank": 1,
+          "margin": 0.766
+        },
+        "ru": {
+          "retrieval@1": 0.9579,
+          "retrieval@5": 0.9809,
+          "median_rank": 1,
+          "margin": 0.8059
+        },
+        "zh": {
+          "retrieval@1": 0.9147,
+          "retrieval@5": 0.9468,
+          "median_rank": 1,
+          "margin": 0.7499
+        },
+        "pt": {
+          "retrieval@1": 0.9809,
+          "retrieval@5": 0.99,
+          "median_rank": 1,
+          "margin": 0.8342
+        },
+        "id": {
+          "retrieval@1": 0.9519,
+          "retrieval@5": 0.9729,
+          "median_rank": 1,
+          "margin": 0.7918
+        },
+        "ko": {
+          "retrieval@1": 0.8516,
+          "retrieval@5": 0.9117,
+          "median_rank": 1,
+          "margin": 0.7243
+        },
+        "jv": {
+          "retrieval@1": 0.9107,
+          "retrieval@5": 0.9498,
+          "median_rank": 1,
+          "margin": 0.7431
+        },
+        "mn": {
+          "retrieval@1": 0.9157,
+          "retrieval@5": 0.9659,
+          "median_rank": 1,
+          "margin": 0.7495
+        },
+        "si": {
+          "retrieval@1": 0.9539,
+          "retrieval@5": 0.9769,
+          "median_rank": 1,
+          "margin": 0.7725
+        },
+        "ga": {
+          "retrieval@1": 0.9438,
+          "retrieval@5": 0.9749,
+          "median_rank": 1,
+          "margin": 0.7579
+        },
+        "en": {
+          "retrieval@1": 0.9709,
+          "retrieval@5": 0.989,
+          "median_rank": 1,
+          "margin": 0.8284
+        }
+      },
+      "ru": {
+        "bn": {
+          "retrieval@1": 0.9168,
+          "retrieval@5": 0.9509,
+          "median_rank": 1,
+          "margin": 0.757
+        },
+        "de": {
+          "retrieval@1": 0.9659,
+          "retrieval@5": 0.9789,
+          "median_rank": 1,
+          "margin": 0.8059
+        },
+        "zh": {
+          "retrieval@1": 0.8877,
+          "retrieval@5": 0.9318,
+          "median_rank": 1,
+          "margin": 0.7429
+        },
+        "pt": {
+          "retrieval@1": 0.9659,
+          "retrieval@5": 0.9809,
+          "median_rank": 1,
+          "margin": 0.8033
+        },
+        "id": {
+          "retrieval@1": 0.9328,
+          "retrieval@5": 0.9589,
+          "median_rank": 1,
+          "margin": 0.7778
+        },
+        "ko": {
+          "retrieval@1": 0.8586,
+          "retrieval@5": 0.9087,
+          "median_rank": 1,
+          "margin": 0.7254
+        },
+        "jv": {
+          "retrieval@1": 0.8806,
+          "retrieval@5": 0.9198,
+          "median_rank": 1,
+          "margin": 0.7244
+        },
+        "mn": {
+          "retrieval@1": 0.9027,
+          "retrieval@5": 0.9408,
+          "median_rank": 1,
+          "margin": 0.741
+        },
+        "si": {
+          "retrieval@1": 0.9298,
+          "retrieval@5": 0.9639,
+          "median_rank": 1,
+          "margin": 0.7561
+        },
+        "ga": {
+          "retrieval@1": 0.9007,
+          "retrieval@5": 0.9348,
+          "median_rank": 1,
+          "margin": 0.7264
+        },
+        "en": {
+          "retrieval@1": 0.9529,
+          "retrieval@5": 0.9759,
+          "median_rank": 1,
+          "margin": 0.7961
+        }
+      },
+      "zh": {
+        "bn": {
+          "retrieval@1": 0.9388,
+          "retrieval@5": 0.9649,
+          "median_rank": 1,
+          "margin": 0.7558
+        },
+        "de": {
+          "retrieval@1": 0.9278,
+          "retrieval@5": 0.9559,
+          "median_rank": 1,
+          "margin": 0.7499
+        },
+        "ru": {
+          "retrieval@1": 0.9027,
+          "retrieval@5": 0.9458,
+          "median_rank": 1,
+          "margin": 0.7429
+        },
+        "pt": {
+          "retrieval@1": 0.9448,
+          "retrieval@5": 0.9699,
+          "median_rank": 1,
+          "margin": 0.7657
+        },
+        "id": {
+          "retrieval@1": 0.9157,
+          "retrieval@5": 0.9529,
+          "median_rank": 1,
+          "margin": 0.7566
+        },
+        "ko": {
+          "retrieval@1": 0.9107,
+          "retrieval@5": 0.9509,
+          "median_rank": 1,
+          "margin": 0.7574
+        },
+        "jv": {
+          "retrieval@1": 0.8726,
+          "retrieval@5": 0.9188,
+          "median_rank": 1,
+          "margin": 0.7116
+        },
+        "mn": {
+          "retrieval@1": 0.8887,
+          "retrieval@5": 0.9458,
+          "median_rank": 1,
+          "margin": 0.7291
+        },
+        "si": {
+          "retrieval@1": 0.9448,
+          "retrieval@5": 0.9729,
+          "median_rank": 1,
+          "margin": 0.7531
+        },
+        "ga": {
+          "retrieval@1": 0.8766,
+          "retrieval@5": 0.9208,
+          "median_rank": 1,
+          "margin": 0.6931
+        },
+        "en": {
+          "retrieval@1": 0.9428,
+          "retrieval@5": 0.9719,
+          "median_rank": 1,
+          "margin": 0.7627
+        }
+      },
+      "pt": {
+        "bn": {
+          "retrieval@1": 0.9509,
+          "retrieval@5": 0.9699,
+          "median_rank": 1,
+          "margin": 0.7841
+        },
+        "de": {
+          "retrieval@1": 0.9729,
+          "retrieval@5": 0.986,
+          "median_rank": 1,
+          "margin": 0.8342
+        },
+        "ru": {
+          "retrieval@1": 0.9559,
+          "retrieval@5": 0.9769,
+          "median_rank": 1,
+          "margin": 0.8033
+        },
+        "zh": {
+          "retrieval@1": 0.9298,
+          "retrieval@5": 0.9559,
+          "median_rank": 1,
+          "margin": 0.7657
+        },
+        "id": {
+          "retrieval@1": 0.9609,
+          "retrieval@5": 0.9779,
+          "median_rank": 1,
+          "margin": 0.8168
+        },
+        "ko": {
+          "retrieval@1": 0.8786,
+          "retrieval@5": 0.9228,
+          "median_rank": 1,
+          "margin": 0.7475
+        },
+        "jv": {
+          "retrieval@1": 0.9228,
+          "retrieval@5": 0.9539,
+          "median_rank": 1,
+          "margin": 0.7553
+        },
+        "mn": {
+          "retrieval@1": 0.9238,
+          "retrieval@5": 0.9669,
+          "median_rank": 1,
+          "margin": 0.7603
+        },
+        "si": {
+          "retrieval@1": 0.9569,
+          "retrieval@5": 0.9819,
+          "median_rank": 1,
+          "margin": 0.787
+        },
+        "ga": {
+          "retrieval@1": 0.9378,
+          "retrieval@5": 0.9619,
+          "median_rank": 1,
+          "margin": 0.7618
+        },
+        "en": {
+          "retrieval@1": 0.9829,
+          "retrieval@5": 0.991,
+          "median_rank": 1,
+          "margin": 0.8462
+        }
+      },
+      "id": {
+        "bn": {
+          "retrieval@1": 0.9378,
+          "retrieval@5": 0.9659,
+          "median_rank": 1,
+          "margin": 0.7689
+        },
+        "de": {
+          "retrieval@1": 0.9509,
+          "retrieval@5": 0.9739,
+          "median_rank": 1,
+          "margin": 0.7918
+        },
+        "ru": {
+          "retrieval@1": 0.9378,
+          "retrieval@5": 0.9729,
+          "median_rank": 1,
+          "margin": 0.7778
+        },
+        "zh": {
+          "retrieval@1": 0.9037,
+          "retrieval@5": 0.9388,
+          "median_rank": 1,
+          "margin": 0.7566
+        },
+        "pt": {
+          "retrieval@1": 0.9669,
+          "retrieval@5": 0.986,
+          "median_rank": 1,
+          "margin": 0.8168
+        },
+        "ko": {
+          "retrieval@1": 0.8877,
+          "retrieval@5": 0.9328,
+          "median_rank": 1,
+          "margin": 0.7515
+        },
+        "jv": {
+          "retrieval@1": 0.9368,
+          "retrieval@5": 0.9659,
+          "median_rank": 1,
+          "margin": 0.799
+        },
+        "mn": {
+          "retrieval@1": 0.9007,
+          "retrieval@5": 0.9418,
+          "median_rank": 1,
+          "margin": 0.7373
+        },
+        "si": {
+          "retrieval@1": 0.9318,
+          "retrieval@5": 0.9689,
+          "median_rank": 1,
+          "margin": 0.7609
+        },
+        "ga": {
+          "retrieval@1": 0.8907,
+          "retrieval@5": 0.9338,
+          "median_rank": 1,
+          "margin": 0.7266
+        },
+        "en": {
+          "retrieval@1": 0.9739,
+          "retrieval@5": 0.987,
+          "median_rank": 1,
+          "margin": 0.8259
+        }
+      },
+      "ko": {
+        "bn": {
+          "retrieval@1": 0.9117,
+          "retrieval@5": 0.9448,
+          "median_rank": 1,
+          "margin": 0.7479
+        },
+        "de": {
+          "retrieval@1": 0.8816,
+          "retrieval@5": 0.9288,
+          "median_rank": 1,
+          "margin": 0.7243
+        },
+        "ru": {
+          "retrieval@1": 0.8596,
+          "retrieval@5": 0.9308,
+          "median_rank": 1,
+          "margin": 0.7254
+        },
+        "zh": {
+          "retrieval@1": 0.8937,
+          "retrieval@5": 0.9398,
+          "median_rank": 1,
+          "margin": 0.7574
+        },
+        "pt": {
+          "retrieval@1": 0.9087,
+          "retrieval@5": 0.9488,
+          "median_rank": 1,
+          "margin": 0.7475
+        },
+        "id": {
+          "retrieval@1": 0.9037,
+          "retrieval@5": 0.9398,
+          "median_rank": 1,
+          "margin": 0.7515
+        },
+        "jv": {
+          "retrieval@1": 0.8485,
+          "retrieval@5": 0.8997,
+          "median_rank": 1,
+          "margin": 0.7035
+        },
+        "mn": {
+          "retrieval@1": 0.8736,
+          "retrieval@5": 0.9348,
+          "median_rank": 1,
+          "margin": 0.7264
+        },
+        "si": {
+          "retrieval@1": 0.9178,
+          "retrieval@5": 0.9639,
+          "median_rank": 1,
+          "margin": 0.7482
+        },
+        "ga": {
+          "retrieval@1": 0.8275,
+          "retrieval@5": 0.8897,
+          "median_rank": 1,
+          "margin": 0.6725
+        },
+        "en": {
+          "retrieval@1": 0.9117,
+          "retrieval@5": 0.9609,
+          "median_rank": 1,
+          "margin": 0.7584
+        }
+      },
+      "jv": {
+        "bn": {
+          "retrieval@1": 0.9027,
+          "retrieval@5": 0.9448,
+          "median_rank": 1,
+          "margin": 0.7282
+        },
+        "de": {
+          "retrieval@1": 0.9258,
+          "retrieval@5": 0.9589,
+          "median_rank": 1,
+          "margin": 0.7431
+        },
+        "ru": {
+          "retrieval@1": 0.8857,
+          "retrieval@5": 0.9328,
+          "median_rank": 1,
+          "margin": 0.7244
+        },
+        "zh": {
+          "retrieval@1": 0.8485,
+          "retrieval@5": 0.9178,
+          "median_rank": 1,
+          "margin": 0.7116
+        },
+        "pt": {
+          "retrieval@1": 0.9368,
+          "retrieval@5": 0.9719,
+          "median_rank": 1,
+          "margin": 0.7553
+        },
+        "id": {
+          "retrieval@1": 0.9509,
+          "retrieval@5": 0.9749,
+          "median_rank": 1,
+          "margin": 0.799
+        },
+        "ko": {
+          "retrieval@1": 0.8315,
+          "retrieval@5": 0.9027,
+          "median_rank": 1,
+          "margin": 0.7035
+        },
+        "mn": {
+          "retrieval@1": 0.8756,
+          "retrieval@5": 0.9318,
+          "median_rank": 1,
+          "margin": 0.7069
+        },
+        "si": {
+          "retrieval@1": 0.9017,
+          "retrieval@5": 0.9478,
+          "median_rank": 1,
+          "margin": 0.7192
+        },
+        "ga": {
+          "retrieval@1": 0.9007,
+          "retrieval@5": 0.9328,
+          "median_rank": 1,
+          "margin": 0.7119
+        },
+        "en": {
+          "retrieval@1": 0.9549,
+          "retrieval@5": 0.9769,
+          "median_rank": 1,
+          "margin": 0.7774
+        }
+      },
+      "mn": {
+        "bn": {
+          "retrieval@1": 0.9157,
+          "retrieval@5": 0.9639,
+          "median_rank": 1,
+          "margin": 0.7531
+        },
+        "de": {
+          "retrieval@1": 0.9157,
+          "retrieval@5": 0.9669,
+          "median_rank": 1,
+          "margin": 0.7495
+        },
+        "ru": {
+          "retrieval@1": 0.9097,
+          "retrieval@5": 0.9478,
+          "median_rank": 1,
+          "margin": 0.741
+        },
+        "zh": {
+          "retrieval@1": 0.8716,
+          "retrieval@5": 0.9278,
+          "median_rank": 1,
+          "margin": 0.7291
+        },
+        "pt": {
+          "retrieval@1": 0.9328,
+          "retrieval@5": 0.9629,
+          "median_rank": 1,
+          "margin": 0.7603
+        },
+        "id": {
+          "retrieval@1": 0.9037,
+          "retrieval@5": 0.9498,
+          "median_rank": 1,
+          "margin": 0.7373
+        },
+        "ko": {
+          "retrieval@1": 0.8556,
+          "retrieval@5": 0.9198,
+          "median_rank": 1,
+          "margin": 0.7264
+        },
+        "jv": {
+          "retrieval@1": 0.8516,
+          "retrieval@5": 0.9117,
+          "median_rank": 1,
+          "margin": 0.7069
+        },
+        "si": {
+          "retrieval@1": 0.9448,
+          "retrieval@5": 0.9739,
+          "median_rank": 1,
+          "margin": 0.7699
+        },
+        "ga": {
+          "retrieval@1": 0.9017,
+          "retrieval@5": 0.9448,
+          "median_rank": 1,
+          "margin": 0.7194
+        },
+        "en": {
+          "retrieval@1": 0.9188,
+          "retrieval@5": 0.9569,
+          "median_rank": 1,
+          "margin": 0.7407
+        }
+      },
+      "si": {
+        "bn": {
+          "retrieval@1": 0.9589,
+          "retrieval@5": 0.9809,
+          "median_rank": 1,
+          "margin": 0.7945
+        },
+        "de": {
+          "retrieval@1": 0.9458,
+          "retrieval@5": 0.9699,
+          "median_rank": 1,
+          "margin": 0.7725
+        },
+        "ru": {
+          "retrieval@1": 0.9248,
+          "retrieval@5": 0.9609,
+          "median_rank": 1,
+          "margin": 0.7561
+        },
+        "zh": {
+          "retrieval@1": 0.9127,
+          "retrieval@5": 0.9468,
+          "median_rank": 1,
+          "margin": 0.7531
+        },
+        "pt": {
+          "retrieval@1": 0.9639,
+          "retrieval@5": 0.9819,
+          "median_rank": 1,
+          "margin": 0.787
+        },
+        "id": {
+          "retrieval@1": 0.9278,
+          "retrieval@5": 0.9569,
+          "median_rank": 1,
+          "margin": 0.7609
+        },
+        "ko": {
+          "retrieval@1": 0.8927,
+          "retrieval@5": 0.9438,
+          "median_rank": 1,
+          "margin": 0.7482
+        },
+        "jv": {
+          "retrieval@1": 0.8826,
+          "retrieval@5": 0.9358,
+          "median_rank": 1,
+          "margin": 0.7192
+        },
+        "mn": {
+          "retrieval@1": 0.9478,
+          "retrieval@5": 0.9779,
+          "median_rank": 1,
+          "margin": 0.7699
+        },
+        "ga": {
+          "retrieval@1": 0.9087,
+          "retrieval@5": 0.9579,
+          "median_rank": 1,
+          "margin": 0.7276
+        },
+        "en": {
+          "retrieval@1": 0.9629,
+          "retrieval@5": 0.9779,
+          "median_rank": 1,
+          "margin": 0.7897
+        }
+      },
+      "ga": {
+        "bn": {
+          "retrieval@1": 0.8756,
+          "retrieval@5": 0.9378,
+          "median_rank": 1,
+          "margin": 0.7186
+        },
+        "de": {
+          "retrieval@1": 0.9328,
+          "retrieval@5": 0.9699,
+          "median_rank": 1,
+          "margin": 0.7579
+        },
+        "ru": {
+          "retrieval@1": 0.8867,
+          "retrieval@5": 0.9388,
+          "median_rank": 1,
+          "margin": 0.7264
+        },
+        "zh": {
+          "retrieval@1": 0.8455,
+          "retrieval@5": 0.8987,
+          "median_rank": 1,
+          "margin": 0.6931
+        },
+        "pt": {
+          "retrieval@1": 0.9258,
+          "retrieval@5": 0.9669,
+          "median_rank": 1,
+          "margin": 0.7618
+        },
+        "id": {
+          "retrieval@1": 0.8867,
+          "retrieval@5": 0.9338,
+          "median_rank": 1,
+          "margin": 0.7266
+        },
+        "ko": {
+          "retrieval@1": 0.7974,
+          "retrieval@5": 0.8736,
+          "median_rank": 1,
+          "margin": 0.6725
+        },
+        "jv": {
+          "retrieval@1": 0.8676,
+          "retrieval@5": 0.9268,
+          "median_rank": 1,
+          "margin": 0.7119
+        },
+        "mn": {
+          "retrieval@1": 0.8937,
+          "retrieval@5": 0.9458,
+          "median_rank": 1,
+          "margin": 0.7194
+        },
+        "si": {
+          "retrieval@1": 0.9057,
+          "retrieval@5": 0.9509,
+          "median_rank": 1,
+          "margin": 0.7276
+        },
+        "en": {
+          "retrieval@1": 0.9178,
+          "retrieval@5": 0.9549,
+          "median_rank": 1,
+          "margin": 0.7452
+        }
+      },
+      "en": {
+        "bn": {
+          "retrieval@1": 0.9519,
+          "retrieval@5": 0.9749,
+          "median_rank": 1,
+          "margin": 0.776
+        },
+        "de": {
+          "retrieval@1": 0.9829,
+          "retrieval@5": 0.991,
+          "median_rank": 1,
+          "margin": 0.8284
+        },
+        "ru": {
+          "retrieval@1": 0.9509,
+          "retrieval@5": 0.9739,
+          "median_rank": 1,
+          "margin": 0.7961
+        },
+        "zh": {
+          "retrieval@1": 0.9328,
+          "retrieval@5": 0.9559,
+          "median_rank": 1,
+          "margin": 0.7627
+        },
+        "pt": {
+          "retrieval@1": 0.987,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.8462
+        },
+        "id": {
+          "retrieval@1": 0.9729,
+          "retrieval@5": 0.987,
+          "median_rank": 1,
+          "margin": 0.8259
+        },
+        "ko": {
+          "retrieval@1": 0.9137,
+          "retrieval@5": 0.9488,
+          "median_rank": 1,
+          "margin": 0.7584
+        },
+        "jv": {
+          "retrieval@1": 0.9488,
+          "retrieval@5": 0.9689,
+          "median_rank": 1,
+          "margin": 0.7774
+        },
+        "mn": {
+          "retrieval@1": 0.9238,
+          "retrieval@5": 0.9629,
+          "median_rank": 1,
+          "margin": 0.7407
+        },
+        "si": {
+          "retrieval@1": 0.9649,
+          "retrieval@5": 0.9809,
+          "median_rank": 1,
+          "margin": 0.7897
+        },
+        "ga": {
+          "retrieval@1": 0.9258,
+          "retrieval@5": 0.9559,
+          "median_rank": 1,
+          "margin": 0.7452
+        }
+      }
+    },
+    "raw": {
+      "bn": {
+        "de": {
+          "retrieval@1": 0.995,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "ru": {
+          "retrieval@1": 0.993,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "zh": {
+          "retrieval@1": 0.986,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "pt": {
+          "retrieval@1": 0.995,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "id": {
+          "retrieval@1": 0.992,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0055
+        },
+        "ko": {
+          "retrieval@1": 0.992,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "jv": {
+          "retrieval@1": 0.9829,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "mn": {
+          "retrieval@1": 0.9789,
+          "retrieval@5": 0.991,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "si": {
+          "retrieval@1": 0.986,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.0055
+        },
+        "ga": {
+          "retrieval@1": 0.9819,
+          "retrieval@5": 0.992,
+          "median_rank": 1,
+          "margin": 0.005
+        },
+        "en": {
+          "retrieval@1": 0.995,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0054
+        }
+      },
+      "de": {
+        "bn": {
+          "retrieval@1": 0.995,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "ru": {
+          "retrieval@1": 0.999,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "zh": {
+          "retrieval@1": 0.984,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "pt": {
+          "retrieval@1": 0.999,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0056
+        },
+        "id": {
+          "retrieval@1": 0.995,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0055
+        },
+        "ko": {
+          "retrieval@1": 0.9819,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "jv": {
+          "retrieval@1": 0.991,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "mn": {
+          "retrieval@1": 0.986,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "si": {
+          "retrieval@1": 0.988,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "ga": {
+          "retrieval@1": 0.984,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.005
+        },
+        "en": {
+          "retrieval@1": 0.999,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0056
+        }
+      },
+      "ru": {
+        "bn": {
+          "retrieval@1": 0.993,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "de": {
+          "retrieval@1": 0.997,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "zh": {
+          "retrieval@1": 0.9819,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.005
+        },
+        "pt": {
+          "retrieval@1": 0.996,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "id": {
+          "retrieval@1": 0.995,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "ko": {
+          "retrieval@1": 0.987,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "jv": {
+          "retrieval@1": 0.986,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.005
+        },
+        "mn": {
+          "retrieval@1": 0.9819,
+          "retrieval@5": 0.991,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "si": {
+          "retrieval@1": 0.989,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "ga": {
+          "retrieval@1": 0.985,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0049
+        },
+        "en": {
+          "retrieval@1": 0.997,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0054
+        }
+      },
+      "zh": {
+        "bn": {
+          "retrieval@1": 0.989,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "de": {
+          "retrieval@1": 0.9819,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "ru": {
+          "retrieval@1": 0.9819,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.005
+        },
+        "pt": {
+          "retrieval@1": 0.9809,
+          "retrieval@5": 0.993,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "id": {
+          "retrieval@1": 0.984,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "ko": {
+          "retrieval@1": 0.9819,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "jv": {
+          "retrieval@1": 0.9769,
+          "retrieval@5": 0.989,
+          "median_rank": 1,
+          "margin": 0.0049
+        },
+        "mn": {
+          "retrieval@1": 0.9729,
+          "retrieval@5": 0.99,
+          "median_rank": 1,
+          "margin": 0.005
+        },
+        "si": {
+          "retrieval@1": 0.9739,
+          "retrieval@5": 0.992,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "ga": {
+          "retrieval@1": 0.9619,
+          "retrieval@5": 0.989,
+          "median_rank": 1,
+          "margin": 0.0047
+        },
+        "en": {
+          "retrieval@1": 0.99,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0051
+        }
+      },
+      "pt": {
+        "bn": {
+          "retrieval@1": 0.997,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "de": {
+          "retrieval@1": 0.998,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0056
+        },
+        "ru": {
+          "retrieval@1": 0.997,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "zh": {
+          "retrieval@1": 0.9749,
+          "retrieval@5": 0.993,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "id": {
+          "retrieval@1": 0.999,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0057
+        },
+        "ko": {
+          "retrieval@1": 0.99,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "jv": {
+          "retrieval@1": 0.995,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "mn": {
+          "retrieval@1": 0.984,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "si": {
+          "retrieval@1": 0.9709,
+          "retrieval@5": 0.993,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "ga": {
+          "retrieval@1": 0.985,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "en": {
+          "retrieval@1": 1.0,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0057
+        }
+      },
+      "id": {
+        "bn": {
+          "retrieval@1": 0.9759,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.0055
+        },
+        "de": {
+          "retrieval@1": 0.9829,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.0055
+        },
+        "ru": {
+          "retrieval@1": 0.9709,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "zh": {
+          "retrieval@1": 0.9458,
+          "retrieval@5": 0.9769,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "pt": {
+          "retrieval@1": 0.993,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0057
+        },
+        "ko": {
+          "retrieval@1": 0.9829,
+          "retrieval@5": 0.993,
+          "median_rank": 1,
+          "margin": 0.0055
+        },
+        "jv": {
+          "retrieval@1": 0.9829,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0056
+        },
+        "mn": {
+          "retrieval@1": 0.9478,
+          "retrieval@5": 0.984,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "si": {
+          "retrieval@1": 0.9258,
+          "retrieval@5": 0.9739,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "ga": {
+          "retrieval@1": 0.9458,
+          "retrieval@5": 0.9739,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "en": {
+          "retrieval@1": 0.997,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0057
+        }
+      },
+      "ko": {
+        "bn": {
+          "retrieval@1": 0.9829,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "de": {
+          "retrieval@1": 0.9789,
+          "retrieval@5": 0.993,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "ru": {
+          "retrieval@1": 0.9759,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "zh": {
+          "retrieval@1": 0.9769,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "pt": {
+          "retrieval@1": 0.991,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "id": {
+          "retrieval@1": 0.992,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0055
+        },
+        "jv": {
+          "retrieval@1": 0.9749,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "mn": {
+          "retrieval@1": 0.9609,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "si": {
+          "retrieval@1": 0.9539,
+          "retrieval@5": 0.992,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "ga": {
+          "retrieval@1": 0.9519,
+          "retrieval@5": 0.987,
+          "median_rank": 1,
+          "margin": 0.0048
+        },
+        "en": {
+          "retrieval@1": 0.995,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0054
+        }
+      },
+      "jv": {
+        "bn": {
+          "retrieval@1": 0.9759,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "de": {
+          "retrieval@1": 0.9829,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "ru": {
+          "retrieval@1": 0.9739,
+          "retrieval@5": 0.992,
+          "median_rank": 1,
+          "margin": 0.005
+        },
+        "zh": {
+          "retrieval@1": 0.9559,
+          "retrieval@5": 0.988,
+          "median_rank": 1,
+          "margin": 0.0049
+        },
+        "pt": {
+          "retrieval@1": 0.989,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "id": {
+          "retrieval@1": 0.988,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0056
+        },
+        "ko": {
+          "retrieval@1": 0.9689,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "mn": {
+          "retrieval@1": 0.9488,
+          "retrieval@5": 0.985,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "si": {
+          "retrieval@1": 0.9448,
+          "retrieval@5": 0.9799,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "ga": {
+          "retrieval@1": 0.9639,
+          "retrieval@5": 0.99,
+          "median_rank": 1,
+          "margin": 0.0049
+        },
+        "en": {
+          "retrieval@1": 0.994,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0053
+        }
+      },
+      "mn": {
+        "bn": {
+          "retrieval@1": 0.988,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "de": {
+          "retrieval@1": 0.987,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "ru": {
+          "retrieval@1": 0.987,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "zh": {
+          "retrieval@1": 0.9729,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.005
+        },
+        "pt": {
+          "retrieval@1": 0.99,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "id": {
+          "retrieval@1": 0.9779,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "ko": {
+          "retrieval@1": 0.9779,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "jv": {
+          "retrieval@1": 0.9759,
+          "retrieval@5": 0.991,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "si": {
+          "retrieval@1": 0.985,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "ga": {
+          "retrieval@1": 0.9679,
+          "retrieval@5": 0.992,
+          "median_rank": 1,
+          "margin": 0.0049
+        },
+        "en": {
+          "retrieval@1": 0.992,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0052
+        }
+      },
+      "si": {
+        "bn": {
+          "retrieval@1": 0.997,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0055
+        },
+        "de": {
+          "retrieval@1": 0.994,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "ru": {
+          "retrieval@1": 0.994,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "zh": {
+          "retrieval@1": 0.994,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "pt": {
+          "retrieval@1": 0.993,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "id": {
+          "retrieval@1": 0.9829,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "ko": {
+          "retrieval@1": 0.9829,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "jv": {
+          "retrieval@1": 0.9819,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "mn": {
+          "retrieval@1": 0.988,
+          "retrieval@5": 0.996,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "ga": {
+          "retrieval@1": 0.985,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0049
+        },
+        "en": {
+          "retrieval@1": 0.989,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0054
+        }
+      },
+      "ga": {
+        "bn": {
+          "retrieval@1": 0.9809,
+          "retrieval@5": 0.992,
+          "median_rank": 1,
+          "margin": 0.005
+        },
+        "de": {
+          "retrieval@1": 0.9789,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.005
+        },
+        "ru": {
+          "retrieval@1": 0.9729,
+          "retrieval@5": 0.99,
+          "median_rank": 1,
+          "margin": 0.0049
+        },
+        "zh": {
+          "retrieval@1": 0.9709,
+          "retrieval@5": 0.99,
+          "median_rank": 1,
+          "margin": 0.0047
+        },
+        "pt": {
+          "retrieval@1": 0.9799,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "id": {
+          "retrieval@1": 0.9699,
+          "retrieval@5": 0.993,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "ko": {
+          "retrieval@1": 0.9619,
+          "retrieval@5": 0.988,
+          "median_rank": 1,
+          "margin": 0.0048
+        },
+        "jv": {
+          "retrieval@1": 0.9749,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0049
+        },
+        "mn": {
+          "retrieval@1": 0.9639,
+          "retrieval@5": 0.985,
+          "median_rank": 1,
+          "margin": 0.0049
+        },
+        "si": {
+          "retrieval@1": 0.9709,
+          "retrieval@5": 0.992,
+          "median_rank": 1,
+          "margin": 0.0049
+        },
+        "en": {
+          "retrieval@1": 0.9809,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0051
+        }
+      },
+      "en": {
+        "bn": {
+          "retrieval@1": 0.996,
+          "retrieval@5": 0.998,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "de": {
+          "retrieval@1": 0.998,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0056
+        },
+        "ru": {
+          "retrieval@1": 0.998,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "zh": {
+          "retrieval@1": 0.9789,
+          "retrieval@5": 0.995,
+          "median_rank": 1,
+          "margin": 0.0051
+        },
+        "pt": {
+          "retrieval@1": 1.0,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0057
+        },
+        "id": {
+          "retrieval@1": 0.999,
+          "retrieval@5": 1.0,
+          "median_rank": 1,
+          "margin": 0.0057
+        },
+        "ko": {
+          "retrieval@1": 0.995,
+          "retrieval@5": 0.997,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "jv": {
+          "retrieval@1": 0.998,
+          "retrieval@5": 0.999,
+          "median_rank": 1,
+          "margin": 0.0053
+        },
+        "mn": {
+          "retrieval@1": 0.9799,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0052
+        },
+        "si": {
+          "retrieval@1": 0.9729,
+          "retrieval@5": 0.993,
+          "median_rank": 1,
+          "margin": 0.0054
+        },
+        "ga": {
+          "retrieval@1": 0.984,
+          "retrieval@5": 0.994,
+          "median_rank": 1,
+          "margin": 0.0051
+        }
+      }
+    }
+  }
+}
