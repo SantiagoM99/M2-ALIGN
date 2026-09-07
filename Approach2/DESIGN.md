@@ -1813,8 +1813,9 @@ saturation for id).
   at 01:30 −04:00 and was pushed as `1aafc1a` before any freeze commit.
   **de/pt/ko are not prospective**; the seven-donor analysis on the current
   targets is exploratory in its entirety, and G3 rests on the confirmatory
-  panel alone. The cluster-side `sacct`/log/reflog outputs are still to be
-  appended to the audit record. Then, by timestamp: discovery donors = bn, id, ru, zh (transfer
+  panel alone. **Audit complete (cluster appendix collected 2026-09-07)**:
+  submitted 03:43 UTC, before the hypothesis commit; auto-committed 05:30
+  UTC; rebased and pushed 06:22 UTC. Then, by timestamp: discovery donors = bn, id, ru, zh (transfer
   inspected before the donor-level hypothesis was recorded on 2026-09-06);
   prospective donors = de, pt, ko **only if** their transfer results were
   neither produced, committed nor read before the freeze commit; otherwise
