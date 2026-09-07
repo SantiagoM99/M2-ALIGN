@@ -1125,24 +1125,59 @@ they are the lowest-resource in the set. They are not one mechanism.
 
 ---
 
-### The question, restated after X1 (2026-09-06)
+### The question — corrected back to its anchor (2026-09-06)
 
-The original question was "when a multilingual VLM fails in a language, what
-exactly failed — and can you tell before you build it?", with the architecture
-as the instrument: `mapping_vis` takes only pixels (`model.py:325`), so the
-visual pathway cannot be language-specific and every cross-lingual difference
-must originate in the text bridge.
+Santiago caught a drift and he was right. The previous entry here promoted
+donor selection to "the question". It is not the question; it is a finding
+inside it. The anchor has been xGQA since the positioning sweep, and the
+anchor is a literal call for methods. Verified at source (arXiv 2109.06082,
+Pfeiffer, Geigle, Kamath, Steitz, Roth, Vulić, Gurevych), final sentence of
+the abstract:
 
-X1 did not change that question, it sharpened the first half. The thing that
-fails is not a language, it is a **pair**. So the question in its working form:
+> "Our results suggest that simple cross-lingual transfer of multimodal
+> models yields latent multilingual multimodal misalignment, **calling for
+> more sophisticated methods for vision and multilingual language
+> modeling.**"
 
-> **Which language should you train the multimodal bridge in, so that the most
-> other languages can receive it — and can you predict that in advance,
-> without multimodal data in any of them?**
+**The question is that call.** Can zero-shot cross-lingual transfer for VQA
+avoid the ~38-point collapse, and what makes the misalignment "latent"?
 
-Both halves stay: attribution (X1 answered it — the pair, not the target) and
-prediction (open). Donor selection is also the cheapest intervention this
-project has found, since it costs a choice rather than a training run.
+**The answer, and it is E3.** Decoupled bridges into a frozen LLM:
+**+0.75 points instead of −38** on their benchmark, six unseen languages,
+ΔV retained at 99.4% of the in-language supervised arm, six of seven
+statistically indistinguishable from it, McNemar p < 1e-220 everywhere.
+
+**E3 was wrongly demoted.** It was recorded above as "a control, not a
+contribution" because the result follows from `mapping_vis` taking only
+pixels. That reasoning was backwards. xGQA's whole finding is that this
+transfer is *hard*; an architecture in which the difficulty does not arise is
+exactly what a call for more sophisticated methods asks for. The
+language-blind visual pathway is not a reason to discount the result — it is
+**the mechanism**, and it answers their diagnosis directly: the misalignment
+is "latent" because language and modality share one pathway, and it does not
+occur when they do not.
+
+The blind control is what stops this from being a degenerate win: the pixels
+are demonstrably doing the work in every one of the seven languages, so the
+system is not transferring a language prior that happens to score well.
+
+**Where the answer stops, and this is X1's place in the paper.** All seven
+xGQA languages are mid-to-high resource and well served by NLLB. Extend past
+that set to jv/mn/ga/si — which xGQA does not cover — and transfer becomes
+**donor-dependent**: 17% retention from Bengali, 56% from Indonesian, and
+Bengali was chosen by default. That is the honest limit of the answer and a
+new failure mode inside the same problem, not a different question.
+
+So the paper's spine:
+
+1. xGQA calls for more sophisticated methods. (their words)
+2. Decoupling the bridges answers it: −38 becomes +0.75. (E3)
+3. The mechanism is architectural and checkable in code, and it explains why
+   their misalignment was latent. (`model.py:325`)
+4. Beyond their language set the answer becomes conditional on donor choice.
+   (X1)
+5. Open: can donor quality be predicted label-free, before building
+   anything? (X2b)
 
 **Donor quality, measured** (`analysis/donor_matrix.py`, mean retention over
 ga/jv/mn/si — the four targets every source was run on):
@@ -1157,8 +1192,8 @@ ga/jv/mn/si — the four targets every source was run on):
 Donor quality must be averaged over a **common** target set. Averaging each
 source over whatever it happened to be run on ranks Bengali first at 71%,
 purely because Bengali was the only source run on the easy targets (pt, ru,
-si, ko, zh) — which inverts X1's finding. The script now enforces the
-common set and says which targets it used.
+si, ko, zh) — which inverts X1's finding. The script enforces the common set
+and prints which targets it used.
 
 ---
 
