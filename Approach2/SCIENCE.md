@@ -87,7 +87,7 @@ optional.
 | **D11-law** | "Gain = 0.71 × deficit" as a general law | Fitted r=+0.989 on bn/de/ru/zh; out of sample on jv/si/ga/mn predicted **+1.8**, observed **−1.4**, RMSE **4.65** against a ±0.4 noise floor. Sharpest miss: Irish MGSM, deficit 9.6, delivered 0. Holds only where the text bridge works |
 | **E2-conclusion** | "jv/mn/ga cannot receive visual transfer" | X1: they can, from Indonesian. Refuting a target-intrinsic explanation needs one source that works |
 | **sufficiency** | "jv/mn/ga fail because their text bridge is worse" | Every language reaches 77–99% of its own frozen-LLM ceiling, including all three that fail. No relationship with transfer |
-| **X2** | Target-level alignment predicts transfer | rho=+0.50, permutation p=0.18. Javanese: retrieval@1 **0.960** and 13% retention. *Design also confounded — see §5* |
+| **X2** | *Target-level* alignment predicts transfer | rho=+0.50, permutation p=0.18. Javanese: retrieval@1 **0.960** and 13% retention. *Design also confounded — see §5.* Superseded by X2b, which measures the pair |
 | **H1-confound** | "`--no-vision` collapses the model to short VQA-style answers" | Outputs are **longer** (307 vs 242 chars), and the deficit survives cleaning |
 | D7 | Zero-init prefix gate | REJECTED as trained (xGQA 19.41) |
 | — | "Text-side DenseConnector" is novel | Already published: Puranegedara et al., arXiv 2508.09091 |
@@ -97,7 +97,8 @@ optional.
 
 | id | question | status |
 |---|---|---|
-| **X2b** | Does *pairwise* alignment predict pairwise transfer? | Implemented, not run. Pre-registered: must rank id above bn/ru as a donor for jv/mn/ga, **and** reproduce zh-high-for-ga / zh-low-for-mn. Missing that dissociation ⇒ abandon the alignment mechanism rather than re-instrument a third time |
+| **X2b** | Does *pairwise* alignment predict pairwise transfer? | **Verdict deferred.** Four checkpoints scored. Corrected per-source reading: id beats bn on alignment and retention **4/4**; within-target Spearman +0.35. Not decidable until ru and zh have own-checkpoint alignment — both pre-registered conditions name them. The earlier "FAILED" came from the wrong bridge and is withdrawn |
+| **donor-level** | Does a donor's mean pairwise alignment predict its donor quality? | **Live, and the best candidate for the mechanism.** Stage 3 in Bengali degrades cross-lingual alignment 0.968 → **0.918**; in Indonesian it does not, 0.968 → **0.983**. Donor quality is 34% and 68% respectively. n=2 — an observation. Test across all eleven sources; needs no target-side data at all |
 | **X3 / D12** | Does a joint multilingual stage-1 mapping remove donor dependence? | Chained and ready. Pre-registered **differential** prediction: must lift jv/mn/ga and leave de/ru/zh flat. A uniform lift refutes it as surely as no lift |
 | **E4** | Why does better visual pretraining buy jv/mn/ga nothing? | Unexplained. Uses each language's own checkpoint, so no donor is involved — a different phenomenon from E2's failure |
 | — | Donor matrix beyond 4 sources | Eval only, checkpoints exist |
@@ -126,6 +127,15 @@ Kept visible on purpose. Anything here was once written down as true.
   compared a clean subset against a raw ceiling.
 - **MindMerger citation** — `Stage1/train.py:225` was a derived port, not
   MindMerger. Correct: `MindMerger/run_training.py:35`.
+- **X2b's first "FAILED" verdict** — withdrawn. Alignment was read from
+  `pairalign_stage3_bn_dcl.json` for every source, but transferring from S
+  runs **S's** mapping, so S's prefix space is the one the target must land
+  in. Only the bn rows were right.
+- **A significant global correlation that was entirely target difficulty** —
+  with the wrong file, global rho=+0.587 (p=0.0059) while the *within-target*
+  correlation was **−0.20**. Easy targets have both high alignment and high
+  retention. Always report the within-target figure; `donor_matrix.py` now
+  prints both.
 
 ## 6. Measurement conventions
 
@@ -137,6 +147,9 @@ Kept visible on purpose. Anything here was once written down as true.
 - **Donor quality must be averaged over a common target set.** Averaging each
   source over whatever it happened to be run on ranks Bengali first at 71%
   and inverts X1.
+- **Pairwise alignment is read from the source's own checkpoint**
+  (`pairalign_stage3_<S>_v4.json`), never from one shared file. Bengali's is
+  named `_dcl`, so name resolution must try both.
 - **Per-language ceilings, not English and not a mean**, are the denominator:
   frozen Gemma with `--no-mapping` on that language's own questions.
 - **The BLIND suffix moves.** Supervised round files are
