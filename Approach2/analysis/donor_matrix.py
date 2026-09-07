@@ -96,7 +96,14 @@ def perm_p(x, y, limit=20000):
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--bench", default="cvqa")
-    ap.add_argument("--align", default="pairalign_stage3_bn_dcl.json")
+    # Alignment must be read from the SOURCE's own checkpoint: transferring from
+    # S runs S's mapping, so S's prefix space is the one T has to land in.
+    # Reading every row out of one file (the original default) measures a
+    # different bridge for every source but bn, and inflates the apparent
+    # correlation with target difficulty. --align is now only the fallback for
+    # sources whose own pairalign_stage3_<S>_v4.json has not been scored.
+    ap.add_argument("--align", default="pairalign_stage3_bn_dcl.json",
+                    help="fallback only; per-source files are preferred")
     ap.add_argument("--metric", default="retrieval@1")
     ap.add_argument("--space", default="centered", choices=("centered", "raw"))
     args = ap.parse_args()
@@ -163,21 +170,48 @@ def main() -> None:
         print(f"Available: {found or '(none)'}")
         return
 
-    mat = json.load(open(args.align))["matrix"][args.space]
-    xs, ys, labels = [], [], []
+    def align_for(src: str):
+        """The pairwise matrix from src's OWN checkpoint, else the fallback."""
+        own = (f"pairalign_stage3_{src}_v4.json", f"pairalign_stage3_{src}_dcl.json")
+        for cand in own + (args.align,):
+            if os.path.exists(cand):
+                return json.load(open(cand))["matrix"][args.space], cand not in own
+        return None, True
+
+    xs, ys, labels, borrowed = [], [], [], []
     for (s, t), d in sorted(pairs.items()):
-        if s in mat and t in mat[s] and sup.get(t):
-            xs.append(mat[s][t][args.metric])
-            ys.append(100.0 * d / sup[t])
-            labels.append(f"{s}->{t}")
+        mat, is_fallback = align_for(s)
+        if mat is None or s not in mat or t not in mat[s] or not sup.get(t):
+            continue
+        xs.append(mat[s][t][args.metric])
+        ys.append(100.0 * d / sup[t])
+        labels.append(f"{s}->{t}" + ("*" if is_fallback else ""))
+        if is_fallback:
+            borrowed.append(s)
     print(f"\n=== Does pairwise alignment predict pairwise transfer? "
           f"({args.space} {args.metric}) ===\n")
     print(f"{'pair':<10}{'alignment':>11}{'retention%':>12}")
     for lab, x, y in sorted(zip(labels, xs, ys), key=lambda r: -r[1]):
         print(f"{lab:<10}{x:>11.3f}{y:>12.1f}")
+    if borrowed:
+        print(f"\n* {len(set(borrowed))} source(s) have no own-checkpoint alignment "
+              f"({' '.join(sorted(set(borrowed)))}) and fall back to {args.align}.")
+        print("  Those rows measure a different bridge than the one that transfers —")
+        print("  score them with pair_alignment.sh before reading their cells.")
     if len(xs) >= 5:
         print(f"\nn={len(xs)} pairs  Pearson r={pearson(xs, ys):+.3f}  "
               f"Spearman rho={spearman(xs, ys):+.3f}  permutation p={perm_p(xs, ys):.4f}")
+        # The global correlation is dominated by target difficulty: easy targets
+        # have both high alignment and high retention. The question that matters
+        # is whether alignment picks the SOURCE for a fixed target.
+        by_t: dict[str, list] = {}
+        for lab, x, y in zip(labels, xs, ys):
+            by_t.setdefault(lab.split("->")[1].rstrip("*"), []).append((x, y))
+        within = [spearman([a for a, _ in v], [b for _, b in v])
+                  for v in by_t.values() if len(v) >= 3]
+        if within:
+            print(f"mean WITHIN-target Spearman = {sum(within) / len(within):+.3f} "
+                  f"over {len(within)} targets  <-- this is the one that matters")
         print("\nPre-registered (DESIGN.md X2): this must rank id above bn and ru as a")
         print("donor for jv/mn/ga, and reproduce zh high for ga / low for mn. A")
         print("correlation that misses that dissociation is not the mechanism.")

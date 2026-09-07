@@ -1242,6 +1242,80 @@ not fix transfer either.
 
 ---
 
+### X2b — first results (2026-09-06) — MY FIRST ANALYSIS WAS WRONG; VERDICT DEFERRED
+
+Four checkpoints scored on FLORES-200 dev (997 sentences x 12 languages).
+
+**The analysis error.** The first pass read every source's row out of
+`pairalign_stage3_bn_dcl.json`. That is the wrong bridge: transferring from
+source S runs **S's** mapping, so S's prefix space is the one the target has
+to land in. Only the bn rows were right. `analysis/donor_matrix.py` now reads
+`pairalign_stage3_<S>_v4.json` per source and marks any row that had to fall
+back.
+
+With the wrong file the global correlation looked significant (rho=+0.587,
+p=0.0059) but the **within-target** correlation — does alignment pick the
+*source* for a fixed target, which is the only question that matters — was
+**−0.20**, i.e. the whole effect was target difficulty: si has both the
+highest mean alignment (0.941) and the highest mean retention (92.9%), while
+jv/mn/ga cluster at 0.89-0.90 and 27-44%.
+
+**Corrected, for the two sources that have their own checkpoint:**
+
+| pair | alignment (own ckpt) | (bn ckpt) | retention |
+|---|---|---|---|
+| bn→jv | 0.894 | 0.894 | 13.3 |
+| bn→mn | 0.921 | 0.921 | 25.0 |
+| bn→ga | 0.895 | 0.895 | 12.5 |
+| bn→si | 0.959 | 0.959 | 85.7 |
+| **id→jv** | **0.987** | 0.937 | **50.0** |
+| **id→mn** | **0.979** | 0.901 | **62.5** |
+| **id→ga** | **0.977** | 0.891 | **58.3** |
+| **id→si** | **0.993** | 0.932 | **100.0** |
+
+id beats bn on alignment **and** on retention in all four targets, 4/4.
+Within-target Spearman rises from −0.20 to **+0.35** once id uses its own
+file.
+
+**The pre-registered verdict cannot be pronounced yet.** Both conditions
+name ru and zh, and neither has been scored — `pairalign_stage3_ru_v4.json`
+and `pairalign_stage3_zh_v4.json` do not exist. The earlier "FAILED" was
+computed from the wrong bridge and is withdrawn. Score those two, then read
+the verdict.
+
+**A donor-level hypothesis is what the data actually suggests**, and it is
+stronger than the pair-level one because it needs no target-side data at all:
+
+| checkpoint | mean pairwise R@1 | donor quality (X1) |
+|---|---|---|
+| `stage1` (bn-only, pre-VQA) | 0.968 | — |
+| **`stage1_joint`** (D12) | **0.986** | untested |
+| `stage3_id_v4` | 0.983 | **68%** |
+| `stage3_bn_dcl` | 0.918 | **34%** |
+
+**Stage 3 in Bengali degrades cross-lingual alignment (0.968 → 0.918);
+stage 3 in Indonesian does not (0.968 → 0.983).** Per-language, bn's stage 3
+costs jv 0.957→0.892, ga 0.953→0.901, mn 0.955→0.906. That is a concrete
+mechanism for X1's donor effect: training VQA in S pulls the shared text
+mapping toward S, and how much collateral damage that does is a property of
+S. n=2 donors, so this is an observation, not a test.
+
+**Prediction, recorded now**: mean pairwise alignment of `stage3_<S>_v4`
+predicts S's donor quality across all eleven sources. Both halves are cheap —
+`pair_alignment.sh` with `CKPTS` covering the eleven, and job 20398782 is
+already filling the donor matrix. If it holds, the "can you tell before you
+build it" half of the question is answered **without any multimodal data or
+evaluation in any target language**.
+
+**And it re-motivates D12.** `stage1_joint` has the highest mean alignment of
+any checkpoint measured (0.986), lifting exactly the languages bn's stage 3
+damages (jv 0.981, ga 0.982, mn 0.977). The X3 gate is void — it assumed
+alignment predicts transfer, which is what is still being decided — but X3's
+own differential prediction (lift jv/mn/ga, leave de/ru/zh flat) stands on
+its own and should simply be run.
+
+---
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
