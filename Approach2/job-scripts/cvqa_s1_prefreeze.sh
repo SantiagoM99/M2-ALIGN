@@ -26,9 +26,10 @@
 # The parquet must already be on the shared filesystem: compute nodes have no
 # network. On a login node, once (≈ 4.9 GB):
 #
-#   huggingface-cli download afaji/cvqa --repo-type dataset \
+#   hf download afaji/cvqa --repo-type dataset \
 #     --include 'data/test-*.parquet' --local-dir $SCRATCH/cvqa
-#   # or, if the CLI is not on PATH inside the venv:
+#   # (`huggingface-cli` is deprecated and no longer works in huggingface_hub
+#   # >= 1.x, which the venv has); or, if `hf` is not on PATH inside the venv:
 #   python -c "from huggingface_hub import snapshot_download as d; \
 #     d('afaji/cvqa', repo_type='dataset', allow_patterns=['data/test-*.parquet'], \
 #       local_dir='$SCRATCH/cvqa')"
