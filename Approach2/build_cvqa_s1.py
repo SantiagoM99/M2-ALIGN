@@ -406,12 +406,16 @@ def build_selected_rows(
         seen_ids.add(row_id)
         image_id = match.group("image")
 
-        query = str(raw.get("Question") or "").strip()
-        english_query = str(raw.get("Translated Question") or "").strip()
+        # Both question fields are emitted verbatim: the Bengali JSONL that the
+        # existing cluster runs used keeps CVQA's leading/trailing whitespace
+        # (6 of 286 items), and the pre-freeze audit compares queries byte for
+        # byte against it (job 20441017 failed on exactly those 6 items).
+        query = str(raw.get("Question") or "")
+        english_query = str(raw.get("Translated Question") or "")
         raw_choices = raw.get("Translated Options")
-        if not query:
+        if not query.strip():
             fail(f"{row_id}: missing native Question")
-        if not english_query:
+        if not english_query.strip():
             fail(f"{row_id}: missing Translated Question")
         if not isinstance(raw_choices, (list, tuple)) or not raw_choices:
             fail(f"{row_id}: missing Translated Options")

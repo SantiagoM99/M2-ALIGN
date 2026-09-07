@@ -2074,6 +2074,20 @@ changes, and what is not run is reported as not run.
   for the legacy evaluator. `job-scripts/cvqa_s1_prefreeze.sh` runs the
   Bengali hash audit and cold Spanish extraction/pilot together. The code
   exists; its cluster report is not evidence until that job completes.
+  **First run, job 20441017 (2026-09-07, HEAD `18b5536`): audit FAILED,
+  freeze still blocked.** Bengali rebuilt from the parquet matched the
+  cluster `cvqa/bn.jsonl` on all 286 ids (identical id-universe hash) and
+  the existing queries are native Bengali, so the provenance claim above
+  holds. The 6 mismatched items differed only in leading/trailing
+  whitespace: the existing file keeps CVQA's raw `Question`, the builder
+  applied `.strip()`. Decision: the builder now emits `query` and
+  `english_query` verbatim (emptiness is still checked on the stripped
+  value), because the prompts of every existing CVQA run contain that
+  whitespace and new units must be built the same way; the audit itself
+  stays byte-exact. Spanish (2058 items, 1155 images) and Japanese (203,
+  94) extracted in under 4 min before the gate. The next submission runs
+  from a new commit, so it starts a fresh scratch directory and the Spanish
+  cold-extraction timing is unaffected.
 - **Evaluators abort on a missing image** instead of skipping it
   (`evaluate_vqa.py:174`, `evaluate_cvqa.py:140` skip today); incompatible flag
   combinations are rejected; NLLB and SigLIP2 are loaded only when their branch

@@ -74,7 +74,7 @@ def main() -> None:
     }
     source = [
         raw("100_1", es_mx, "segunda pregunta", "second question"),
-        raw("300_0", bn_in, "বাংলা প্রশ্ন", "Bengali question"),
+        raw("300_0", bn_in, " বাংলা প্রশ্ন ", "Bengali question "),
         raw("100_0", es_mx, "primera pregunta", "first question"),
     ]
     materialised: list[tuple[str, str, bytes]] = []
@@ -89,6 +89,10 @@ def main() -> None:
     assert rows["Spanish"][0]["english_query"] == "first question"
     assert rows["Spanish"][0]["image_id"] == "100"
     assert rows["Spanish"][0]["nllb_lang_tag"] == "spa_Latn"
+    # CVQA's surrounding whitespace is part of the query the existing cluster
+    # runs were prompted with; the builder must not normalise it away.
+    assert rows["Bengali"][0]["query"] == " বাংলা প্রশ্ন "
+    assert rows["Bengali"][0]["english_query"] == "Bengali question "
     assert [item[1] for item in materialised] == ["100_1", "100_0"]
     assert stats["Spanish"]["items"] == 2
     assert stats["Spanish"]["images"] == 1
