@@ -3,7 +3,9 @@
 Running record of every design decision, why it was made, and the measured
 effect of each change. One entry per decision, chronological. Numbers cite the
 summary JSONs in `Approach2/results/`; "ΔV" = full-image accuracy minus blind
-(gray-image) accuracy, i.e. how much the model actually extracts from pixels.
+(gray-image) accuracy. **Renamed Δ_gray on 2026-09-07**: it measures sensitivity
+to a natural image versus a gray canvas, not instance-specific grounding, which
+is Δ_ground = correct − shuffled (S1 v2). Every "ΔV" below is Δ_gray.
 
 **Architecture in one line**: frozen NLLB-200-600M (text) + frozen
 SigLIP2-so400m-384 (vision) → two trainable MLP mappings →
@@ -620,24 +622,17 @@ claim.
 | TowerVision (2510.21849) | multilingual VLM design study | fine-tunes; no text-only reasoning eval |
 | Puranegedara et al. (2508.09091) | fuses all intermediate layers of the text encoder into the LLM | kills the "text-side DenseConnector" idea outright |
 
-**What survives.**
+**What survives.** *Superseded 2026-09-07*: all four claims once listed
+here were retracted or narrowed (see "Corrections to the record", items
+5–7): "no instance of two bridges into one frozen LLM" → X-LLM exists;
+"degradation with zero weight updates" → connector-mediated interference,
+the 58M mapping parameters do move; the D11 recovery law → removed; "no
+translated multimodal data" → "no target-language multimodal supervision".
+What actually survives is the claim chain in `SCIENCE.md` §2.
 
-1. Two learned prefix bridges — multilingual text and vision — into one
-   frozen LLM, sharing an input space. No instance found; single-bridge work
-   is everywhere.
-2. **Degradation with zero weight updates.** Every account of multimodal
-   text degradation in the literature attributes it to catastrophic
-   forgetting and mitigates it on weights (continual learning, task vectors,
-   distillation from a frozen backbone). Gemma is never modified here, so
-   nothing is forgotten: the loss happens entirely in the *input* to a fixed
-   function. The field's standard explanation and its standard remedies do
-   not apply.
-3. The deficit-proportional recovery law (D11), governed by the *other*
-   modality's alignment quality.
-4. Multilingual VQA with no translated multimodal data at all — mBLIP
-   explicitly requires it.
-
-**Consequences.**
+**Consequences** *(2026-09-07: the AlignVLM connector is out of scope before
+the deadline, and the CVQA − xGQA difference is a cross-benchmark gap, not a
+causal cultural measurement).*
 
 - Terminology: cite Cai et al. and LLINK, and find our own words for the
   phenomenon.
@@ -1318,24 +1313,716 @@ its own and should simply be run.
 
 ---
 
-## Improvement queue (evidence-ranked, 2026-08-26)
+### Corrections to the record (2026-09-07)
 
-1. ~~DenseConnector~~ → D9 ACCEPTED (+2.97 xGQA full, all of it ΔV).
-2. ~~Stage-3 epochs ≥2~~ → D9b ACCEPTED (+2.11 xGQA, +4.8 MSVAMP).
-3. ~~Stage-2 scale-up to LLaVA-Pretrain-558k~~ → D11 ACCEPTED (+1.32 xGQA,
-   **+26.4 MGSM**, +10.3 MSVAMP). Follow-up: raise `--sample` 100k → 300k,
-   the derivative has not flattened.
-4. **Joint multilingual stage-1 mapping** → D12, pending. Promoted above the
-   vision levers on 2026-08-29: D10 shows those widen both the resource and
-   the cultural gap, which is the opposite of what this project is for.
-5. **Culturally diverse stage-2 imagery** — CC3M/WIT/LLaVA are Western
-   English web images, which is why scaling them buys xGQA and not CVQA.
-   Untested; the cheapest probe is reweighting toward WIT, whose Wikipedia
-   sourcing is already the most culturally varied thing in the mix.
-6. Honeybee C-Abstractor (2D-aware abstraction) — targets spatial (ΔV −0.6),
-   but it is another vision lever, so expect it to favour HRLs again.
-7. M3IT-style instruction diversity in stages 2/3, incl. existence-QA
-   synthesized from captions — targets yes/no (negative evidence).
-8. LwF-KL do-no-harm loss — reasoning-preservation novelty candidate,
-   complementary to D6.
-9. Gate ramp-up schedule — revisit D7's frontier.
+Three independent reviews on 2026-09-06/07 (Santiago, Claude, a second
+reviewing agent) converged on the items below. Each was verified against
+code or per-item results; the number that replaces the old one is given.
+
+1. **E3's reference was Bengali's supervised arm.** The conventional
+   reference is each target's own `stage3_<L>_v4`, and those checkpoints
+   already existed. Recomputed from per-item files:
+
+| lang | target-supervised full / ΔV | bn→L zero-shot full / ΔV | retention | D = ΔV_zs − ΔV_sup, two-sided 95% CI, image-cluster bootstrap | δ=1.0 | δ=1.75 |
+|---|---|---|---|---|---|---|
+| de | 51.52 / 18.57 | 49.24 / 17.59 | 94.7% | −0.98 [−1.79, −0.20] | inconclusive | non-inferior |
+| ru | 49.68 / 17.47 | 48.39 / 17.28 | 98.9% | −0.19 [−1.07, +0.71] | non-inferior | non-inferior |
+| zh | 48.75 / 16.04 | 48.88 / 16.77 | 104.5% | +0.72 [−0.14, +1.59] | non-inferior | non-inferior |
+| pt | 51.15 / 18.87 | 48.65 / 16.76 | 88.8% | −2.11 [−3.03, −1.21] | materially inferior | inconclusive |
+| id | 50.17 / 17.94 | 48.00 / 16.65 | 92.8% | −1.29 [−2.25, −0.29] | inconclusive | inconclusive |
+| ko | 48.66 / 15.98 | 47.33 / 15.32 | 95.9% | −0.66 [−1.60, +0.30] | inconclusive | non-inferior |
+| mean | 49.99 / 17.48 | 48.42 / 16.73 | **95.7%** | −0.75 | | |
+
+   Generated by `analysis/e3_noninferiority.py` (B=4000, seed 1; one RNG per
+   estimand and stratum with canonical ordering, so reordering or dropping
+   targets never moves a primary interval, `analysis/test_invariance.py`;
+   regions read on the image-cluster one-sided 5/95 bounds, which the script
+   also prints; the script aborts on unequal item sets or unmapped ids).
+   Pooled over the six targets with each image resampled jointly across its
+   translations: D = −0.75, 95% CI [−1.21, −0.29]. Re-running with other seeds
+   moves the second decimal; the regions did not change across seeds 0 and 1.
+
+   Headline becomes: **−1.58 full-accuracy points and 95.7% of the
+   target-supervised visual contribution with Bengali-only VQA
+   supervision.** "6/7 indistinguishable" and "+0.75 vs source" are
+   withdrawn as headlines; source-relative figures may appear as secondary.
+   Non-inferiority (one-sided 95% lower bound; post hoc, so sensitivity
+   only; three regions, image-cluster bootstrap, `analysis/e3_noninferiority.py`):
+   at δ=1.0 ru and zh are non-inferior, pt is materially inferior, de/id/ko are
+   inconclusive; at δ=1.75 de/ru/zh/ko are non-inferior and pt/id inconclusive.
+   Clustering by image (398 images behind 12,578 questions) changes no verdict. "Statistically indistinguishable" is non-rejection,
+   never equivalence.
+
+2. **X1's p=0.051 was McNemar on full accuracy**, not on visual
+   contribution. The estimand is the paired difference-in-differences
+   (ΔV_id − ΔV_bn) on identical items, **image-cluster bootstrap** (CVQA ids
+   are `<image>_<k>`, up to three questions per image; 935 items on 401
+   images): pooled jv/mn/ga **+3.32, 95% CI [+0.32, +6.43]** (stratified by target); per language
+   jv +3.70 [−2.03, +9.36], mn +2.88 [−2.61, +8.62], ga +3.37 [−1.19, +7.89]
+   (`analysis/x1_did.py`, B=4000, seed 0; pooled interval stratified by
+   target; one RNG per estimand and stratum, canonical order, invariance
+   tested; the script aborts on duplicate ids, unequal item sets, ids
+   without the `<image>_<k>` structure, or a pool outside the targets). Wording: "source choice
+   matters; evidence for an Indonesian advantage is suggestive".
+   Retention ratios divide by a supervised ΔV measured at n=200–412 and are
+   descriptive only.
+
+3. **The donor-level alignment table compared different lineages.**
+   `stage3_id_v4` was warm-started from `outputs/stage1_id`
+   (`train_stage3_all.sh:110`), which was never scored. "Indonesian stage 3
+   preserves alignment 0.968 → 0.983" is **withdrawn**. Only Bengali's
+   stage 1 → stage 3 (0.968 → 0.918) is longitudinal. Every source's own
+   `stage1_<S>` must be scored before any drift claim.
+
+4. **`donor_matrix.py` cannot compute donor quality once jv/mn/ga/si are
+   sources**: `source_ablation.sh:105` skips source==target, so the
+   common-target set is empty. Fix: donor panel restricted to the seven
+   disjoint sources bn/de/ru/zh/pt/id/ko over jv/mn/ga/si, or a model with
+   source and target effects. Classification by timestamp: discovery donors bn/id/ru/zh (outcomes
+   inspected before the donor-level hypothesis was recorded). de/pt/ko are
+   prospective **only if** the cluster audit shows that none of their
+   outcomes was committed, produced or read before the freeze; see S1 Block
+   D. Until that audit, all seven are treated as discovery data.
+
+5. **"±0.4 noise floor" is one retrain pair, not a run distribution, and
+   is wrong for MGSM/MSVAMP**: binomial SE alone is ±3.0 at n=250 and ±1.6
+   at n=1000. E4's out-of-sample failure rests on jv MSVAMP (−6.5, ~3σ);
+   the other cells are within noise. The D11 "law" was fitted on two real
+   points (Bengali) plus six near-zero cells; it is **removed**, not
+   restated.
+
+6. **Wording that changes.** "No translated multimodal data" → "no
+   target-language multimodal supervision" (stage 3 is NLLB-translated
+   GQA). "Frozen-LLM ceiling" → "direct-prompt baseline", and "% of
+   ceiling" is dropped as a denominator (si MSVAMP already exceeds it).
+   "Language-blind visual pathway" → "question-independent visual
+   features": SigLIP2 is itself trained on multilingual image-text data
+   (arXiv 2502.14786), and stage 3 tunes `mapping_vis` on source-language
+   VQA, so the downstream effect can be source-conditioned. "Label-free,
+   before building anything" → "without target VQA labels or target
+   images, after donor training". "Pre-registered" → "recorded in the
+   shared repository before the result artifacts were committed" (e.g.
+   2045930 → 08b8334, 1 h 26 min apart); `sacct -j <id>
+   --format=JobID,Submit,Start,End` on the cluster can settle whether a run
+   started after its prediction commit. "Cultural gap CVQA − xGQA" → a
+   cross-benchmark difference, not interpretable causally.
+
+7. **Claims dropped as not novel.** "Answers xGQA's call": Nooralahzadeh &
+   Sennrich 2022, Liu et al. EACL 2023 Findings, Scheduled Unfreezing 2024,
+   mBLIP, Centurio (ACL 2025), and our own D8 (Qwen3-VL zero-shot 53.0 on
+   all seven languages) already show the −38 collapse is not a property of
+   modern systems. "No instance of two bridges into one frozen LLM":
+   X-LLM (arXiv 2305.04160). Related work to add: Translation Deserves
+   Better (every stage-3 set is NLLB-translated GQA); LangRank, NN-Rank,
+   Shah et al. 2024 (source selection); IAA, eP-ALM, Implicit Multimodal
+   Alignment. Image-induced Fidelity Loss is already cited in D6.
+
+**Spine, restated.** Not "decoupling solves xGQA". The honest statement
+today, to be upgraded from "investigate whether" to "show that" only if
+the S1 gate below passes:
+
+> Using separately pretrained language and vision connectors into a frozen
+> LLM, a checkpoint tuned for VQA in Bengali retains 95.7% of the
+> target-supervised visual contribution across six unseen xGQA languages.
+> Transfer varies with the VQA source language. We investigate whether
+> this variation arises from source-conditioned connector co-adaptation
+> and whether preserving pre-VQA alignment improves transfer.
+
+The coupled-architecture baseline is a stated limitation, not a required
+experiment, because the causal claim about xGQA's latent misalignment is
+dropped. D11/H1 stay as the ablation that justifies the vision path and as
+one mechanism paragraph; the mechanistic reasoning paper waits for a second
+low-resource language and a second backbone.
+
+---
+
+### S1 — Specification v2.1.3: input-necessity audit, branch factorial, freeze factorial (2026-09-07) — PLAN, NOT RUN
+
+**Revision history.** v1 → v2.1.3 in four review rounds on 2026-09-07
+(Santiago, Claude, a second reviewing agent); the intermediate texts are in
+git history, not here. What changed at the level of principle: endpoints
+split into utility U and grounding Δ_ground; three-region non-inferiority
+with substantive margins; per-stratum RNGs and fail-closed analysis scripts
+with tests; one primary panel and endpoint per gate; G1 split into inference
+dependence (A2) and training necessity (C5); a matched replay-only control
+R0/R1 for any preservation loss; G3 as a separate, confirmatory-only
+contribution; a compute ledger and a scope decision. No revision changed the
+canonical E3 or X1 numbers. **Edit this entry, not the launchers, when the
+design changes; then make the launcher match.**
+
+**Freeze rule**: the commit that freezes this entry must exist **before any
+new run of S1** (Blocks A–D and the confirmatory panel). Every launcher
+**must** refuse to submit if the working tree is dirty or if `HEAD` does not
+contain the freeze commit, and must write the spec SHA into the manifest at
+submit time; none of this exists yet. "Before harvest" is not enough:
+`source_ablation.sh:159` commits harvested results on the cluster by itself.
+Job 20398782 predates the freeze and is **legacy / discovery** unless the
+audit in Block D shows otherwise.
+
+#### Endpoints and statistics
+
+- **Utility** U = Acc(correct image). **Grounding** Δ_ground =
+  Acc(correct) − mean over permutations of Acc(shuffled), averaged *within
+  item* first; permutations are never counted as independent observations.
+  **Δ_gray** = Acc(correct) − Acc(gray canvas), secondary, continuity with
+  every earlier "ΔV". **Δ_none** = Acc(correct) − Acc(no visual tokens),
+  Block A only.
+- **Every contrast is reported on both U and Δ_ground.** A change in
+  Δ_ground with U falling is not an improvement; a bridge is "dispensable
+  at inference" only if non-inferior on both.
+- **Permutation rule**: three seeded derangements (0, 1, 2) on **every**
+  panel. The unit of randomisation is the image, and xGQA has only 398 of
+  them behind 12,578 questions, so question counts do not justify a single
+  map anywhere. Shuffles permute *unique image ids* with no fixed
+  points; every question of an image receives the same wrong image; the
+  map is keyed by question id, so it is identical across xGQA languages,
+  checkpoints and arms; on CVQA the derangement is drawn **within the target
+  language, and within each country subset of a pooled unit**, never across
+  subsets (mixing cultural pools would make Δ_ground a sum of instance
+  mismatch and domain shift); each map is stored as
+  `evaluation/shuffle_<panel>_seed<k>.json` with `original_image_id`,
+  `assigned_image_id` and its sha256, and the hash goes into every
+  manifest.
+- **Pooling**: micro (item-pooled) for every pooled contrast; per-language
+  macro reported as secondary. Bootstrap stratified by target, clustered by
+  image where an image carries several questions (xGQA: 398 images), with
+  **one cluster resample applied jointly to all arms and translations**
+  (paired). 4,000 resamples, fixed seed.
+- **Non-inferiority, three regions.** For D = reference − candidate on the
+  same items (positive = candidate worse): non-inferior if the one-sided
+  95% upper bound UB < δ; materially inferior if the lower bound LB > δ;
+  inconclusive otherwise. Failing non-inferiority never means inferiority.
+- **Margins are substantive, then power is computed; never the reverse.**
+  δ_U = δ_G = **1.0 point** on every VQA panel: the largest loss this project
+  treats as immaterial, below the smallest lever it ever accepted (D11's
+  +1.32 xGQA). The reasoning-retention guard uses δ_R = **1.0 accuracy
+  point** separately on MGSM and MSVAMP. Power at those margins: xGQA
+  (12,578 items / 398 images,
+  cluster half-width ≈ 0.8) can establish non-inferiority under equality;
+  on the pooled CVQA jv/mn/ga panel (935 items / 401 images, half-width ≈ 3)
+  **power under equality is low**: non-inferiority there needs A2 to be
+  genuinely better, not merely equal. The three regions apply everywhere;
+  the margin is not widened to make CVQA decidable, and the paper states
+  the power. These half-widths are historical approximations, not a power
+  calculation for A1 − A2: `analysis/power_sim.py` **must be written before
+  the freeze**. Counts alone do not identify paired-test power. The script
+  must run separate sensitivity grids for U and Δ_ground, use the observed
+  cluster-size vectors, and print its assumed baseline rate, arm-discordance
+  rate, intra-image correlation, true reference-minus-candidate effects,
+  Monte Carlo repetitions, bootstrap repetitions, seed and exact NI rule.
+  Its versioned output replaces this paragraph; no single power number is
+  reported without those assumptions. It also reports attainable power for
+  G3 with seven fixed donors under a grid of noise in α_conf.
+- **Seeds, inferential rule.** Replicated arms use the same paired seed
+  list. Each contrast is computed per seed on identical items; the primary
+  statistic is the mean over seeds, and its CI comes from the cluster
+  bootstrap in which every resample recomputes the per-seed contrasts on the
+  resampled clusters and averages them. This CI is **conditional on the three
+  observed training seeds**; it does not estimate a population distribution
+  over all possible training runs. Report the three seed-level estimates,
+  their mean, SD and range next to it. Directional superiority claims must
+  have the predicted sign in every seed. NI claims instead require the
+  conditional pooled bound to pass **and** every seed-level point estimate
+  of reference minus candidate to be below δ; a same-sign rule is not used
+  for NI or for two-sided P4/P6/P7. Wording is "replicated across these three
+  seeds", not an unrestricted recipe-population claim.
+- **Hierarchy of claims, separated by family.** *Intervention primary*: G0,
+  G1, G2, G4 and G5, combined as the loss-gate conjunction; training-arm
+  claims remain conditional on one seed until their three-seed replication.
+  *Donor-predictor primary*: G3-confirmatory on the new panel only;
+  G3-current is exploratory. *Preservation-method primary*: the frozen R1
+  versus matched-R0 contrast and its C2/utility guardrails below. These are
+  three separate conclusions, not one omnibus paper-success test.
+  *Secondary*: the components of P3–P8 that are not gate conditions, P4,
+  P6, P7, the xGQA panels in Block A and si. *Exploratory*: every remaining
+  cell. Every table labels its rows with one of these families.
+- **Scope of wording**: conclusions are "in the evaluated panels". xGQA vs
+  CVQA confounds resource level with benchmark, images and protocol; no
+  resource-level conclusion is drawn from that comparison. A resource
+  claim needs languages of several tiers *within* one benchmark and an
+  external tier criterion (e.g. NLLB training volume or Joshi et al. 2020
+  classes), which S1 does not attempt.
+- Every number in the paper comes from a versioned script in
+  `analysis/`. `analysis/e3_noninferiority.py` and `analysis/x1_did.py`
+  exist as of this revision and reproduce the 2026-09-07 corrections.
+
+#### Block A — input-necessity audit (eval-only)
+
+Checkpoint `stage3_bn_dcl`, `--vis-layers "9,18,-1"`. Runs first; its
+outcome is gate condition G1. Flags: `--prompt-mode
+{question,instruction}`, `--no-text-branch`, `--shuffle-map PATH`,
+`--no-image`.
+
+| arm | LLM input | tests |
+|---|---|---|
+| A1 | X_f + V_f + T(question) | current system |
+| A2 | V_f + T(question) | is the NLLB bridge used at inference? |
+| A3 | X_f + V_f + T(instruction only) | does the bridge carry the question? |
+| A4 | V_f + T(original English GQA question) | **original-English direct-prompt reference**, not a translate-test: `build_xgqa_english.py` recovers GQA's original English question, which bn/de/ko share, so A4 runs **once**. A real translate-test (NLLB target→English per language) is optional and outside S1. CVQA rows keep only the translated question (`Stage3/load_vqa_eval_data.py:259`), so A4 is xGQA-only |
+
+Panels: xGQA bn, de, ko (source, best, worst); CVQA jv, mn, ga, si.
+Conditions, every panel: correct, shuffled 0/1/2, gray, no-image (6).
+
+Count: xGQA 3 arms × 3 languages × 6 + A4 × 6 = **60 evals** at ~40 min
+≈ 40 h; CVQA 3 arms × 4 languages × 6 = **72 evals** at ~5 min ≈ 6 h.
+**≈ 46 h → four chained 12 h jobs.**
+
+A2 and A3 are **inference ablations of a checkpoint trained with X_f**.
+They measure that checkpoint's dependence on its inputs, not whether the
+bridge was unnecessary during training. Call the A2 decision **G1-I**
+(inference dependence). If G1-I is inconclusive, C5 is mandatory as a
+separate **G1-T** test of training necessity; C5 can decide whether training
+without the branch is viable, but it can never relabel the A2 inference
+result. C5 is skipped if G1-I is dispensable and optional (not gate-relevant)
+if G1-I is used.
+
+Reading rule (P1 / G1-I): with D_U = U(A1) − U(A2) and D_G = Δ_ground(A1) −
+Δ_ground(A2), per panel (xGQA pooled bn/de/ko; CVQA pooled jv/mn/ga; si
+alone), at δ_U = δ_G = 1.0, the bridge is *dispensable at inference for this
+checkpoint in that panel* only if A2 is non-inferior on **both** D_U and D_G;
+*used* only if A2 is materially inferior on D_G (the primary endpoint);
+otherwise inconclusive. **Primary panel for G1: CVQA pooled jv/mn/ga;
+primary endpoint: Δ_ground; U is co-primary only for "dispensable".** The
+xGQA panel and si are secondary and descriptive. Same rule
+for A3 ("the bridge carries the question" only if A3 is non-inferior on
+both).
+
+**P2, grounding**: Δ_ground of A1 per target and pooled per panel, with its
+95% CI; predicted **> 0** everywhere. On the primary panel P2 is also gate
+condition **G0**: if LB95(Δ_ground(A1)) ≤ 0 there, no other gate is
+evaluated, Blocks B–C are reported as exploratory, and the paper is the
+descriptive version (Δ_gray sensitivity, no grounding claim). A target whose Δ_ground CI includes 0
+has no demonstrated instance-specific grounding, whatever its Δ_gray says.
+P1 and P2 are the two Block A primary contrasts; P3–P7 follow below, and P8
+is conditional on C5.
+
+#### Block B — branch factorial (eval-only)
+
+Text branch × vision branch, each loaded from its own checkpoint.
+`end_boundary` and `gate` live inside each `Mapping` and travel with
+their branch.
+
+| text \ vision | `stage2_dc_llava` (V2) | `stage3_bn_dcl` (V3_bn) | `stage3_id_v4` (V3_id) |
+|---|---|---|---|
+| `stage1` (T1_bn) | pre-VQA composition, bn lineage | vision-branch-associated (bn) | vision-branch-associated (id) |
+| `stage1_id` (T1_id) | pre-VQA composition, id lineage | cross-lineage | vision-branch-associated (id) |
+| `stage3_bn_dcl` (T3_bn) | text-branch-associated (bn) | bn checkpoint | swap |
+| `stage3_id_v4` (T3_id) | text-branch-associated (id) | swap | id checkpoint |
+
+Panels and controls:
+- Transfer targets: CVQA jv, mn, ga, si. Conditions correct, shuffled
+  0/1/2, gray (5). 12 cells × 4 × 5 = 240 evals.
+- **CVQA-bn** is a *same-language, out-of-domain* control (CVQA is not GQA);
+  12 × 5 = 60 evals.
+- **Task positive controls** are xGQA-bn and xGQA-id (stage 3 trains on
+  translated GQA): the four corner cells (bn/bn, id/id, both swaps) on
+  xGQA-bn and xGQA-id, correct + gray: 4 × 2 × 2 = 16 evals ≈ 11 h.
+  bn/bn on xGQA-bn and id/id on xGQA-id already exist and are reused.
+- **No-X_f controls** (arm A2 applied) on three cells, bn/bn, id/id and
+  T1_bn/V2, on the four transfer targets and bn, correct + shuffled 0/1/2:
+  3 × 5 × 4 = 60 evals.
+
+**Total ≈ 360 CVQA evals (~30 h) + 16 xGQA evals (~11 h) ≈ 41 h → four
+chained 12 h jobs**, with `eval_matrix.py` loading NLLB, SigLIP2 and Gemma
+once and swapping mapping state dicts.
+
+Matrix-runner guarantees (each is a test in `tests/`):
+1. loads only the requested branch from each file;
+2. resets both `Mapping` modules to a pristine copy before every cell;
+3. `stage1` and every `stage1_<L>` predate the gate (commit 4beae75,
+   2026-08-24) and carry no `gate` key: they get `gate = 1.0` explicitly;
+   any *other* missing or unexpected key is an error, never `strict=False`;
+4. before the matrix runs, the bn/bn and id/id cells must reproduce the
+   existing per-item predictions of `eval_cvqa_<L>_v4` exactly; a mismatch
+   aborts the job.
+
+Labels are **functional, not causal**: Block B says which branch the donor
+difference *follows* when trained checkpoints are recombined; only Block C
+can say that stage 3 *imprinted* it.
+
+Contrasts, on both U and Δ_ground, pooled jv/mn/ga (micro), CI from the
+paired cluster bootstrap. G(·,·) denotes the endpoint of a cell.
+
+- **P3, functional localisation.**
+  D_T = [G(T3_id, V2) − G(T1_id, V2)] − [G(T3_bn, V2) − G(T1_bn, V2)]
+  (what stage-3 text training added, id lineage minus bn lineage, vision
+  held at the shared pre-VQA V2);
+  D_V = ½ Σ_{T ∈ {T1_bn, T1_id}} [G(T, V3_id) − G(T, V3_bn)]
+  (vision imprint, id minus bn, text held at each lineage's pre-VQA stage 1).
+  Primary statistic **D_T − D_V**. "The donor difference follows the text
+  branch" iff **LB95(D_T) > 0 and LB95(D_T − D_V) > 0** (one-sided lower
+  bounds, as in G2).
+  "Text significant and vision not" is never the criterion.
+- **P4, co-adaptation.**
+  P4 = ½ [G(T3_bn, V3_bn) + G(T3_id, V3_id) − G(T3_bn, V3_id) − G(T3_id, V3_bn)].
+  Two-sided; positive means matched pairs compose better than crossed
+  pairs. No direction is predicted.
+
+#### Block C — freeze factorial (training, Bengali, single seed = pilot)
+
+Identical `stage1` + `stage2_dc_llava` initialisation, identical data
+order (seed 13, order hash in the manifest), `S3_EPOCHS=2`, **no replay in
+any arm** (a frozen text branch leaves replay with no trainable path, and
+replay must not be confounded with the freeze factor).
+
+| arm | `mapping_txt` | `mapping_vis` | note |
+|---|---|---|---|
+| C1 | trainable | trainable | |
+| C2 | frozen | trainable | text-only pathway bit-identical to `stage1` (freeze covers `end_boundary` and `gate`; text evals carry no V_f): MGSM/MSVAMP = 11.6 / 34.1 and FLORES alignment = 0.968 **by construction** |
+| C3 | trainable | frozen | |
+| C4 | frozen | frozen | = pre-VQA composition; no training; a Block B cell |
+| C5 | absent | trainable | **vision-only trained arm**; mandatory as G1-T iff G1-I is inconclusive, skipped if G1-I is dispensable, optional if G1-I is used. **Must be implemented**, and it is more than a flag: `train_stage3_vqa.py` forces `use_text_branch=True` (`:259`), every batch tokenises and feeds NLLB, and the load / freeze / gate paths assume `mapping_txt` exists. No FLORES alignment: it has no `mapping_txt`. Cost ~10 h per seed; three paired seeds whenever P8 is used to pass the loss gate or enter the paper |
+
+v4 (`stage3_bn_dcl`, trained with replay) is an external reference, not a
+cell. **Prediction, not a fact**: C1 without replay is expected to show a
+reasoning collapse of the D2 kind; D2 used a different stage 2 and one
+epoch, so the size is unknown. Block C speaks to transfer only.
+
+Two implementation corrections **before** any Block C launch, both
+recorded as properties of every existing checkpoint:
+1. `train_stage3_vqa.py:356` calls `model.train()` after each validation
+   pass, which puts the frozen NLLB encoder (dropout 0.1) back into train
+   mode; SigLIP2 and Gemma have no dropout. Every existing checkpoint **with a
+   text branch** (stage 1, stage 3) was trained with stochastic NLLB
+   prefixes; stage-2 vision-only checkpoints never run NLLB. Block C forces the three towers
+   to `eval()` after every `model.train()`; v4 is external, so the arms
+   stay comparable among themselves.
+2. The validation split is `random.shuffle` by row (`:235`), so questions
+   of one GQA image land on both sides. Block C splits by `vg_image_id`.
+
+Evaluate every arm on CVQA jv/mn/ga/si/bn (correct, shuffled 0/1/2, gray)
+and xGQA-bn (correct, shuffled 0/1/2, gray); FLORES pair-alignment for
+C1–C4 only. Cost: three runs (C1–C3) × ~10 h, plus ~10 h for C5 if triggered.
+
+Contrasts, pooled jv/mn/ga, both endpoints, paired cluster bootstrap:
+- **P5** = G(C2) − G(C1); predicted **> 0** on Δ_ground if stage-3 text
+  drift is causal; U reported alongside, and xGQA-bn utility of C2 must be
+  non-inferior to C1 at δ_U = 1.0 (source task retained).
+- **P6** = G(C3) − G(C1); two-sided, no prediction.
+- **P7** = (C4 − C3) − (C2 − C1); two-sided, no prediction.
+- **P8 / G1-T** (conditional on C5): **D8 = G(C1) − G(C5)**, reference minus
+  candidate, on both endpoints, so the P1 regions apply with the same sign
+  (positive = the vision-only arm is worse). On the primary panel: the text
+  branch is dispensable *in training* only if C5 is non-inferior to C1 on
+  both U and Δ_ground (UB95(D8) < δ on each); then the text branch is
+  dispensable **during training** and no preservation loss is pursued.
+  Material inferiority on Δ_ground (LB95(D8_G) > δ_G) means it is needed
+  during training and G1-T passes the loss gate. Anything else leaves G1-T
+  unresolved and no loss is pursued. None of these outcomes changes G1-I.
+
+**Two baselines are required for any preservation loss.** Matched replay-only
+R0 isolates the effect of the loss; C2 is the simplest alignment-preserving
+alternative it must at least match on transfer. C1 alone is neither: a
+replay-trained loss versus no-replay C1 mixes two interventions. If R1 does
+not improve on R0 and match C2, there is no preservation-loss method.
+
+**Single seed means pilot.** Item bootstraps do not contain training
+variability; P5–P7 from one trajectory are effects conditional on that
+seed. If LB95(P5) > 0, C1 and C2 are replicated with three paired seeds before
+any "show that"; C3 too if P6/P7 enter the paper; C5 uses three seeds whenever
+P8 decides G1-T; and matched R0/R1 need three seeds of their own. The extra
+seeds of `bn_v4` / `id_v4` estimate checkpoint stability only; they do not
+replicate D9/D9b/D11 without their comparators.
+
+#### Block D — donor predictor, two separate analyses (eval-only)
+
+`pair_alignment.sh` with `CKPTS` = all eleven `stage1_<L>` (Bengali's is
+`stage1`) + all eleven `stage3_<L>_v4` (Bengali's is `stage3_bn_dcl`) +
+`stage1_joint`. Instrument note: `pair_alignment.py` excludes
+`end_boundary` and the cosine cancels the scalar `gate`, so it measures the
+directional geometry of the text MLP only; Block B swaps whole branches.
+Centered R@1 **and** centered margin are both reported (R@1 is near
+saturation for id).
+
+- **D-pair, exploratory**: primary transfer endpoint Δ_ground(s,t), with U
+  reported alongside, against centered-margin alignment(s,t); source and
+  target fixed effects give the within-target reading and permutations are
+  blocked by target. Centered R@1 is a secondary predictor. This analysis is
+  not G3 and cannot rescue it.
+- **D-donor, frozen.** *Predictor*: **centered margin** is primary (centered
+  R@1 is secondary). *Damage* of donor S = mean over T ∈ {jv, mn, ga, si}
+  of [margin_stage1_S(S→T) − margin_stage3_S(S→T)], read from S's **own**
+  stage-1 and stage-3 checkpoints, positive = deterioration. This produces
+  one fixed, committed ranking before any confirmatory outcome is evaluated.
+  For any target panel P, define donor effect α_S(P) by the additive model
+  Δ_ground(s,t) = μ + α_s + β_t, least squares with sum-to-zero constraints.
+  Each (s,t) cell is the item-micro Δ_ground estimate (subset-stratified for
+  pooled Spanish); target-language units receive equal weight in the model.
+  P_current has four targets and a 7 × 4 matrix; its Spearman is exploratory.
+  P_confirm has the twelve frozen language units and a 7 × 12 matrix;
+  α_conf = α(P_confirm) is the only confirmatory outcome. A source fixed
+  effect and a per-source constant are collinear, so this is separate from
+  D-pair and is the declared macro-over-target exception to general micro
+  pooling.
+
+  *G3 test*: Spearman(damage, α_conf) over the seven donors, using standard
+  midranks for ties and exact permutation of the seven α labels (5,040),
+  one-sided (more damage → lower α), p < 0.10. The operational selector is
+  the parameter-free rule "least damage = best donor"; a damage tie is
+  broken by NLLB code only for selection, not for Spearman. The selected
+  donor is fixed before evaluation. In each paired cluster-bootstrap
+  replicate, resample images jointly over all seven donors within each
+  target/subset, refit α_conf, and compute max_s α_s − α_selected. G3 requires
+  the 95th percentile of that max-regret distribution ≤ 1.0 point. It also
+  requires LB95 of the selected donor's pooled Δ_ground > 0 and a utility
+  guardrail UB95(max_s α_s^U − α_selected^U) ≤ δ_U, calculated analogously.
+  Inference is conditional on these twelve fixed languages and seven trained
+  checkpoints; it does not generalise to an arbitrary language population.
+  `donor_matrix.py` implements none of this (it uses Δ_gray and retention,
+  auto-discovers every `zs*` file and permutes two-sided);
+  `analysis/block_d.py` and synthetic tests **must be in the freeze commit**.
+- **Δ_ground does not exist for any donor yet**: `source_ablation.sh:108`
+  produced correct + gray only. Block D needs the shuffled condition for
+  the seven donors × four targets × three seeds = **84 CVQA evals (~7 h)**,
+  plus correct + gray for de/pt/ko if job 20398782 did not deliver them.
+  Budget added to the roadmap.
+- **Audit before classifying prospectivity**: `sacct -j 20398782
+  --format=JobID,Submit,Start,End,State`, its log, the cluster clone's
+  `git log` **and reflog**, and the mtimes of any partial
+  `outputs/zeroshot_*` files (the job can write predictions and expire
+  before its own commit), because `source_ablation.sh:159` commits
+  harvested results by itself; "not harvested" cannot be asserted from the
+  laptop. Until the audit says otherwise the job is legacy / discovery.
+  **Audit outcome, 2026-09-07** (`Approach2/audits/20398782.md`): the job
+  completed all 96 files (correct + gray only), auto-committed on the cluster
+  at 01:30 −04:00 and was pushed as `1aafc1a` before any freeze commit.
+  **de/pt/ko are not prospective**; the seven-donor analysis on the current
+  targets is exploratory in its entirety, and G3 rests on the confirmatory
+  panel alone. The cluster-side `sacct`/log/reflog outputs are still to be
+  appended to the audit record. Then, by timestamp: discovery donors = bn, id, ru, zh (transfer
+  inspected before the donor-level hypothesis was recorded on 2026-09-06);
+  prospective donors = de, pt, ko **only if** their transfer results were
+  neither produced, committed nor read before the freeze commit; otherwise
+  none of the seven is prospective and the confirmatory targets carry G3
+  alone.
+  jv/mn/ga/si are excluded as donors (self-cells are skipped,
+  `source_ablation.sh:105`).
+- **Confirmatory targets**: rule = every CVQA `Subset` whose language has
+  an NLLB-200 tag, is not one of the eleven, has ≥ 150 valid items and at
+  least four unique images (enough for three distinct derangements). The
+  inventory aborts on duplicate question ids; each of the three maps must
+  have no fixed points and a distinct hash within every subset. **The
+  freeze commit must contain the verified list.** `Stage3/load_vqa_eval_data.py`
+  cannot produce it (it only configures the project's own codes and rejects
+  others, `:219`); a new `inventory_cvqa.py`, run on a login node, **must**
+  emit `Subset → language → NLLB tag → valid items / images → target unit`.
+  Target unit = one per language; country subsets of one language (the six
+  Spanish ones) form **one** unit with subset as a bootstrap stratum.
+  Any ineligible subset is removed before aggregation and ranking. **Cap,
+  deterministic**: the **12 languages with the most valid items**,
+  ties broken by NLLB code in alphabetical order; the candidate list has 18
+  languages, so the cap binds. *Budget*: donor confirmation 12 units × 7
+  donors × 5 conditions = **420 CVQA evaluation invocations**; intervention
+  confirmation in the complete matched design (C1, C2, R0 and R1 × 3 seeds
+  × 12 units × 5 conditions) = **720 evals**. Thus the full path is 1,140
+  evaluation invocations. The old five-minutes-per-unit extrapolation would
+  be ≈ 95 h (35 h donor + 60 h intervention), but this is **not a budget
+  commitment**: selected units are larger than the current panels.
+  `inventory_cvqa.py` must compute item totals and a timed pilot on the
+  largest selected unit must replace the hour estimate before approval;
+  training runs are additional. The confirmatory panel is the **only**
+  prospective test of the donor predictor (see G3): the seven-donor Spearman
+  on the current targets is exploratory because four donors' outcomes shaped
+  the hypothesis, and a three-donor ranking has chance 1/6. Candidate subsets
+  from the dataset card, read through a summarizer and therefore **to be
+  verified at source, not trusted**: Amharic, Egyptian Arabic, Bulgarian,
+  Filipino, Hindi, Igbo, Kinyarwanda, Malay, Minangkabau, Norwegian, Oromo,
+  Romanian, Spanish (six country subsets), Sundanese, Swahili, Tamil,
+  Telugu, Urdu. Donor predictions for the verified list are written and
+  committed before any of them is evaluated. All ten local CVQA languages
+  already have results and cannot serve.
+
+#### Loss gate, operationalised at A+12 days
+
+This date is an **operational allocation gate**. G4/G5 initially come from
+the single-seed Block-C pilot and do not become paper-level training-recipe
+claims unless their three-seed criteria later pass.
+
+The **loss gate** is G0, G1, G2, G4 and G5, all of them. **G3 is not part of
+it**: the donor predictor is a separate contribution, decided only on the
+confirmatory panel, and its failure does not invalidate an intervention that
+helps. "G1 holds" means the branch is shown to be used at inference (G1-I)
+or, after an inconclusive G1-I, needed during training (G1-T); dispensable or
+unresolved never passes. Proceed to the preservation-method stage only if
+the five hold:
+
+| # | condition | statistic | threshold |
+|---|---|---|---|
+| G0 | grounding exists where the mechanism is tested | Block A, P2, primary panel | LB95(Δ_ground(A1)) > 0 on CVQA pooled jv/mn/ga. If it fails, do not launch Blocks B–C, do not evaluate G1/G2/G4/G5, and use the descriptive paper. Block D may continue as its separate contribution, but G3 has its own confirmatory grounding requirement |
+| G1 | branch is used in the path that justifies preservation | G1-I = Block A/P1; G1-T = P8 only if G1-I is inconclusive | G1-I *used* (A2 materially inferior on Δ_ground) → **pass**. G1-I *dispensable* (A2 NI on Δ_ground and U) → stop, skip C5/loss. G1-I *inconclusive* → retain that label and run three-seed C5; G1-T *needed* (C5 materially inferior on Δ_ground) → **pass for the training intervention only**; G1-T *dispensable* (C5 NI on both endpoints) or inconclusive → stop. Neither P8 outcome rewrites G1-I |
+| G2 | the donor difference follows the text branch | Block B, D_T − D_V on Δ_ground | **LB95(D_T) > 0 and LB95(D_T − D_V) > 0** (one-sided lower bounds; "excludes 0" would also pass an all-negative interval) |
+| G3 | *(separate contribution, not in the loss gate)* damage predicts donor grounding on the fixed confirmatory panel | Block D-donor **on the confirmatory panel only** | apply the exact frozen D-donor procedure above: one-sided exact Spearman p < 0.10, paired max-regret UB95 ≤ 1.0, selected-donor pooled Δ_ground LB95 > 0, and utility-regret UB95 ≤ δ_U. Failure is a null for this contribution only; the current-target analysis remains exploratory |
+| G4 | freezing text helps transfer **and** utility is retained | Block C, P5, primary panel | LB95(Δ_ground(C2) − Δ_ground(C1)) > 0 **and true non-inferiority on utility, UB95(U(C1) − U(C2)) < δ_U**. Under equality the utility half has low power on CVQA and the gate may fail for that reason alone; then the paper says "no utility loss above 1 point was detected" and does not claim retention. "Not materially inferior" is not accepted here |
+| G5 | source task retained | Block C | xGQA-bn U(C2) non-inferior to U(C1) at δ_U = 1.0 |
+
+Passing authorises **only** a matched method-stage experiment; it does not
+authorise comparing a replay-trained loss directly with no-replay C1/C2.
+Train three paired seeds of **R0** (same corrected C1 recipe plus reasoning
+replay, no preservation loss) and **R1** (identical to R0 plus the frozen
+preservation loss). Initialisation, data order, replay examples, optimizer,
+steps and validation split are identical within each seed. Existing v4 is
+external and descriptive because it used the old dropout/split behavior.
+
+The preservation-method family succeeds only if all of the following hold:
+
+1. the loss itself improves grounding over its matched replay control:
+   LB95(Δ_ground(R1) − Δ_ground(R0)) > 0 on the primary panel and again on
+   the confirmatory panel, with U(R1) non-inferior to U(R0) on both;
+2. R1 is non-inferior to the simple freeze C2 on **both** Δ_ground and U on
+   both panels;
+3. reasoning recovery is attributed to replay only if **R0 beats C1** on MGSM
+   and MSVAMP (LB95 > 0 for each paired contrast; both arms trainable, replay
+   the only difference, which is D6's original comparison). R0 versus C2 is
+   **not** informative here: C2's text-only pathway is bit-identical to
+   stage 1, so its MGSM/MSVAMP are 11.6 / 34.1 by construction and any arm
+   with replay beats it trivially. The preservation loss retains the recovery
+   only if R1 is truly non-inferior to R0 at δ_R = 1.0 point on each
+   benchmark (n = 250 / 1,000: MGSM is expected to have low power at δ_R =
+   1.0 under equality; `power_sim.py` must quantify it). If its NI bound does not pass, the criterion fails and
+   reasoning retention is **inconclusive**; absence of detected material harm
+   is not reported as retention. v4 is context, not the matched control.
+
+All bounds follow the three-seed conditional rule above. C1 is evaluated on
+the confirmatory panel as the original-training reference, but R1 − C1 is
+secondary because it mixes replay and the loss. Failure against R0 means the
+loss has no demonstrated effect; failure against C2 means C2 remains the
+method. Passing does **not** change "investigate whether" to "show that"
+until the three-seed and confirmatory criteria are complete.
+
+If the chain fails, the paper is: the 95.7% system result, source
+dependence as exploratory, negative controls, no consolidated causal
+explanation. No correlation is added to rescue the mechanism.
+
+#### Compute ledger and minimum viable path (estimates, 2026-09-07)
+
+All figures use S1's own unit costs on one H100: xGQA eval ≈ 40 min, CVQA
+eval ≈ 5 min, one stage-3 training run ≈ 10 h, one pair-alignment job ≈ 3 h.
+They are to be replaced by the timed pilot the roadmap requires; the ranking
+of the rows will not change.
+
+| stage | content | GPU-h |
+|---|---|---|
+| Block A | 60 xGQA + 72 CVQA evals | 46 |
+| Block B | 360 CVQA + 16 xGQA evals | 41 |
+| Block D | 84 shuffled CVQA evals + 23 alignment scorings (11 stage 1 + 11 stage 3 + joint) | 10 |
+| Block C pilot | C1–C3 training/evals plus C4 reuse and its 3 missing xGQA shuffles | 50 |
+| C5 × 3 seeds, if G1-I is inconclusive | 3 × (10 + 6) | 48 |
+| `bn_v4` / `id_v4` extra seeds | 4 × (10 + 3) | 52 |
+| C1/C2 three-seed replication | 4 × (10 + 6) | 64 |
+| R0/R1 × 3 seeds | 6 × (10 + 8) | 108 |
+| confirmatory panel | 1,140 invocations (v2.1.3 estimate) | 95 |
+| **full method path**, without optional checkpoint-stability seeds | | **≈ 414–462** |
+| full path plus `bn_v4` / `id_v4` stability seeds | | **≈ 466–514** |
+| **minimum scientific path**: A, B, D, C pilot | | **≈ 147** |
+| minimum plus optional checkpoint-stability seeds | | **≈ 199** |
+
+Window: 2026-09-08 to 10-06 is 28 days, i.e. 672 h of a single GPU with zero
+queue time; the project's own constraints are minimal concurrency and 12 h
+chained jobs, so realistic throughput in that window is on the order of
+300–400 GPU-h. The implementation prerequisites (evaluator flags with a
+prompt-only path, branch loading, `eval_matrix.py` and its tests, the shuffle
+generator, manifests, the submit guard, C5 plumbing, the Block C fixes,
+`inventory_cvqa.py`, `power_sim.py`, `block_d.py`) are about one week of
+work, so Block A cannot start before roughly 09-15; the former fixed 09-20
+gate becomes A+12, roughly 09-27 at the earliest, and the R0/R1 seeds plus the confirmatory
+intervention evals (≈ 200 h) would have to run between 09-28 and 10-06.
+
+**Consequence, stated before any result exists**: the full path does not fit
+before 2026-10-12 under these constraints. **Decision required from Santiago
+and Maryam before the freeze commit**, recorded here when taken:
+
+- *Option 1, pre-declared scope*: the paper is the minimum scientific path.
+  The 52 h of checkpoint-stability seeds run only if capacity remains. Block C is a
+  single-seed pilot reported as exploratory; C2 is discussed as the candidate
+  method, not claimed; R0/R1 and the confirmatory intervention evals are
+  future work. The confirmatory **donor** evals (420, ≈ 35 h) run only if
+  Block D's exploratory test is promising and budget remains on 09-27.
+- *Option 2, full path*: requires either a second concurrent GPU through the
+  post-implementation window **or** an extension beyond 10-12, subject to the
+  timed pilot and queue. The full path is not reachable on one GPU by the
+  current deadline; this does not make the minimum path unreachable.
+
+Gate dates are re-stated relative to Block A's start (A+0): B and D at A+3
+days, C pilot at A+7, loss gate at A+12. Whichever option is taken, the
+v2.1.3 criteria stay as written; only what is *run* before the deadline
+changes, and what is not run is reported as not run.
+
+#### Roadmap
+
+- Week of 09-08, before freeze: audit job 20398782 and version the evidence;
+  write/run/version `inventory_cvqa.py` and its machine-readable inventory;
+  write `analysis/power_sim.py` and version its assumptions/output; write
+  and synthetically test `analysis/block_d.py`; insert the verified target
+  list and cost pilot. **Then commit "docs: freeze S1 v2.1.3 experimental
+  specification" before any new S1 `sbatch`.**
+- After that freeze: implement evaluator flags, shuffle-map generator,
+  `eval_matrix.py`, its tests, manifests and launcher submit guard; generate
+  and verify map hashes; submit Block A. If G0 passes, submit Blocks B and D
+  (including the 84 shuffled donor evals); otherwise do not launch B–C, while
+  D may proceed independently under its own confirmatory grounding guard.
+- A+7: Block C pilot (C1–C3, C5 only if G1-I is inconclusive); extra
+  `bn_v4` / `id_v4` seeds are checkpoint-stability work, not a prerequisite
+  for the gate.
+- A+12: loss gate (G0, G1, G2, G4, G5). G3 cannot be decided here; it waits
+  for the confirmatory panel and does not block R0/R1.
+- After A+12: under Option 1, write the minimum-path paper and run only the
+  420 donor-confirmation invocations if the frozen contingency is met. Under
+  Option 2, replicate C1/C2, train matched R0/R1, and run the full 1,140-call
+  confirmatory panel. Lock the R1 recipe before either R0/R1 result is read.
+  The loss enters the submission only if every frozen criterion finishes
+  before the chosen deadline; otherwise it remains future work.
+- In parallel, Approach 1 (Maryam): blind arms; bn → de/ru/zh zero-shot
+  with her checkpoint; replay in her stage 3.
+- Out of scope before 2026-10-12: coupled-architecture baseline
+  (limitation); backbone expansion (sw/th); X3/D12 beyond exploratory.
+  Also out of scope, carried over from the 2026-08-26 improvement queue
+  (its items 1–3 became D9, D9b and D11): LLaVA sample 100k → 300k;
+  culturally diverse stage-2 imagery (a hypothesis the CVQA − xGQA gap
+  cannot test); Honeybee C-Abstractor for spatial; existence-QA for yes/no;
+  an LwF-KL do-no-harm loss; a gate ramp-up schedule for D7's frontier.
+
+#### Post-freeze implementation prerequisites (none exist yet)
+
+- Evaluators: `--prompt-mode {question,instruction}`, `--no-text-branch`,
+  `--shuffle-map`, `--no-image`. **`--no-image` with `--no-text-branch` (A2/A4
+  no-image cells) needs a prompt-only path**: `_build_prefix_raw` raises when
+  neither `input_ids_mt` nor `pixel_values` is given (`model.py:347`).
+- Branch loading `--txt-ckpt` / `--vis-ckpt`, explicit `gate = 1.0` for
+  pre-gate checkpoints, strict keys otherwise; `eval_matrix.py` with its four
+  guarantees as tests.
+- C5: `use_text_branch=False` through `train_stage3_vqa.py`, batches that do
+  not tokenise NLLB, and load / freeze / gate paths that tolerate a missing
+  `mapping_txt`.
+- Block C: frozen towers to `eval()` after `model.train()`; validation split
+  by `vg_image_id`; matched R0/R1 replay arms with a frozen loss recipe.
+- The shuffle-map generator under `Approach2/shuffle/`, launcher submit
+  guard and manifests. The inventory, power and Block-D analysis scripts are
+  **pre-freeze analysis artifacts**, not items to defer to this section.
+
+#### Shuffle maps and git
+
+`evaluation/` is gitignored (`.gitignore:34`), so the maps themselves are
+not versioned. What is versioned, under `Approach2/shuffle/`: the
+deterministic generator, the seeds, the sha256 of each panel's id universe
+and the sha256 of every generated map. A launcher **must** regenerate the
+maps, check the hashes, and abort on mismatch. None of `Approach2/shuffle/`,
+the guards or the manifests exists yet; they are implementation work, not
+verified properties.
+
+#### Provenance
+
+Every launcher **must** write a JSON manifest next to its outputs: experiment id,
+hypothesis, estimand, prediction, source/targets, seed, **spec SHA** (the
+S1-freeze commit), **code SHA**, dirty flag, full arguments, checkpoint
+paths and sha256, data and split hashes, shuffle-map hashes,
+`vis_layers`, decoding settings, SLURM job id. `eval_*.summary.json`
+carries the same fields. Recommended commit order: (1) the four documents;
+the five analysis files already present (`_boot.py`,
+`e3_noninferiority.py`, `x1_did.py`, `test_invariance.py`,
+`test_fail_closed.py`); the required pre-freeze `power_sim.py`, `block_d.py`
+and their tests; `inventory_cvqa.py`, its machine-readable output/hash; and
+the versioned 20398782 audit record, as "docs: freeze S1 v2.1.3 experimental
+specification"; (2) implementation, tests and launchers. The freeze commit
+does not exist until every item in (1) exists and agrees with this entry.
+
+---
