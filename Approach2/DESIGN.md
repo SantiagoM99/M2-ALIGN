@@ -1125,6 +1125,82 @@ they are the lowest-resource in the set. They are not one mechanism.
 
 ---
 
+### The question, restated after X1 (2026-09-06)
+
+The original question was "when a multilingual VLM fails in a language, what
+exactly failed — and can you tell before you build it?", with the architecture
+as the instrument: `mapping_vis` takes only pixels (`model.py:325`), so the
+visual pathway cannot be language-specific and every cross-lingual difference
+must originate in the text bridge.
+
+X1 did not change that question, it sharpened the first half. The thing that
+fails is not a language, it is a **pair**. So the question in its working form:
+
+> **Which language should you train the multimodal bridge in, so that the most
+> other languages can receive it — and can you predict that in advance,
+> without multimodal data in any of them?**
+
+Both halves stay: attribution (X1 answered it — the pair, not the target) and
+prediction (open). Donor selection is also the cheapest intervention this
+project has found, since it costs a choice rather than a training run.
+
+**Donor quality, measured** (`analysis/donor_matrix.py`, mean retention over
+ga/jv/mn/si — the four targets every source was run on):
+
+| donor | quality |
+|---|---|
+| **id** | **68%** |
+| zh | 55% |
+| ru | 35% |
+| bn | 34% |
+
+Donor quality must be averaged over a **common** target set. Averaging each
+source over whatever it happened to be run on ranks Bengali first at 71%,
+purely because Bengali was the only source run on the easy targets (pt, ru,
+si, ko, zh) — which would inverting X1's finding. The script now enforces the
+common set and says which targets it used.
+
+---
+
+### X2b — pairwise alignment on FLORES-200 (2026-09-06) — IMPLEMENTED, NOT YET RUN
+
+`pair_alignment.py` + `job-scripts/pair_alignment.sh`, with
+`fetch_flores.py` to build the data.
+
+X2's design was invalidated by X1: it correlated a target-only measure against
+a pair-dependent outcome. X2b measures the pair — how close target T's prefix
+is to source S's prefix on the *same* sentence — which requires a multi-way
+parallel corpus. The stage-1 files cannot serve: each is a different
+L→English corpus, so two languages share no sentence.
+
+**FLORES-200 dev**, 997 sentences × 12 languages, verified line-aligned
+(row 0 is the same Stanford-scientists sentence in all twelve). The HF
+mirrors `facebook/flores` and `openlanguagedata/flores_plus` both answer
+**401** without a token, and tokens do not belong in repo scripts, so the
+fetcher pulls the canonical no-auth NLLB tarball
+(`dl.fbaipublicfiles.com/nllb/flores200_dataset.tar.gz`, ~25 MB) and reads
+members with `extractfile()` rather than `extractall()`.
+
+Two fixes carried over from X2's failure: prefixes are **mean-centered per
+language** before the cosine (mismatched sentences sat at 0.987 without it,
+crushing every margin into a 0.007–0.010 band), and the `llm` reference is
+dropped entirely — it scored exactly chance (retrieval@1 = 0.001 at n=1000)
+for all eleven languages, because the mapping is trained so the LLM can
+*read* the prefix through attention, not so it lands on the embedding
+table's geometry.
+
+**Pre-registered**: the pair score must rank id above bn and ru as a donor
+for jv/mn/ga, and must reproduce X1's one clean dissociation — zh high for ga
+(87% retention) and low for mn (0%). A correlation that misses that
+dissociation is not the mechanism, and the alignment hypothesis should then be
+abandoned rather than re-instrumented a third time.
+
+It also scores `stage1_joint`, which prices D12 before eleven stage-3 runs:
+if the shared mapping does not pull the languages' prefixes together, it will
+not fix transfer either.
+
+---
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
