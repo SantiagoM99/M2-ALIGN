@@ -15,6 +15,7 @@ warm-started from both. **Nothing in the three frozen models is ever updated.**
 |---|---|
 | `Approach2/SCIENCE.md` | **The question, every hypothesis, and whether it stands.** Start here. Includes retractions |
 | `Approach2/DESIGN.md` | Chronological decision log: every decision, why, and the measured effect. The authoritative record |
+| `Approach2/HANDOFF.md` | Latest session's operational state: what ran, what is built but unlaunched, what to run next |
 | `Approach2/job-scripts/` | SLURM launchers, one per experiment. Headers state what each tests |
 | `Approach2/analysis/` | Stdlib-only report scripts, run locally from `Approach2/results/` |
 
