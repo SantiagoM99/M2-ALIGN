@@ -1157,7 +1157,7 @@ ga/jv/mn/si — the four targets every source was run on):
 Donor quality must be averaged over a **common** target set. Averaging each
 source over whatever it happened to be run on ranks Bengali first at 71%,
 purely because Bengali was the only source run on the easy targets (pt, ru,
-si, ko, zh) — which would inverting X1's finding. The script now enforces the
+si, ko, zh) — which inverts X1's finding. The script now enforces the
 common set and says which targets it used.
 
 ---
