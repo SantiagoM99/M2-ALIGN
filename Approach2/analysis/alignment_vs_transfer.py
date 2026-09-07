@@ -95,7 +95,18 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--label", default="stage3_bn_dcl",
                     help="which alignment_<label>.json to test (default: the bridge that transfers)")
-    ap.add_argument("--metric", default="margin", choices=("margin", "retrieval@1", "retrieval@5"))
+    # retrieval@1 is the default despite the docstring's original preference for
+    # margin: the measured prefix space is severely anisotropic (mismatched
+    # sentences sit at cosine 0.987), which crushes every margin into the
+    # 0.007-0.010 band and leaves it measuring the residual scale rather than
+    # alignment. Retrieval@1 did not saturate (0.779-0.996) and is the usable
+    # statistic on this data. See DESIGN.md, X2.
+    ap.add_argument("--metric", default="retrieval@1",
+                    choices=("margin", "retrieval@1", "retrieval@5"))
+    # "llm" carries no signal at all in the measured data: retrieval@1 lands on
+    # chance (0.001 at n=1000, median rank ~485) for every language, because the
+    # mapping is trained so the LLM can READ the prefix through attention, not
+    # so it matches the embedding table's geometry. Kept for the record only.
     ap.add_argument("--reference", default="bridge", choices=("bridge", "llm"))
     args = ap.parse_args()
 

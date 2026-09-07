@@ -1016,6 +1016,115 @@ live), X2 second (cheap, and prices X3), X3 last (the expensive one).
 
 ---
 
+### X1 — Source or target? (2026-09-06) — H_source WINS, AND E2's CONCLUSION WAS WRONG
+
+CVQA transfer into jv/mn/ga from four sources, si as the positive control.
+Evaluation only; every checkpoint already existed.
+
+| source | jv | mn | ga | pooled ΔV (n=935) | retention | pooled p |
+|---|---|---|---|---|---|---|
+| bn | +1.35 | +1.92 | +0.92 | +1.39 | 17% | 0.36 |
+| **id** | **+5.05** | **+4.81** | **+4.29** | **+4.71** | **56%** | **0.00085** |
+| ru | +0.67 | +1.60 | +1.23 | +1.18 | 14% | 0.40 |
+| zh | +4.38 | 0.00 | +6.44 | +3.64 | 44% | 0.011 |
+| supervised | +10.10 | +7.69 | +7.36 | +8.34 | 100% | — |
+
+Control si transfers from every source (86%, 100%, 97%, 89%; p from 3.6e-05
+to 1.2e-06), so the harness is sound.
+
+**E2's conclusion is refuted, and it was ours.** E2 recorded that jv/mn/ga
+"fail completely" and hunted for a property of those languages — typology,
+script, LLM competence, prior — that would explain it. All of that was
+looking in the wrong place. **Transferability is a property of the
+source–target pair, not of the target.** Indonesian extracts significant
+visual signal in all three (pooled p=0.00085) where Bengali extracts none.
+Refuting a target-intrinsic explanation needs exactly one source that works,
+and Indonesian is it.
+
+**What is NOT established.** The direct paired comparison between the two
+sources on the same 935 items is **p=0.051** — id-better 110, bn-better 82.
+Borderline. "id is significant and bn is not" is not the same claim as
+"id > bn", and the difference-of-significance fallacy is the obvious way to
+oversell this. What carries the weight instead is consistency: id retains
+50%/62%/58% across three unrelated targets (Austronesian, Mongolic, Celtic),
+each at p≈0.06-0.07 alone and 0.00085 pooled.
+
+Chinese is not a general donor — it is the *best* source for Irish (+6.44,
+87% retention, p=0.0055) and worthless for Mongolian (0.00, p=1.0). Russian
+is flat everywhere despite being the best *target* in E2 (218% retention).
+**Being a good target and being a good donor are different properties.**
+
+**Bengali was a poor choice of source language, and that choice silently
+shaped every transfer result in this project.**
+
+---
+
+### X2 — Alignment scoring (2026-09-06) — PREDICTION FAILED, AND THE DESIGN WAS CONFOUNDED
+
+Scored `stage3_bn_dcl`'s text mapping on 1,000 held-out parallel sentences
+per language.
+
+| | outcome |
+|---|---|
+| bridge retrieval@1 | 0.779 (mn) to 0.996 (ru); did **not** saturate |
+| vs transfer retention (must correlate) | rho=+0.50, permutation **p=0.18** |
+| vs % of ceiling (must not correlate) | rho=+0.19, p=0.66 |
+
+The pre-registered verdict is **FAILED**: alignment does not track transfer.
+Javanese is the direct counterexample — retrieval@1 **0.960**, near the top of
+the set, and 13% retention from Bengali.
+
+**Two instrument problems, recorded so the re-run does not repeat them.**
+
+1. `margin` was declared the primary statistic and is unusable. The prefix
+   space is severely anisotropic: *mismatched* sentences sit at cosine
+   **0.987**, so every margin is crushed into 0.007-0.010 and measures the
+   residual scale, not alignment. The docstring anticipated saturation at the
+   top; the failure was at the bottom. Retrieval@1 is the usable statistic
+   here and is now the analysis default. A re-run should mean-center before
+   the cosine.
+2. The `llm` reference carries **no signal whatsoever** — retrieval@1 = 0.001
+   at n=1000 (chance), median rank ~485, for all eleven languages. In
+   hindsight this is expected: the mapping is trained so the LLM can *read*
+   the prefix through attention, not so it lands on the embedding table's
+   geometry. Drop it.
+
+**The deeper problem is that X1 invalidated X2's design.** X2 correlated a
+**target-intrinsic** measure (how well language L's bridge retrieves its own
+translations) against a **pair-dependent** outcome (retention *from Bengali*).
+X1 showed the outcome is a property of the pair. The experiment could not have
+worked, and its null says nothing about alignment as a mechanism.
+
+**The fix is a pair-level measure**: alignment between the *source* and
+*target* prefixes, not target-to-English — the visual mapping was tuned while
+the source's prefixes were in play, so that is the distance that should
+matter. This needs a multi-way parallel corpus, which the stage-1 files are
+not (each is a different L→English corpus, so L and S share no sentences).
+**FLORES-200** is the right one: 1,012 dev sentences, all eleven languages,
+and it is NLLB's own evaluation set. xGQA is multi-way parallel too but does
+not cover jv/mn/ga/si, which are the languages in question.
+
+**Prediction for the pair-level re-run**: source-target alignment should rank
+id above bn and ru as a donor for jv/mn/ga, and should rank zh high for ga
+and low for mn — the one clean dissociation X1 produced. If it cannot
+reproduce that dissociation, the alignment mechanism should be abandoned
+rather than re-instrumented a third time.
+
+---
+
+### Correction to the E2/E4 "convergence" claim (2026-09-06)
+
+DESIGN.md previously recorded that E2 and E4 "converge" on jv/mn/ga and called
+that the finding. **That claim is now half retracted.** E2's failure has a
+source explanation (X1: Bengali is a poor donor; Indonesian is not). E4's
+failure does not — it used each language's **own** supervised checkpoint, so
+no source is involved, and why the v4 visual scale-up buys those languages
+nothing is still open. Two different things go wrong for the same three
+languages, and the most likely reason they are the same three is simply that
+they are the lowest-resource in the set. They are not one mechanism.
+
+---
+
 ---
 
 ## Improvement queue (evidence-ranked, 2026-08-26)
