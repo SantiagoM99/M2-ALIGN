@@ -1860,8 +1860,9 @@ saturation for id).
   Over the cap, eligible: Filipino, Japanese, Marathi, Hindi, Sundanese,
   Telugu, Igbo, Egyptian Arabic (200–203 items each). Every subset has ≥ 87
   images. **Images**: only 20–85% of rows per subset carry an `Image Source`
-  URL; the rest are embedded in the 4.9 GB parquet and must be extracted on a
-  login node, which the timed pilot has to include. *Budget, recomputed from
+  URL; the rest are embedded in the 4.9 GB parquet and must be extracted from
+  a local copy before evaluation, which the timed pilot has to include.
+  *Budget, recomputed from
   the item count*: one pass over the panel at the ~5 min per 300 items of the
   existing CVQA evals costs ≈ 1.4 h per (donor, condition), so donor
   confirmation is 7 donors × 5 conditions ≈ **51 h**, not the 35 h of the
@@ -2009,12 +2010,22 @@ changes, and what is not run is reported as not run.
 
 #### Roadmap
 
-- Week of 09-08, before freeze: **done on 09-07**: the 20398782 audit
-  record (laptop evidence), `inventory_cvqa.py` and its inventory,
+- Week of 09-08, before freeze: **done on 09-07**: the complete 20398782
+  audit record (laptop and cluster-side evidence), `inventory_cvqa.py` and its inventory,
   `power_sim.py` and its output, `block_d.py` with synthetic tests, the
-  Option 1 decision. **Still open**: the cluster-side appendix of the audit
-  (`sacct`, log, reflog), the timed pilot of the largest confirmatory unit,
-  the query-hash check of one rebuilt panel against the cluster file. **Then commit "docs: freeze S1 v2.1.3 experimental
+  Option 1 decision. `build_cvqa_s1.py` and
+  `job-scripts/cvqa_s1_prefreeze.sh` implement the remaining two checks in
+  one fail-closed 3 h job: native-query reconstruction is compared by id and
+  canonical query hash against Bengali's current cluster JSONL, then the job
+  extracts Spanish's embedded parquet images (the cold extraction is what is
+  timed there) and times two correct-image evaluations of **Japanese**, a
+  non-panel unit (full run and a `--limit` run, so per-item cost and
+  model-load overhead are separated). **The timing unit is never a panel
+  unit**: evaluating a donor on Spanish before the damage ranking is committed
+  would burn the bn × Spanish cell of the prospective G3 test, and the
+  builder's `attach-pilot` refuses any panel unit. Synthetic builder tests are in
+  `analysis/test_cvqa_s1_builder.py`. **Still open**: run that job and commit
+  its completed `audits/cvqa_s1_prefreeze.json`. **Then commit "docs: freeze S1 v2.1.3 experimental
   specification" before any new S1 `sbatch`.**
 - After that freeze: implement evaluator flags, shuffle-map generator,
   `eval_matrix.py`, its tests, manifests and launcher submit guard; generate
@@ -2057,6 +2068,12 @@ changes, and what is not run is reported as not run.
   external images and the literal `Self-open` for embedded ones, which need
   the parquet). Before the freeze, rebuild one existing panel and hash its
   `query` column against the file on the cluster; a mismatch blocks the freeze.
+  `Approach2/build_cvqa_s1.py` now implements this schema directly from local
+  parquet, never follows `Image Source`, verifies the inventory's item/image
+  counts, and writes both canonical image-id files and question-id hardlinks
+  for the legacy evaluator. `job-scripts/cvqa_s1_prefreeze.sh` runs the
+  Bengali hash audit and cold Spanish extraction/pilot together. The code
+  exists; its cluster report is not evidence until that job completes.
 - **Evaluators abort on a missing image** instead of skipping it
   (`evaluate_vqa.py:174`, `evaluate_cvqa.py:140` skip today); incompatible flag
   combinations are rejected; NLLB and SigLIP2 are loaded only when their branch
