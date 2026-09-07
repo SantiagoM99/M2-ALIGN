@@ -86,7 +86,25 @@ same sentence, mean-centered per language. Built and verified, not yet run.
 | `job-scripts/source_ablation.sh` | Ran with 4 sources; the remaining 7 are eval-only |
 | `launch_joint.sh` (X3/D12) | `train_stage1_joint` has run; the chain to eleven stage-3s has not been launched |
 
-## 6. What to run next, in order
+## 6. In flight as of the handoff (2026-09-06)
+
+| job | what | walltime |
+|---|---|---|
+| **20398781** | X2b, pairwise FLORES alignment — also scores `stage1_joint` | 3h |
+| **20398782** | donor matrix, sources `de pt ko si jv mn ga` into `jv mn ga si` | 12h |
+
+`evaluation/flores_dev.jsonl` is built (997 sentences x 12 languages).
+
+Check 20398782 actually received its env vars — `head -5
+Approach2/logs/a2_srcabl_20398782.log` must show
+`SOURCES=de pt ko si jv mn ga`. If it shows the default `bn id ru zh`, those
+cells already exist, the job skips everything by idempotency and exits in
+minutes having produced nothing. Resubmit with the assignments and `sbatch`
+on one line.
+
+**X3 is deliberately NOT launched** — it is gated on 20398781's verdict.
+
+## 7. What to run next, in order
 
 ```bash
 git pull
@@ -118,7 +136,7 @@ stage-3 runs. If the joint mapping does not pull the languages' prefixes
 together in the pairwise score, it will not fix transfer either, and the
 eleven runs are wasted.
 
-## 7. Pre-registered predictions awaiting data
+## 8. Pre-registered predictions awaiting data
 
 - **X2b**: the pair score must rank id above bn and ru as a donor for
   jv/mn/ga, **and** reproduce X1's one clean dissociation — zh high for ga
@@ -128,7 +146,7 @@ eleven runs are wasted.
   97–99% of ceiling). A uniform lift refutes it as surely as no lift. Judge
   with `analysis/gap_report.py v4 vj`, never with the mean.
 
-## 8. Known-open, unowned
+## 9. Known-open, unowned
 
 - **Why E4's LRL failure happens.** Best unclaimed thread.
 - The AlignVLM connector under our frozen setting — flagged as required by the
@@ -141,7 +159,7 @@ eleven runs are wasted.
   and X1 is a real, actionable finding; the mechanism (why donor quality
   varies) is still missing, and that is what X2b and X3 are for.
 
-## 9. Traps that already cost time
+## 10. Traps that already cost time
 
 - Cluster Python is **3.11.5**: a backslash inside an f-string expression is a
   `SyntaxError` there and legal on a 3.12+ laptop. Check heredoc Python before
