@@ -1,0 +1,181 @@
+{
+ "margin": 1.0,
+ "boot": 400,
+ "sims": 120,
+ "seed": 7,
+ "descriptives": {
+  "xGQA bn/de/ko": {
+   "grounding(\u0394_gray proxy)": {
+    "items": 37734,
+    "images": 1194,
+    "mean_paired_diff": 0.03180155827635554,
+    "discordance": 0.24338792600837442,
+    "icc": 0.00573132897225428
+   },
+   "utility": {
+    "items": 37734,
+    "images": 1194,
+    "mean_paired_diff": -0.625430646101659,
+    "discordance": 0.16287698097206763,
+    "icc": 0.007254403924192217
+   }
+  },
+  "CVQA jv/mn/ga": {
+   "grounding(\u0394_gray proxy)": {
+    "items": 935,
+    "images": 401,
+    "mean_paired_diff": -3.3155080213903747,
+    "discordance": 0.2053475935828877,
+    "icc": -0.08434255780766753
+   },
+   "utility": {
+    "items": 935,
+    "images": 401,
+    "mean_paired_diff": -1.06951871657754,
+    "discordance": 0.13689839572192514,
+    "icc": -0.07826471417730631
+   }
+  }
+ },
+ "g3_power": {
+  "0.5": 1.0,
+  "1.0": 1.0,
+  "2.0": 0.75,
+  "3.0": 0.5375
+ },
+ "assumptions": "-------------------\n1. \u0394_ground has never been measured; its noise is proxied by \u0394_gray's\n   (correct \u2212 gray) per-item paired differences. \u0394_ground noise is expected\n   to be at least as large (shuffled images vary), so power is optimistic.\n2. Comparators: xGQA uses bn zero-shot vs the target-supervised checkpoint;\n   CVQA uses bn-source vs id-source zero-shot. Both are real arms on\n   identical items.\n3. Regions use the same stratified image-cluster bootstrap as\n   e3_noninferiority.py, one-sided 5/95 bounds, \u03b4 = 1.0.\n4. B and S are small by design (cluster-level sums make each bootstrap\n   cheap); rerun with --boot 2000 --sims 400 for the paper's appendix.\n\nRun from Approach2/results:\n    python3 ../analysis/power_sim.py --out ../audits/power_sim.json",
+ "results": {
+  "xGQA bn/de/ko": {
+   "grounding(\u0394_gray proxy)": {
+    "0.0": {
+     "non-inferior": 0.9583333333333334,
+     "inconclusive": 0.041666666666666664,
+     "mat. inferior": 0.0,
+     "half_width": 0.5676099997264947
+    },
+    "-0.5": {
+     "non-inferior": 0.5333333333333333,
+     "inconclusive": 0.4666666666666667,
+     "mat. inferior": 0.0,
+     "half_width": 0.5668518055061537
+    },
+    "-1.0": {
+     "non-inferior": 0.06666666666666667,
+     "inconclusive": 0.8833333333333333,
+     "mat. inferior": 0.05,
+     "half_width": 0.565116963847911
+    },
+    "-2.0": {
+     "non-inferior": 0.0,
+     "inconclusive": 0.03333333333333333,
+     "mat. inferior": 0.9666666666666667,
+     "half_width": 0.5670313129444142
+    },
+    "-3.0": {
+     "non-inferior": 0.0,
+     "inconclusive": 0.0,
+     "mat. inferior": 1.0,
+     "half_width": 0.5709205062798953
+    }
+   },
+   "utility": {
+    "0.0": {
+     "non-inferior": 1.0,
+     "inconclusive": 0.0,
+     "mat. inferior": 0.0,
+     "half_width": 0.4445684115419794
+    },
+    "-0.5": {
+     "non-inferior": 0.725,
+     "inconclusive": 0.275,
+     "mat. inferior": 0.0,
+     "half_width": 0.4482996705840856
+    },
+    "-1.0": {
+     "non-inferior": 0.041666666666666664,
+     "inconclusive": 0.9166666666666666,
+     "mat. inferior": 0.041666666666666664,
+     "half_width": 0.4434224121699583
+    },
+    "-2.0": {
+     "non-inferior": 0.0,
+     "inconclusive": 0.016666666666666666,
+     "mat. inferior": 0.9833333333333333,
+     "half_width": 0.4466991265117746
+    },
+    "-3.0": {
+     "non-inferior": 0.0,
+     "inconclusive": 0.0,
+     "mat. inferior": 1.0,
+     "half_width": 0.4456864391003524
+    }
+   }
+  },
+  "CVQA jv/mn/ga": {
+   "grounding(\u0394_gray proxy)": {
+    "0.0": {
+     "non-inferior": 0.20833333333333334,
+     "inconclusive": 0.7916666666666666,
+     "mat. inferior": 0.0,
+     "half_width": 2.9997142362196487
+    },
+    "-0.5": {
+     "non-inferior": 0.13333333333333333,
+     "inconclusive": 0.8416666666666667,
+     "mat. inferior": 0.025,
+     "half_width": 2.990175337797323
+    },
+    "-1.0": {
+     "non-inferior": 0.075,
+     "inconclusive": 0.8833333333333333,
+     "mat. inferior": 0.041666666666666664,
+     "half_width": 2.9866579804776987
+    },
+    "-2.0": {
+     "non-inferior": 0.016666666666666666,
+     "inconclusive": 0.8,
+     "mat. inferior": 0.18333333333333332,
+     "half_width": 2.9677200744048666
+    },
+    "-3.0": {
+     "non-inferior": 0.0,
+     "inconclusive": 0.5666666666666667,
+     "mat. inferior": 0.43333333333333335,
+     "half_width": 2.966865460272761
+    }
+   },
+   "utility": {
+    "0.0": {
+     "non-inferior": 0.31666666666666665,
+     "inconclusive": 0.6833333333333333,
+     "mat. inferior": 0.0,
+     "half_width": 2.2195615027604867
+    },
+    "-0.5": {
+     "non-inferior": 0.125,
+     "inconclusive": 0.8666666666666667,
+     "mat. inferior": 0.008333333333333333,
+     "half_width": 2.210357106404869
+    },
+    "-1.0": {
+     "non-inferior": 0.058333333333333334,
+     "inconclusive": 0.8833333333333333,
+     "mat. inferior": 0.058333333333333334,
+     "half_width": 2.2089065360052973
+    },
+    "-2.0": {
+     "non-inferior": 0.008333333333333333,
+     "inconclusive": 0.7666666666666667,
+     "mat. inferior": 0.225,
+     "half_width": 2.21414493624881
+    },
+    "-3.0": {
+     "non-inferior": 0.0,
+     "inconclusive": 0.525,
+     "mat. inferior": 0.475,
+     "half_width": 2.2088113819460187
+    }
+   }
+  }
+ }
+}

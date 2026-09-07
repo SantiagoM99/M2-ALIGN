@@ -1,0 +1,861 @@
+{
+ "confirmatory_panel": [
+  {
+   "items": 2058,
+   "language": "Spanish",
+   "nllb": "spa_Latn",
+   "subsets": [
+    "('Spanish', 'Mexico')",
+    "('Spanish', 'Argentina')",
+    "('Spanish', 'Colombia')",
+    "('Spanish', 'Uruguay')",
+    "('Spanish', 'Ecuador')",
+    "('Spanish', 'Spain')",
+    "('Spanish', 'Chile')"
+   ]
+  },
+  {
+   "items": 436,
+   "language": "Urdu",
+   "nllb": "urd_Arab",
+   "subsets": [
+    "('Urdu', 'Pakistan')",
+    "('Urdu', 'India')"
+   ]
+  },
+  {
+   "items": 371,
+   "language": "Bulgarian",
+   "nllb": "bul_Cyrl",
+   "subsets": [
+    "('Bulgarian', 'Bulgaria')"
+   ]
+  },
+  {
+   "items": 315,
+   "language": "Malay",
+   "nllb": "zsm_Latn",
+   "subsets": [
+    "('Malay', 'Malaysia')"
+   ]
+  },
+  {
+   "items": 302,
+   "language": "Romanian",
+   "nllb": "ron_Latn",
+   "subsets": [
+    "('Romanian', 'Romania')"
+   ]
+  },
+  {
+   "items": 299,
+   "language": "Norwegian",
+   "nllb": "nob_Latn",
+   "subsets": [
+    "('Norwegian', 'Norway')"
+   ]
+  },
+  {
+   "items": 273,
+   "language": "Swahili",
+   "nllb": "swh_Latn",
+   "subsets": [
+    "('Swahili', 'Kenya')"
+   ]
+  },
+  {
+   "items": 251,
+   "language": "Minangkabau",
+   "nllb": "min_Latn",
+   "subsets": [
+    "('Minangkabau', 'Indonesia')"
+   ]
+  },
+  {
+   "items": 235,
+   "language": "Kinyarwanda",
+   "nllb": "kin_Latn",
+   "subsets": [
+    "('Kinyarwanda', 'Rwanda')"
+   ]
+  },
+  {
+   "items": 234,
+   "language": "Amharic",
+   "nllb": "amh_Ethi",
+   "subsets": [
+    "('Amharic', 'Ethiopia')"
+   ]
+  },
+  {
+   "items": 214,
+   "language": "Oromo",
+   "nllb": "gaz_Latn",
+   "subsets": [
+    "('Oromo', 'Ethiopia')"
+   ]
+  },
+  {
+   "items": 214,
+   "language": "Tamil",
+   "nllb": "tam_Taml",
+   "subsets": [
+    "('Tamil', 'India')"
+   ]
+  }
+ ],
+ "dataset": "afaji/cvqa",
+ "num_rows_total": 10374,
+ "rule": {
+  "cap": 12,
+  "excluded_languages": [
+   "Bengali",
+   "Chinese",
+   "German",
+   "Indonesian",
+   "Irish",
+   "Javanese",
+   "Korean",
+   "Mongolian",
+   "Portuguese",
+   "Russian",
+   "Sinhala"
+  ],
+  "min_images_per_subset": 4,
+  "min_items": 150
+ },
+ "source_of_tags": "https://huggingface.co/facebook/nllb-200-distilled-600M/raw/main/special_tokens_map.json",
+ "split": "test",
+ "units": [
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 234,
+   "language": "Amharic",
+   "nllb": "amh_Ethi",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Ethiopia",
+     "english_choices": 234,
+     "english_q": 234,
+     "image_url": 200,
+     "images": 200,
+     "items": 234,
+     "native_q": 234,
+     "subset": "('Amharic', 'Ethiopia')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "one of the eleven"
+   ],
+   "items": 286,
+   "language": "Bengali",
+   "nllb": "ben_Beng",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "India",
+     "english_choices": 286,
+     "english_q": 286,
+     "image_url": 83,
+     "images": 136,
+     "items": 286,
+     "native_q": 286,
+     "subset": "('Bengali', 'India')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "tag bre_Latn not in tokenizer"
+   ],
+   "items": 405,
+   "language": "Breton",
+   "nllb": "bre_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "France",
+     "english_choices": 405,
+     "english_q": 405,
+     "image_url": 268,
+     "images": 216,
+     "items": 405,
+     "native_q": 405,
+     "subset": "('Breton', 'France')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 371,
+   "language": "Bulgarian",
+   "nllb": "bul_Cyrl",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Bulgaria",
+     "english_choices": 371,
+     "english_q": 371,
+     "image_url": 165,
+     "images": 200,
+     "items": 371,
+     "native_q": 371,
+     "subset": "('Bulgarian', 'Bulgaria')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "one of the eleven"
+   ],
+   "items": 523,
+   "language": "Chinese",
+   "nllb": "zho_Hans",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "China",
+     "english_choices": 311,
+     "english_q": 311,
+     "image_url": 242,
+     "images": 180,
+     "items": 311,
+     "native_q": 311,
+     "subset": "('Chinese', 'China')"
+    },
+    {
+     "bad_id": 0,
+     "country": "Singapore",
+     "english_choices": 212,
+     "english_q": 212,
+     "image_url": 109,
+     "images": 142,
+     "items": 212,
+     "native_q": 212,
+     "subset": "('Chinese', 'Singapore')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 203,
+   "language": "Egyptian_Arabic",
+   "nllb": "arz_Arab",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Egypt",
+     "english_choices": 203,
+     "english_q": 203,
+     "image_url": 124,
+     "images": 100,
+     "items": 203,
+     "native_q": 203,
+     "subset": "('Egyptian_Arabic', 'Egypt')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 203,
+   "language": "Filipino",
+   "nllb": "tgl_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Philippines",
+     "english_choices": 203,
+     "english_q": 203,
+     "image_url": 173,
+     "images": 91,
+     "items": 203,
+     "native_q": 203,
+     "subset": "('Filipino', 'Philippines')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 201,
+   "language": "Hindi",
+   "nllb": "hin_Deva",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "India",
+     "english_choices": 201,
+     "english_q": 201,
+     "image_url": 164,
+     "images": 100,
+     "items": 201,
+     "native_q": 201,
+     "subset": "('Hindi', 'India')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 200,
+   "language": "Igbo",
+   "nllb": "ibo_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Nigeria",
+     "english_choices": 200,
+     "english_q": 200,
+     "image_url": 164,
+     "images": 100,
+     "items": 200,
+     "native_q": 200,
+     "subset": "('Igbo', 'Nigeria')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "one of the eleven"
+   ],
+   "items": 412,
+   "language": "Indonesian",
+   "nllb": "ind_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Indonesia",
+     "english_choices": 412,
+     "english_q": 412,
+     "image_url": 219,
+     "images": 186,
+     "items": 412,
+     "native_q": 412,
+     "subset": "('Indonesian', 'Indonesia')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "one of the eleven"
+   ],
+   "items": 326,
+   "language": "Irish",
+   "nllb": "gle_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Ireland",
+     "english_choices": 326,
+     "english_q": 326,
+     "image_url": 250,
+     "images": 143,
+     "items": 326,
+     "native_q": 326,
+     "subset": "('Irish', 'Ireland')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 203,
+   "language": "Japanese",
+   "nllb": "jpn_Jpan",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Japan",
+     "english_choices": 203,
+     "english_q": 203,
+     "image_url": 125,
+     "images": 94,
+     "items": 203,
+     "native_q": 203,
+     "subset": "('Japanese', 'Japan')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "one of the eleven"
+   ],
+   "items": 297,
+   "language": "Javanese",
+   "nllb": "jav_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Indonesia",
+     "english_choices": 297,
+     "english_q": 297,
+     "image_url": 92,
+     "images": 129,
+     "items": 297,
+     "native_q": 297,
+     "subset": "('Javanese', 'Indonesia')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 235,
+   "language": "Kinyarwanda",
+   "nllb": "kin_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Rwanda",
+     "english_choices": 235,
+     "english_q": 235,
+     "image_url": 65,
+     "images": 187,
+     "items": 235,
+     "native_q": 235,
+     "subset": "('Kinyarwanda', 'Rwanda')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "one of the eleven"
+   ],
+   "items": 290,
+   "language": "Korean",
+   "nllb": "kor_Hang",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "South Korea",
+     "english_choices": 290,
+     "english_q": 290,
+     "image_url": 190,
+     "images": 126,
+     "items": 290,
+     "native_q": 290,
+     "subset": "('Korean', 'South Korea')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 315,
+   "language": "Malay",
+   "nllb": "zsm_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Malaysia",
+     "english_choices": 315,
+     "english_q": 315,
+     "image_url": 247,
+     "images": 131,
+     "items": 315,
+     "native_q": 315,
+     "subset": "('Malay', 'Malaysia')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 202,
+   "language": "Marathi",
+   "nllb": "mar_Deva",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "India",
+     "english_choices": 202,
+     "english_q": 202,
+     "image_url": 131,
+     "images": 95,
+     "items": 202,
+     "native_q": 202,
+     "subset": "('Marathi', 'India')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 251,
+   "language": "Minangkabau",
+   "nllb": "min_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Indonesia",
+     "english_choices": 251,
+     "english_q": 251,
+     "image_url": 148,
+     "images": 99,
+     "items": 251,
+     "native_q": 251,
+     "subset": "('Minangkabau', 'Indonesia')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "one of the eleven"
+   ],
+   "items": 312,
+   "language": "Mongolian",
+   "nllb": "khk_Cyrl",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Mongolia",
+     "english_choices": 312,
+     "english_q": 312,
+     "image_url": 62,
+     "images": 129,
+     "items": 312,
+     "native_q": 312,
+     "subset": "('Mongolian', 'Mongolia')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 299,
+   "language": "Norwegian",
+   "nllb": "nob_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Norway",
+     "english_choices": 299,
+     "english_q": 299,
+     "image_url": 246,
+     "images": 125,
+     "items": 299,
+     "native_q": 299,
+     "subset": "('Norwegian', 'Norway')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 214,
+   "language": "Oromo",
+   "nllb": "gaz_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Ethiopia",
+     "english_choices": 214,
+     "english_q": 214,
+     "image_url": 136,
+     "images": 135,
+     "items": 214,
+     "native_q": 214,
+     "subset": "('Oromo', 'Ethiopia')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "one of the eleven"
+   ],
+   "items": 284,
+   "language": "Portuguese",
+   "nllb": "por_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Brazil",
+     "english_choices": 284,
+     "english_q": 284,
+     "image_url": 242,
+     "images": 100,
+     "items": 284,
+     "native_q": 284,
+     "subset": "('Portuguese', 'Brazil')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 302,
+   "language": "Romanian",
+   "nllb": "ron_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Romania",
+     "english_choices": 302,
+     "english_q": 302,
+     "image_url": 106,
+     "images": 110,
+     "items": 302,
+     "native_q": 302,
+     "subset": "('Romanian', 'Romania')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "one of the eleven"
+   ],
+   "items": 200,
+   "language": "Russian",
+   "nllb": "rus_Cyrl",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Russia",
+     "english_choices": 200,
+     "english_q": 200,
+     "image_url": 158,
+     "images": 95,
+     "items": 200,
+     "native_q": 200,
+     "subset": "('Russian', 'Russia')"
+    }
+   ]
+  },
+  {
+   "eligible": false,
+   "excluded_because": [
+    "one of the eleven"
+   ],
+   "items": 225,
+   "language": "Sinhala",
+   "nllb": "sin_Sinh",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Sri_Lanka",
+     "english_choices": 225,
+     "english_q": 225,
+     "image_url": 150,
+     "images": 146,
+     "items": 225,
+     "native_q": 225,
+     "subset": "('Sinhala', 'Sri_Lanka')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 2058,
+   "language": "Spanish",
+   "nllb": "spa_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Mexico",
+     "english_choices": 323,
+     "english_q": 323,
+     "image_url": 75,
+     "images": 247,
+     "items": 323,
+     "native_q": 323,
+     "subset": "('Spanish', 'Mexico')"
+    },
+    {
+     "bad_id": 0,
+     "country": "Argentina",
+     "english_choices": 265,
+     "english_q": 265,
+     "image_url": 138,
+     "images": 139,
+     "items": 265,
+     "native_q": 265,
+     "subset": "('Spanish', 'Argentina')"
+    },
+    {
+     "bad_id": 0,
+     "country": "Colombia",
+     "english_choices": 241,
+     "english_q": 241,
+     "image_url": 99,
+     "images": 113,
+     "items": 241,
+     "native_q": 241,
+     "subset": "('Spanish', 'Colombia')"
+    },
+    {
+     "bad_id": 0,
+     "country": "Uruguay",
+     "english_choices": 315,
+     "english_q": 315,
+     "image_url": 209,
+     "images": 154,
+     "items": 315,
+     "native_q": 315,
+     "subset": "('Spanish', 'Uruguay')"
+    },
+    {
+     "bad_id": 0,
+     "country": "Ecuador",
+     "english_choices": 362,
+     "english_q": 362,
+     "image_url": 238,
+     "images": 203,
+     "items": 362,
+     "native_q": 362,
+     "subset": "('Spanish', 'Ecuador')"
+    },
+    {
+     "bad_id": 0,
+     "country": "Spain",
+     "english_choices": 318,
+     "english_q": 318,
+     "image_url": 267,
+     "images": 192,
+     "items": 318,
+     "native_q": 318,
+     "subset": "('Spanish', 'Spain')"
+    },
+    {
+     "bad_id": 0,
+     "country": "Chile",
+     "english_choices": 234,
+     "english_q": 234,
+     "image_url": 80,
+     "images": 107,
+     "items": 234,
+     "native_q": 234,
+     "subset": "('Spanish', 'Chile')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 200,
+   "language": "Sundanese",
+   "nllb": "sun_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Indonesia",
+     "english_choices": 200,
+     "english_q": 200,
+     "image_url": 74,
+     "images": 87,
+     "items": 200,
+     "native_q": 200,
+     "subset": "('Sundanese', 'Indonesia')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 273,
+   "language": "Swahili",
+   "nllb": "swh_Latn",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Kenya",
+     "english_choices": 273,
+     "english_q": 273,
+     "image_url": 123,
+     "images": 107,
+     "items": 273,
+     "native_q": 273,
+     "subset": "('Swahili', 'Kenya')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 214,
+   "language": "Tamil",
+   "nllb": "tam_Taml",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "India",
+     "english_choices": 214,
+     "english_q": 214,
+     "image_url": 139,
+     "images": 97,
+     "items": 214,
+     "native_q": 214,
+     "subset": "('Tamil', 'India')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 200,
+   "language": "Telugu",
+   "nllb": "tel_Telu",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "India",
+     "english_choices": 200,
+     "english_q": 200,
+     "image_url": 137,
+     "images": 95,
+     "items": 200,
+     "native_q": 200,
+     "subset": "('Telugu', 'India')"
+    }
+   ]
+  },
+  {
+   "eligible": true,
+   "excluded_because": [],
+   "items": 436,
+   "language": "Urdu",
+   "nllb": "urd_Arab",
+   "subsets": [
+    {
+     "bad_id": 0,
+     "country": "Pakistan",
+     "english_choices": 216,
+     "english_q": 216,
+     "image_url": 58,
+     "images": 107,
+     "items": 216,
+     "native_q": 216,
+     "subset": "('Urdu', 'Pakistan')"
+    },
+    {
+     "bad_id": 0,
+     "country": "India",
+     "english_choices": 220,
+     "english_q": 220,
+     "image_url": 167,
+     "images": 96,
+     "items": 220,
+     "native_q": 220,
+     "subset": "('Urdu', 'India')"
+    }
+   ]
+  }
+ ]
+}

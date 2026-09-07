@@ -1503,16 +1503,41 @@ audit in Block D shows otherwise.
   **power under equality is low**: non-inferiority there needs A2 to be
   genuinely better, not merely equal. The three regions apply everywhere;
   the margin is not widened to make CVQA decidable, and the paper states
-  the power. These half-widths are historical approximations, not a power
-  calculation for A1 − A2: `analysis/power_sim.py` **must be written before
-  the freeze**. Counts alone do not identify paired-test power. The script
-  must run separate sensitivity grids for U and Δ_ground, use the observed
-  cluster-size vectors, and print its assumed baseline rate, arm-discordance
-  rate, intra-image correlation, true reference-minus-candidate effects,
-  Monte Carlo repetitions, bootstrap repetitions, seed and exact NI rule.
-  Its versioned output replaces this paragraph; no single power number is
-  reported without those assumptions. It also reports attainable power for
-  G3 with seven fixed donors under a grid of noise in α_conf.
+  the power. **Power, simulated** (`analysis/power_sim.py` → `audits/power_sim.json`;
+  δ = 1.0, B = 400 bootstrap resamples, S = 120 Monte Carlo repetitions, seed
+  7; exact NI rule: 5th percentile of the image-cluster bootstrap of D above
+  −δ). Per-item paired differences D_i = d + ε_i, where ε_i is the observed,
+  centred paired difference between two real arms on the same items (xGQA:
+  bn zero-shot vs target-supervised; CVQA: bn-source vs id-source), and a
+  new realisation flips the sign of every image's ε at once. Assumed
+  quantities, from the real arms:
+
+  | panel | endpoint | items / images | discordance | intra-image corr. of ε |
+  |---|---|---|---|---|
+  | xGQA bn/de/ko | grounding (Δ_gray proxy) | 37,734 / 1,194 | 0.24 | 0.006 |
+  | xGQA bn/de/ko | utility | 37,734 / 1,194 | 0.16 | 0.007 |
+  | CVQA jv/mn/ga | grounding (Δ_gray proxy) | 935 / 401 | 0.21 | ≈ 0 |
+  | CVQA jv/mn/ga | utility | 935 / 401 | 0.14 | ≈ 0 |
+
+  Δ_ground has never been measured, so its noise is proxied by Δ_gray's;
+  grounding power is therefore optimistic. Dominant region and its
+  probability per true effect d (reference − candidate):
+
+  | panel | endpoint | d = 0 | d = −0.5 | d = −1 | d = −2 | d = −3 | half-width |
+  |---|---|---|---|---|---|---|---|
+  | xGQA bn/de/ko | grounding | NI .96 | NI .53 | inc .88 | MI .97 | MI 1.00 | 0.57 |
+  | xGQA bn/de/ko | utility | NI 1.00 | NI .72 | inc .92 | MI .98 | MI 1.00 | 0.44 |
+  | CVQA jv/mn/ga | grounding | inc .79, NI .21 | inc .84 | inc .88 | inc .80, MI .18 | inc .57, MI .43 | 3.0 |
+  | CVQA jv/mn/ga | utility | inc .68, NI .32 | inc .87 | inc .88 | inc .77, MI .23 | inc .53, MI .47 | 2.2 |
+
+  Under equality xGQA establishes non-inferiority with probability 0.96–1.00,
+  CVQA with 0.21–0.32; a true 2-point loss is detected on xGQA (0.97–0.98)
+  and rarely on CVQA (0.18–0.23); a loss exactly at the margin is
+  inconclusive everywhere, as it should be. **G3 attainable power**, seven
+  donors, α_conf = −1.0 × rank(damage) + N(0, σ) points, exact one-sided
+  permutation test at 0.10: P(p < 0.10) = 1.00 at σ = 0.5 and 1.0, 0.75 at
+  σ = 2.0, 0.54 at σ = 3.0. For the paper's appendix rerun with
+  `--boot 2000 --sims 400`.
 - **Seeds, inferential rule.** Replicated arms use the same paired seed
   list. Each contrast is computed per seed on identical items; the primary
   statistic is the mean over seeds, and its CI comes from the cluster
@@ -1558,14 +1583,14 @@ outcome is gate condition G1. Flags: `--prompt-mode
 | A1 | X_f + V_f + T(question) | current system |
 | A2 | V_f + T(question) | is the NLLB bridge used at inference? |
 | A3 | X_f + V_f + T(instruction only) | does the bridge carry the question? |
-| A4 | V_f + T(original English GQA question) | **original-English direct-prompt reference**, not a translate-test: `build_xgqa_english.py` recovers GQA's original English question, which bn/de/ko share, so A4 runs **once**. A real translate-test (NLLB target→English per language) is optional and outside S1. CVQA rows keep only the translated question (`Stage3/load_vqa_eval_data.py:259`), so A4 is xGQA-only |
+| A4 | V_f + T(English question) | **original-English direct-prompt reference**, not a translate-test. xGQA: `build_xgqa_english.py` recovers GQA's original English question, shared by bn/de/ko, so A4 runs **once** there. CVQA: the dataset's `Translated Question` field is the English question (verified on the datasets-server rows API, 2026-09-07; `Question` is the native one), so A4 runs per target on CVQA jv/mn/ga/si. The active loader must keep both fields (see Data construction below) |
 
 Panels: xGQA bn, de, ko (source, best, worst); CVQA jv, mn, ga, si.
 Conditions, every panel: correct, shuffled 0/1/2, gray, no-image (6).
 
 Count: xGQA 3 arms × 3 languages × 6 + A4 × 6 = **60 evals** at ~40 min
-≈ 40 h; CVQA 3 arms × 4 languages × 6 = **72 evals** at ~5 min ≈ 6 h.
-**≈ 46 h → four chained 12 h jobs.**
+≈ 40 h; CVQA 4 arms × 4 languages × 6 = **96 evals** at ~5 min ≈ 8 h.
+**≈ 48 h → four chained 12 h jobs.**
 
 A2 and A3 are **inference ablations of a checkpoint trained with X_f**.
 They measure that checkpoint's dependence on its inputs, not whether the
@@ -1804,23 +1829,44 @@ saturation for id).
   have no fixed points and a distinct hash within every subset. **The
   freeze commit must contain the verified list.** `Stage3/load_vqa_eval_data.py`
   cannot produce it (it only configures the project's own codes and rejects
-  others, `:219`); a new `inventory_cvqa.py`, run on a login node, **must**
-  emit `Subset → language → NLLB tag → valid items / images → target unit`.
-  Target unit = one per language; country subsets of one language (the six
-  Spanish ones) form **one** unit with subset as a bootstrap stratum.
-  Any ineligible subset is removed before aggregation and ranking. **Cap,
-  deterministic**: the **12 languages with the most valid items**,
-  ties broken by NLLB code in alphabetical order; the candidate list has 18
-  languages, so the cap binds. *Budget*: donor confirmation 12 units × 7
-  donors × 5 conditions = **420 CVQA evaluation invocations**; intervention
-  confirmation in the complete matched design (C1, C2, R0 and R1 × 3 seeds
-  × 12 units × 5 conditions) = **720 evals**. Thus the full path is 1,140
-  evaluation invocations. The old five-minutes-per-unit extrapolation would
-  be ≈ 95 h (35 h donor + 60 h intervention), but this is **not a budget
-  commitment**: selected units are larger than the current panels.
-  `inventory_cvqa.py` must compute item totals and a timed pilot on the
-  largest selected unit must replace the hour estimate before approval;
-  training runs are additional. The confirmatory panel is the **only**
+  others, `:219`); `Approach2/inventory_cvqa.py` (exists as of 2026-09-07;
+  runs from any machine with network through the datasets-server rows API,
+  validating every tag against the NLLB tokenizer's own token list) emits `Subset → language → NLLB tag → valid items / images → target unit`.
+  Target unit = one per language; country subsets of one language form
+  **one** unit with subset as a bootstrap stratum. **Cap, deterministic**:
+  the 12 languages with the most valid items, ties broken by NLLB code.
+  **Inventory run 2026-09-07** (`Approach2/inventory_cvqa.py` through the
+  datasets-server rows API, tags validated against the NLLB tokenizer;
+  `audits/cvqa_inventory.json`, sha256 `599afbf39481bae4…`): 10,374 rows, 39
+  subsets, 31 languages, 20 eligible (Breton has no NLLB-200 tag; the
+  eleven are excluded), panel of 12 with **5,202 items**:
+
+  | unit | NLLB | items | subsets |
+  |---|---|---|---|
+| Spanish | `spa_Latn` | 2058 | 7 |
+| Urdu | `urd_Arab` | 436 | 2 |
+| Bulgarian | `bul_Cyrl` | 371 | 1 |
+| Malay | `zsm_Latn` | 315 | 1 |
+| Romanian | `ron_Latn` | 302 | 1 |
+| Norwegian | `nob_Latn` | 299 | 1 |
+| Swahili | `swh_Latn` | 273 | 1 |
+| Minangkabau | `min_Latn` | 251 | 1 |
+| Kinyarwanda | `kin_Latn` | 235 | 1 |
+| Amharic | `amh_Ethi` | 234 | 1 |
+| Oromo | `gaz_Latn` | 214 | 1 |
+| Tamil | `tam_Taml` | 214 | 1 |
+
+  Over the cap, eligible: Filipino, Japanese, Marathi, Hindi, Sundanese,
+  Telugu, Igbo, Egyptian Arabic (200–203 items each). Every subset has ≥ 87
+  images. **Images**: only 20–85% of rows per subset carry an `Image Source`
+  URL; the rest are embedded in the 4.9 GB parquet and must be extracted on a
+  login node, which the timed pilot has to include. *Budget, recomputed from
+  the item count*: one pass over the panel at the ~5 min per 300 items of the
+  existing CVQA evals costs ≈ 1.4 h per (donor, condition), so donor
+  confirmation is 7 donors × 5 conditions ≈ **51 h**, not the 35 h of the
+  ledger; Spanish alone is 40% of the panel. Under Option 1 this runs only if
+  Block D's exploratory test is promising and budget remains at A+12; the
+  timed pilot replaces this estimate. The confirmatory panel is the **only**
   prospective test of the donor predictor (see G3): the seven-donor Spearman
   on the current targets is exploratory because four donors' outcomes shaped
   the hypothesis, and a three-donor ranking has chance 1/6. Candidate subsets
@@ -1928,8 +1974,21 @@ gate becomes A+12, roughly 09-27 at the earliest, and the R0/R1 seeds plus the c
 intervention evals (≈ 200 h) would have to run between 09-28 and 10-06.
 
 **Consequence, stated before any result exists**: the full path does not fit
-before 2026-10-12 under these constraints. **Decision required from Santiago
-and Maryam before the freeze commit**, recorded here when taken:
+before 2026-10-12 under these constraints.
+
+**Decision, 2026-09-07: Option 1.** Taken by Santiago after the reviewing
+agents independently recommended it. What runs before the deadline: Blocks
+A, B and D (D's 84 shuffled donor evals included, its seven-donor analysis
+exploratory), the Block C single-seed pilot, and the extra seeds of `bn_v4`
+and `id_v4`. What is declared **future work** now, not after a result:
+R0/R1, the preservation loss and its confirmatory intervention evals, the
+three-seed replication of C1/C2/C5. The confirmatory **donor** panel runs
+only if Block D's exploratory test is promising and budget remains at A+12.
+The paper's method section is therefore the functional decomposition (Block
+B) with the freeze-text pilot reported as exploratory; C2 is discussed as the
+candidate method, never claimed. Every criterion in this entry stays as
+written; what is not run is reported as not run. Recorded before the freeze
+commit, as required:
 
 - *Option 1, pre-declared scope*: the paper is the minimum scientific path.
   The 52 h of checkpoint-stability seeds run only if capacity remains. Block C is a
@@ -1949,11 +2008,12 @@ changes, and what is not run is reported as not run.
 
 #### Roadmap
 
-- Week of 09-08, before freeze: audit job 20398782 and version the evidence;
-  write/run/version `inventory_cvqa.py` and its machine-readable inventory;
-  write `analysis/power_sim.py` and version its assumptions/output; write
-  and synthetically test `analysis/block_d.py`; insert the verified target
-  list and cost pilot. **Then commit "docs: freeze S1 v2.1.3 experimental
+- Week of 09-08, before freeze: **done on 09-07**: the 20398782 audit
+  record (laptop evidence), `inventory_cvqa.py` and its inventory,
+  `power_sim.py` and its output, `block_d.py` with synthetic tests, the
+  Option 1 decision. **Still open**: the cluster-side appendix of the audit
+  (`sacct`, log, reflog), the timed pilot of the largest confirmatory unit,
+  the query-hash check of one rebuilt panel against the cluster file. **Then commit "docs: freeze S1 v2.1.3 experimental
   specification" before any new S1 `sbatch`.**
 - After that freeze: implement evaluator flags, shuffle-map generator,
   `eval_matrix.py`, its tests, manifests and launcher submit guard; generate
@@ -1983,6 +2043,28 @@ changes, and what is not run is reported as not run.
 
 #### Post-freeze implementation prerequisites (none exist yet)
 
+- **Data construction, fail-closed.** The active `Stage3/load_vqa_eval_data.py`
+  cannot build S1's panels: it configures only bn for xGQA and id/jv for CVQA
+  (`:62–73`), it prefers CVQA's `Translated Question`, which is the **English**
+  question, over the native `Question` (`:259`), and it drops `Subset` and the
+  image id (`:265`). The existing CVQA result files carry native queries, so
+  they came from Maryam's loader, not from this one. The S1 builder must emit
+  `id`, `image_id` (the `<image>` prefix of `ID`), `subset`, `language`,
+  `nllb_lang_tag`, `query` = native `Question`, `english_query` =
+  `Translated Question`, `choices` = `Translated Options`, `answer_index`, and
+  abort on any row whose image cannot be obtained (`Image Source` is a URL for
+  external images and the literal `Self-open` for embedded ones, which need
+  the parquet). Before the freeze, rebuild one existing panel and hash its
+  `query` column against the file on the cluster; a mismatch blocks the freeze.
+- **Evaluators abort on a missing image** instead of skipping it
+  (`evaluate_vqa.py:174`, `evaluate_cvqa.py:140` skip today); incompatible flag
+  combinations are rejected; NLLB and SigLIP2 are loaded only when their branch
+  is used.
+- **Block C launcher**: a dedicated script, not `train_stage3.sh` (one epoch,
+  seed 42, no `--vis-layers` today); S1 needs two epochs, seed 13,
+  `"9,18,-1"`, a dedicated deterministic sampler whose order hash goes into
+  the manifest and survives a resumed job.
+
 - Evaluators: `--prompt-mode {question,instruction}`, `--no-text-branch`,
   `--shuffle-map`, `--no-image`. **`--no-image` with `--no-text-branch` (A2/A4
   no-image cells) needs a prompt-only path**: `_build_prefix_raw` raises when
@@ -1996,8 +2078,16 @@ changes, and what is not run is reported as not run.
 - Block C: frozen towers to `eval()` after `model.train()`; validation split
   by `vg_image_id`; matched R0/R1 replay arms with a frozen loss recipe.
 - The shuffle-map generator under `Approach2/shuffle/`, launcher submit
-  guard and manifests. The inventory, power and Block-D analysis scripts are
-  **pre-freeze analysis artifacts**, not items to defer to this section.
+  guard and manifests.
+- `analysis/block_a.py`: P1/P2, G0/G1-I, U and Δ_ground from correct + three
+  shuffles, validation of ids, manifests and map hashes across conditions,
+  shuffles averaged within item, paired image-cluster bootstrap stratified by
+  target, three regions, with invariance and fail-closed tests. **Must exist
+  before Block A is submitted**; without it Block A yields predictions but
+  no reproducible decision.
+- Pre-freeze analysis artifacts that now exist: `Approach2/inventory_cvqa.py`
+  (+ `audits/cvqa_inventory.json` and its sha256), `analysis/power_sim.py`
+  (+ `audits/power_sim.json`), `analysis/block_d.py` (+ `test_block_d.py`).
 
 #### Shuffle maps and git
 
