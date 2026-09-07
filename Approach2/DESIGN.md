@@ -6,10 +6,16 @@ summary JSONs in `Approach2/results/`; "ΔV" = full-image accuracy minus blind
 (gray-image) accuracy, i.e. how much the model actually extracts from pixels.
 
 **Architecture in one line**: frozen NLLB-200-600M (text) + frozen
-SigLIP2-so400m-384 (vision) → two trainable MLP mappings (~40M params) →
+SigLIP2-so400m-384 (vision) → two trainable MLP mappings →
 frozen Gemma-2-9b-it. Prefix: `[BOS] + X_f + b_txt + V_f + b_vis + T`.
 Curriculum: stage 1 text-only, stage 2 vision-only, stage 3 joint VQA
 warm-started from both.
+
+Trainable parameter count depends on `--vis-layers`: `mapping_txt` is 9.4M
+throughout, `mapping_vis` is 10.9M last-layer-only and **48.7M** under the
+DenseConnector DCI setting `"9,18,-1"` (input 1152x3 = 3456). So **58.1M
+total for v3/v4**, 20.4M before D9. The header previously said "~40M", which
+matched neither configuration.
 
 ---
 
