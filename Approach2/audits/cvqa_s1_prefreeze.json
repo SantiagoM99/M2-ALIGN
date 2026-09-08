@@ -1,0 +1,199 @@
+{
+  "comparisons": [
+    {
+      "examples": {
+        "extra": [],
+        "mismatched": [],
+        "missing": []
+      },
+      "existing_canonical_query_sha256": "e7342734ed6ad5f4e464d6645dabac0bc047e8c64d316652649b1580963a086c",
+      "existing_file_sha256": "69eba4e98fe251bc2c932d4b9a4cc8de0c02e3f2791cff333156149c9b70bd9e",
+      "existing_id_query_sha256": "17516551a7fe234e17d94797ecc17d72aaec980fa18143852f216136c8f1cf0d",
+      "existing_id_universe_sha256": "e1610af1f1ba3a5814c214344661b1cfe27381544aff41d40f9a5bb0c1de2d53",
+      "existing_items": 286,
+      "existing_path": "/scratch/santimn/datatransfer/Stage3/data/cvqa/bn.jsonl",
+      "extra_ids": 0,
+      "mismatched_queries": 0,
+      "missing_ids": 0,
+      "passed": true,
+      "rebuilt_canonical_query_sha256": "e7342734ed6ad5f4e464d6645dabac0bc047e8c64d316652649b1580963a086c",
+      "rebuilt_id_query_sha256": "17516551a7fe234e17d94797ecc17d72aaec980fa18143852f216136c8f1cf0d",
+      "rebuilt_id_universe_sha256": "e1610af1f1ba3a5814c214344661b1cfe27381544aff41d40f9a5bb0c1de2d53",
+      "rebuilt_items": 286,
+      "unit": "Bengali"
+    }
+  ],
+  "completed_at_utc": "2026-09-08T14:38:05.477460+00:00",
+  "generated_at_utc": "2026-09-08T14:25:35.851606+00:00",
+  "git": {
+    "dirty": false,
+    "head": "4049c83e6cd2579c85cb10f430aa95b327e3d9b6"
+  },
+  "images": {
+    "canonical_files_reused": 1012,
+    "canonical_files_written": 1249,
+    "image_manifest_sha256": "eddf477503b86695fc998f128b503c13b6a0923ecff3d682445ca3aeaf8360cd",
+    "question_links_written": 2261,
+    "root": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1_prefreeze_4049c83e6cd2579c85cb10f430aa95b327e3d9b6/images",
+    "unique_images": 1249
+  },
+  "inventory": {
+    "confirmatory_panel_items": 5202,
+    "confirmatory_panel_units": [
+      "Spanish",
+      "Urdu",
+      "Bulgarian",
+      "Malay",
+      "Romanian",
+      "Norwegian",
+      "Swahili",
+      "Minangkabau",
+      "Kinyarwanda",
+      "Amharic",
+      "Oromo",
+      "Tamil"
+    ],
+    "path": "/lustre09/project/6072380/santimn/M2-ALIGN/Approach2/audits/cvqa_inventory.json",
+    "sha256": "599afbf39481bae44a05267b472559e987ef443b5416ba1e38b5fb6c61df6823"
+  },
+  "kind": "cvqa_s1_prefreeze_data_audit",
+  "parquet": [
+    {
+      "bytes": 466771644,
+      "path": "/scratch/santimn/cvqa/data/test-00000-of-00010.parquet",
+      "sha256": "8f292dc7a9bda1f9295f620dfbc6d327a214ed5d8ae24efdec36f95e32f5e451"
+    },
+    {
+      "bytes": 475773237,
+      "path": "/scratch/santimn/cvqa/data/test-00001-of-00010.parquet",
+      "sha256": "df8f0b8053daf70219697e869778f837fb4f1a024d7cf27de7d8a8680fb608e2"
+    },
+    {
+      "bytes": 499061584,
+      "path": "/scratch/santimn/cvqa/data/test-00002-of-00010.parquet",
+      "sha256": "c97e2c28ab8a9d1a28ef1256251c7af28ec250a3ece492be95a16e9aa84b4e05"
+    },
+    {
+      "bytes": 541627224,
+      "path": "/scratch/santimn/cvqa/data/test-00003-of-00010.parquet",
+      "sha256": "7a2f50017a4c1a81e38662f837a5b0e6d3d3c49d0f02cfc28d6da3025dde60bd"
+    },
+    {
+      "bytes": 491891486,
+      "path": "/scratch/santimn/cvqa/data/test-00004-of-00010.parquet",
+      "sha256": "5fa596ba64ed724a4075219c284b3c9c4aaf96df3b5b0b9cec88bdd14a3a3191"
+    },
+    {
+      "bytes": 478890086,
+      "path": "/scratch/santimn/cvqa/data/test-00005-of-00010.parquet",
+      "sha256": "0bd8d3745474ea6a94ceb939c73960028ea63276c754d3709dd4259af2ba3e21"
+    },
+    {
+      "bytes": 518047749,
+      "path": "/scratch/santimn/cvqa/data/test-00006-of-00010.parquet",
+      "sha256": "1cc8458e5619415097f6d86a35b67e003bc0e133402c69cc1f1d5f61ec38d803"
+    },
+    {
+      "bytes": 468473875,
+      "path": "/scratch/santimn/cvqa/data/test-00007-of-00010.parquet",
+      "sha256": "d351635a24c827133a3e3cda1b9f4896c04fa95a249a98383d476c3a719763e3"
+    },
+    {
+      "bytes": 512182059,
+      "path": "/scratch/santimn/cvqa/data/test-00008-of-00010.parquet",
+      "sha256": "a1f6860af32ac794b274f8fda513dfc36c195d6acc64c9addf982dee13d0ffde"
+    },
+    {
+      "bytes": 499587857,
+      "path": "/scratch/santimn/cvqa/data/test-00009-of-00010.parquet",
+      "sha256": "7bb6ac6e9fda6d1699935048a11656fa7cb5688816920001e1dfc4f201699789"
+    }
+  ],
+  "pilot": {
+    "accuracy": 0.28078817733990147,
+    "checkpoint": "/lustre09/project/6072380/santimn/M2-ALIGN/Approach2/outputs/stage3_bn_dcl/mapping/pytorch_model.bin",
+    "checkpoint_sha256": "daf28ba8ab314f20bfa500b4541f50f96f6d483832da49883f5fff8c0282417f",
+    "condition": "correct",
+    "donor": "bn",
+    "elapsed_seconds": 88.0,
+    "estimate": {
+      "conditions": 5,
+      "donor_confirmation_gpu_hours": 19.341,
+      "donors": 7,
+      "invocations": 420,
+      "note": "Per-item cost from the timing unit scaled to the panel's item count, plus the measured model-load overhead once per (donor, condition, unit) invocation; without a --limit run the overhead is folded into the per-item cost.",
+      "one_time_data_build_hours": 0.054,
+      "panel_items": 5202,
+      "proportional_seconds_per_panel_pass": 1989.313,
+      "total_hours_including_one_time_build": 19.394
+    },
+    "eval_summary": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1_prefreeze_4049c83e6cd2579c85cb10f430aa95b327e3d9b6/pilot/eval_cvqa_japanese_zsbn_correct.jsonl.summary.json",
+    "eval_summary_sha256": "7cb64dba9b9bea7aaafc8d96dcca09a76fd896b0e05a84392b8d54516673ee00",
+    "evaluation_slurm_job_id": "20483784",
+    "extraction_unit": "Spanish",
+    "limited_run": {
+      "elapsed_seconds": 33.0,
+      "eval_summary": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1_prefreeze_4049c83e6cd2579c85cb10f430aa95b327e3d9b6/pilot/eval_cvqa_japanese_zsbn_correct_limit40.jsonl.summary.json",
+      "scored": 40
+    },
+    "load_seconds": 19.503,
+    "predictions": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1_prefreeze_4049c83e6cd2579c85cb10f430aa95b327e3d9b6/pilot/eval_cvqa_japanese_zsbn_correct.jsonl",
+    "predictions_sha256": "f05be37854f1e02283ca82eab43547c79596b11576e2d4ece29717c068da4a50",
+    "scored": 203,
+    "seconds_per_item": 0.337423313,
+    "skipped": 0,
+    "unit": "Japanese",
+    "unit_is_confirmatory_panel_member": false,
+    "vis_layers": "9,18,-1",
+    "warmup_run": {
+      "cold_load_seconds": 612.503,
+      "elapsed_seconds": 626.0,
+      "eval_summary": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1_prefreeze_4049c83e6cd2579c85cb10f430aa95b327e3d9b6/pilot/eval_cvqa_japanese_zsbn_correct_warmup_limit40.jsonl.summary.json",
+      "scored": 40
+    }
+  },
+  "schema_version": 1,
+  "script": "/lustre09/project/6072380/santimn/M2-ALIGN/Approach2/build_cvqa_s1.py",
+  "script_sha256": "845dee72500ecfa7e1bd3182812caed2b9f227962aaa48d3cc06c7858b1fc7a4",
+  "slurm_job_id": "20483784",
+  "timing_seconds": {
+    "build_total": 194.089868,
+    "parquet_hash": 35.149156,
+    "scan_validate_extract_write": 158.382104
+  },
+  "units": {
+    "Bengali": {
+      "canonical_query_sha256": "e7342734ed6ad5f4e464d6645dabac0bc047e8c64d316652649b1580963a086c",
+      "id_query_sha256": "17516551a7fe234e17d94797ecc17d72aaec980fa18143852f216136c8f1cf0d",
+      "id_universe_sha256": "e1610af1f1ba3a5814c214344661b1cfe27381544aff41d40f9a5bb0c1de2d53",
+      "images": 136,
+      "images_extracted": false,
+      "items": 286,
+      "output_path": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1_prefreeze_4049c83e6cd2579c85cb10f430aa95b327e3d9b6/data/bengali.jsonl",
+      "output_sha256": "d94e9533277b294129466d9067150ae9899ef1f378023f9a9afbdfcea44ad321",
+      "subsets": 1
+    },
+    "Japanese": {
+      "canonical_query_sha256": "4b39bfde0f8934456ce3507e8c49d0a84796c61a09dc519486b8f9ce71f544e6",
+      "id_query_sha256": "18adebd730c4d1600bae40d7152797e4734c9283f4a84bd63d77ec2398d97a6f",
+      "id_universe_sha256": "9467aab53ad96db594c640a93658e0827ffba16a9fea1146206c12038b2a7855",
+      "images": 94,
+      "images_extracted": true,
+      "items": 203,
+      "output_path": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1_prefreeze_4049c83e6cd2579c85cb10f430aa95b327e3d9b6/data/japanese.jsonl",
+      "output_sha256": "d5e391dd0c56bdb130228946388fb8e35bf9a46712c6a7465cef89414d321916",
+      "subsets": 1
+    },
+    "Spanish": {
+      "canonical_query_sha256": "3665652589f002c6941d99be04c2936447f7dd98515f4e7a0394f42fad51e382",
+      "id_query_sha256": "933cef2eba1473e215c0b4ef6e4a84c30f602ff2fc5952af1dabeb92b7dc7587",
+      "id_universe_sha256": "3a32dd98e8ad5eaa9abb1c4921fefb38a25eea62deb8b87a6f4d7ec974d51fa4",
+      "images": 1155,
+      "images_extracted": true,
+      "items": 2058,
+      "output_path": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1_prefreeze_4049c83e6cd2579c85cb10f430aa95b327e3d9b6/data/spanish.jsonl",
+      "output_sha256": "a2e179df482b0c0d96110a092f710cec9bf531df6fa91ceb53e7fefa426b7961",
+      "subsets": 7
+    }
+  }
+}
