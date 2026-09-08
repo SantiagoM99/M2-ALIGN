@@ -2088,6 +2088,26 @@ changes, and what is not run is reported as not run.
   94) extracted in under 4 min before the gate. The next submission runs
   from a new commit, so it starts a fresh scratch directory and the Spanish
   cold-extraction timing is unaffected.
+  **Second run, job 20443726 (2026-09-07, HEAD `ea3b4e3`): query audit
+  PASSED** (Bengali canonical query sha256 `e7342734…a086c`, identical to the
+  cluster file), Spanish and Japanese rebuilt again in under 5 min, and both
+  Japanese evaluations with `stage3_bn_dcl` completed (correct image: 57/203
+  = 0.281; `--limit 40`: 12/40 = 0.300). **The job still exited 1**, at
+  `attach-pilot`: the two-point subtraction gave 2.81 s/item and a load cost
+  of −70 s. Cause, from the evaluator's own timestamps: the full run loaded
+  the weights cold from Lustre (356 s from data load to "Loaded mapping"),
+  the `--limit` run loaded them from the page cache (12 s); inference itself
+  was 0.37 s/item in both runs (75 s/203 and 15 s/40). The two-point method
+  assumes both runs pay the same load cost, and the first run in an
+  allocation never does. Decision: the launcher now runs one untimed
+  `--limit` warm-up before the timed pair, so both timed runs load from the
+  cache; its wall time minus the per-item cost is recorded as
+  `pilot.warmup_run.cold_load_seconds`, the first-load overhead each S1
+  allocation pays once. It is recorded, not scaled into the GPU-hour
+  estimate, because the number of allocations is a scheduling choice.
+  `attach-pilot` refuses a warm-up that loaded faster than the timed runs.
+  Expected from the next run: ≈0.37 s/item, warm load ≈12 s, cold load
+  ≈350 s.
 - **Evaluators abort on a missing image** instead of skipping it
   (`evaluate_vqa.py:174`, `evaluate_cvqa.py:140` skip today); incompatible flag
   combinations are rejected; NLLB and SigLIP2 are loaded only when their branch

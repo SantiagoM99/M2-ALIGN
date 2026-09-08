@@ -18,7 +18,13 @@
 #      confirmatory unit; its cold extraction is what is timed) and time two
 #      correct-image evaluations of a NON-panel unit with stage3_bn_dcl: the
 #      full unit and a --limit run, so the per-item cost and the model-load
-#      overhead are separated. The timing unit defaults to Japanese (203 items,
+#      overhead are separated. Both timed runs are preceded by one untimed
+#      --limit warm-up run: the first load in an allocation reads ~20 GB of
+#      weights from Lustre (356 s in job 20443726) while later loads come from
+#      the page cache (12 s), and the two-point subtraction only holds when
+#      both timed runs share the same load cost. The warm-up's own wall time
+#      is recorded as the cold first-load overhead per allocation.
+#      The timing unit defaults to Japanese (203 items,
 #      eligible but over the cap) on purpose: S1 Block D forbids evaluating any
 #      donor on a confirmatory-panel unit before the damage ranking is
 #      committed, and the builder refuses a panel unit here.
@@ -182,8 +188,41 @@ if [ ! -f "$PILOT_DATA" ]; then
   exit 1
 fi
 
+WARMUP_OUTPUT="$PILOT_OUT_DIR/eval_cvqa_${PILOT_SLUG}_zsbn_correct_warmup_limit${LIMIT_N}.jsonl"
+WARMUP_TIME_FILE="$PILOT_OUT_DIR/eval_cvqa_${PILOT_SLUG}_zsbn_correct_warmup_limit${LIMIT_N}.seconds"
+
+NEED_FULL=1
+NEED_LIM=1
+if [ -f "$PILOT_OUTPUT" ] && [ -f "$PILOT_OUTPUT.summary.json" ] && [ -f "$TIME_FILE" ]; then NEED_FULL=0; fi
+if [ -f "$LIM_OUTPUT.summary.json" ] && [ -f "$LIM_TIME_FILE" ]; then NEED_LIM=0; fi
+
+# Any timed run executed in this allocation needs the weights in the page
+# cache first, otherwise the first run pays a cold Lustre read that the second
+# run does not, and the two-point subtraction returns a negative load cost.
+if [ "$NEED_FULL" = 1 ] || [ "$NEED_LIM" = 1 ]; then
+  echo "=== Untimed warm-up: --limit $LIMIT_N run to bring the weights into the page cache ==="
+  WARMUP_TMP="$WARMUP_OUTPUT.tmp.${SLURM_JOB_ID:-manual}"
+  WARMUP_START=$(date +%s)
+  cd "$A2"
+  python -u evaluate_cvqa.py \
+    --data-path "$PILOT_DATA" \
+    --images-dir "$IMAGES_OUT" \
+    --ckpt "$CKPT" \
+    --output-path "$WARMUP_TMP" \
+    --mt-path "$MT_PATH" \
+    --vis-path "$VIS_PATH" \
+    --llm-path "$LLM_PATH" \
+    --vis-layers "$VIS_LAYERS" \
+    --limit "$LIMIT_N" \
+    --local-files-only
+  WARMUP_END=$(date +%s)
+  mv "$WARMUP_TMP" "$WARMUP_OUTPUT"
+  mv "$WARMUP_TMP.summary.json" "$WARMUP_OUTPUT.summary.json"
+  printf '%s\n' "$((WARMUP_END - WARMUP_START))" > "$WARMUP_TIME_FILE"
+fi
+
 echo "=== Timed correct-image evaluations: $EVAL_UNIT from Bengali (full, then --limit $LIMIT_N) ==="
-if [ -f "$PILOT_OUTPUT" ] && [ -f "$PILOT_OUTPUT.summary.json" ] && [ -f "$TIME_FILE" ]; then
+if [ "$NEED_FULL" = 0 ]; then
   echo "Reusing completed timed evaluation: $PILOT_OUTPUT"
   EVAL_SECONDS=$(tr -d '[:space:]' < "$TIME_FILE")
 else
@@ -206,7 +245,7 @@ else
   mv "$PILOT_TMP.summary.json" "$PILOT_OUTPUT.summary.json"
   printf '%s\n' "$EVAL_SECONDS" > "$TIME_FILE"
 fi
-if [ -f "$LIM_OUTPUT.summary.json" ] && [ -f "$LIM_TIME_FILE" ]; then
+if [ "$NEED_LIM" = 0 ]; then
   echo "Reusing completed limited evaluation: $LIM_OUTPUT"
   LIM_SECONDS=$(tr -d '[:space:]' < "$LIM_TIME_FILE")
 else
@@ -232,6 +271,11 @@ else
 fi
 
 cd "$PROJECT_ROOT"
+WARMUP_ARGS=()
+if [ -f "$WARMUP_OUTPUT.summary.json" ] && [ -f "$WARMUP_TIME_FILE" ]; then
+  WARMUP_ARGS=(--warmup-eval-summary "$WARMUP_OUTPUT.summary.json"
+               --warmup-elapsed-seconds "$(tr -d '[:space:]' < "$WARMUP_TIME_FILE")")
+fi
 python -u Approach2/build_cvqa_s1.py attach-pilot \
   --report "$WORK_REPORT" \
   --repo-root "$PROJECT_ROOT" \
@@ -239,6 +283,7 @@ python -u Approach2/build_cvqa_s1.py attach-pilot \
   --elapsed-seconds "$EVAL_SECONDS" \
   --limited-eval-summary "$LIM_OUTPUT.summary.json" \
   --limited-elapsed-seconds "$LIM_SECONDS" \
+  ${WARMUP_ARGS[@]+"${WARMUP_ARGS[@]}"} \
   --unit "$EVAL_UNIT" \
   --extraction-unit "$EXTRACT_UNIT" \
   --donor bn \
@@ -263,7 +308,9 @@ pilot = report["pilot"]
 print("query audit:", "PASS" if comparison["passed"] else "FAIL")
 print("query sha256:", comparison["rebuilt_canonical_query_sha256"])
 print("timing unit:", pilot["unit"], "| extraction unit:", pilot["extraction_unit"])
-print("full-run seconds:", pilot["elapsed_seconds"], "| per item:", pilot["seconds_per_item"], "| model load:", pilot["load_seconds"])
+print("full-run seconds:", pilot["elapsed_seconds"], "| per item:", pilot["seconds_per_item"], "| model load (warm):", pilot["load_seconds"])
+warmup = pilot.get("warmup_run")
+print("cold first load per allocation:", warmup["cold_load_seconds"] if warmup else "not measured")
 print("estimated donor confirmation GPU-h:", pilot["estimate"]["donor_confirmation_gpu_hours"])
 print("report:", sys.argv[1])
 PY

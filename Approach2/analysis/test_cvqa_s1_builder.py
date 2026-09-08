@@ -152,6 +152,16 @@ def main() -> None:
             "ckpt": str(checkpoint),
             "blind": False,
         }), encoding="utf-8")
+        warmup_summary = root / "predictions_warmup_limit1.jsonl.summary.json"
+        warmup_summary.write_text(json.dumps({
+            "benchmark": "cvqa",
+            "scored": 1,
+            "skipped": 0,
+            "accuracy": 1.0,
+            "data_path": str(built_jp),
+            "ckpt": str(checkpoint),
+            "blind": False,
+        }), encoding="utf-8")
         base_report = {
             "kind": "cvqa_s1_prefreeze_data_audit",
             "git": {"head": "a" * 40, "dirty": False},
@@ -199,6 +209,8 @@ def main() -> None:
             extraction_unit="Spanish",
             limited_eval_summary=str(limited_summary),
             limited_elapsed_seconds="3.0",
+            warmup_eval_summary=str(warmup_summary),
+            warmup_elapsed_seconds="9.0",
             donor="bn",
             condition="correct",
             repo_root=None,
@@ -212,8 +224,20 @@ def main() -> None:
         assert attached["pilot"]["seconds_per_item"] == 1.0, attached["pilot"]["seconds_per_item"]
         assert attached["pilot"]["load_seconds"] == 2.0, attached["pilot"]["load_seconds"]
         assert attached["pilot"]["extraction_unit"] == "Spanish"
+        # warm-up 9.0 s for 1 item at 1.0 s/item = 8.0 s cold first load; it is recorded, not scaled
+        assert attached["pilot"]["warmup_run"]["cold_load_seconds"] == 8.0, attached["pilot"]["warmup_run"]
         # per-item 1.0 s x 10 panel items x 35 + load 2.0 s x 35 invocations (one panel unit) = 420 s
         assert abs(attached["pilot"]["estimate"]["donor_confirmation_gpu_hours"] - 420 / 3600) < 1e-3  # stored rounded to 3 decimals
+
+        # a warm-up that loaded faster than the timed runs was not cold: the cache state differed
+        report_path.write_text(json.dumps(base_report), encoding="utf-8")
+        hot_args = SimpleNamespace(**{**vars(attach_args), "warmup_elapsed_seconds": "2.5"})
+        expect_exit("warm-up run was not cold", lambda: command_attach_pilot(hot_args))
+
+        # the failure mode of job 20443726: the full run paid a cold load the --limit run did not
+        report_path.write_text(json.dumps(base_report), encoding="utf-8")
+        cold_full_args = SimpleNamespace(**{**vars(attach_args), "elapsed_seconds": "500.0", "limited_elapsed_seconds": "42.0"})
+        expect_exit("two-point timing is inconsistent", lambda: command_attach_pilot(cold_full_args))
         assert attached["pilot"]["checkpoint_sha256"]
         assert attached["pilot"]["predictions_sha256"]
 
@@ -224,7 +248,8 @@ def main() -> None:
 
         # without a limited run the overhead folds into the per-item cost
         report_path.write_text(json.dumps(base_report), encoding="utf-8")
-        single_args = SimpleNamespace(**{**vars(attach_args), "limited_eval_summary": None, "limited_elapsed_seconds": None})
+        single_args = SimpleNamespace(**{**vars(attach_args), "limited_eval_summary": None, "limited_elapsed_seconds": None,
+                                         "warmup_eval_summary": None, "warmup_elapsed_seconds": None})
         command_attach_pilot(single_args)
         single = json.loads(report_path.read_text(encoding="utf-8"))
         assert single["pilot"]["seconds_per_item"] == 2.0 and single["pilot"]["load_seconds"] == 0.0

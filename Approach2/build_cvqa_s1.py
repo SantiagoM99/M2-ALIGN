@@ -800,12 +800,46 @@ def command_attach_pilot(args) -> None:
         seconds_per_item = (elapsed - lim_elapsed) / (scored - lim_scored)
         load_seconds = elapsed - seconds_per_item * scored
         if seconds_per_item <= 0 or load_seconds < 0:
-            fail(f"two-point timing is inconsistent: per-item {seconds_per_item:.3f}s, load {load_seconds:.1f}s")
+            fail(
+                f"two-point timing is inconsistent: per-item {seconds_per_item:.3f}s, load {load_seconds:.1f}s "
+                "(both timed runs must load weights from the same cache state; run an untimed warm-up first)"
+            )
         limited = {"eval_summary": str(Path(args.limited_eval_summary).resolve()), "scored": lim_scored,
                    "elapsed_seconds": round(lim_elapsed, 6)}
     else:
         seconds_per_item = elapsed / scored
         load_seconds = 0.0
+    # The untimed warm-up run is the only run in the allocation that reads the
+    # weights cold; its wall time minus the per-item cost is the first-load
+    # overhead every S1 allocation pays once. Recorded, not scaled: the number
+    # of allocations is a scheduling choice, not a property of the panel.
+    warmup = None
+    if getattr(args, "warmup_eval_summary", None):
+        wu_summary = read_json(Path(args.warmup_eval_summary))
+        try:
+            wu_elapsed = float(args.warmup_elapsed_seconds)
+        except (TypeError, ValueError):
+            fail("--warmup-elapsed-seconds is required with --warmup-eval-summary")
+        wu_scored = int(wu_summary.get("scored", 0))
+        if wu_summary.get("benchmark") != "cvqa" or int(wu_summary.get("skipped", 0)):
+            fail("warm-up run must be a cvqa run with no skipped items")
+        if Path(str(wu_summary.get("data_path", ""))).resolve() != built_data:
+            fail("warm-up run evaluated a different data file than the full pilot")
+        if Path(str(wu_summary.get("ckpt", ""))).resolve() != checkpoint or bool(wu_summary.get("blind")):
+            fail("warm-up run must use the same checkpoint and the correct-image condition")
+        if wu_scored <= 0 or wu_elapsed <= 0:
+            fail(f"warm-up run must score items in positive time: {wu_scored}, {wu_elapsed}")
+        cold_load_seconds = wu_elapsed - seconds_per_item * wu_scored
+        if cold_load_seconds < load_seconds:
+            fail(
+                f"warm-up run was not cold: first load {cold_load_seconds:.1f}s < warm load {load_seconds:.1f}s"
+            )
+        warmup = {
+            "eval_summary": str(Path(args.warmup_eval_summary).resolve()),
+            "scored": wu_scored,
+            "elapsed_seconds": round(wu_elapsed, 6),
+            "cold_load_seconds": round(cold_load_seconds, 3),
+        }
     donor_conditions = int(args.donors) * int(args.conditions)
     invocations = donor_conditions * n_panel_units
     evaluation_seconds = seconds_per_item * panel_items * donor_conditions + load_seconds * invocations
@@ -816,6 +850,7 @@ def command_attach_pilot(args) -> None:
         "extraction_unit": args.extraction_unit,
         "unit_is_confirmatory_panel_member": False,
         "limited_run": limited,
+        "warmup_run": warmup,
         "load_seconds": round(load_seconds, 3),
         "donor": args.donor,
         "condition": args.condition,
@@ -888,6 +923,9 @@ def parser() -> argparse.ArgumentParser:
     attach.add_argument("--extraction-unit", default="Spanish", help="unit whose cold extraction was timed")
     attach.add_argument("--limited-eval-summary", default=None, help="summary of the --limit run for two-point timing")
     attach.add_argument("--limited-elapsed-seconds", default=None)
+    attach.add_argument("--warmup-eval-summary", default=None,
+                        help="summary of the untimed cache warm-up run; records the cold first-load overhead")
+    attach.add_argument("--warmup-elapsed-seconds", default=None)
     attach.add_argument("--donor", default="bn")
     attach.add_argument("--condition", default="correct")
     attach.add_argument("--checkpoint", required=True)
