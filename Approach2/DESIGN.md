@@ -1946,7 +1946,11 @@ explanation. No correlation is added to rescue the mechanism.
 All figures use S1's own unit costs on one H100: xGQA eval ≈ 40 min, CVQA
 eval ≈ 5 min, one stage-3 training run ≈ 10 h, one pair-alignment job ≈ 3 h.
 They are to be replaced by the timed pilot the roadmap requires; the ranking
-of the rows will not change.
+of the rows will not change. **Measured 2026-09-08 (job 20483784, see the
+pre-freeze note under Data construction):** a CVQA invocation costs 0.337
+s/item + 19.5 s load, i.e. 2.8 min for an average panel unit of 433 items,
+plus ≈10 min cold load once per allocation. The confirmatory-panel row and
+the totals below use that measurement; the other rows keep their placeholders.
 
 | stage | content | GPU-h |
 |---|---|---|
@@ -1958,9 +1962,9 @@ of the rows will not change.
 | `bn_v4` / `id_v4` extra seeds | 4 × (10 + 3) | 52 |
 | C1/C2 three-seed replication | 4 × (10 + 6) | 64 |
 | R0/R1 × 3 seeds | 6 × (10 + 8) | 108 |
-| confirmatory panel | 1,140 invocations (v2.1.3 estimate) | 95 |
-| **full method path**, without optional checkpoint-stability seeds | | **≈ 414–462** |
-| full path plus `bn_v4` / `id_v4` stability seeds | | **≈ 466–514** |
+| confirmatory panel | 1,140 invocations (measured 09-08; was 95 at 5 min/eval); Option 1's 420 donor-confirmation calls alone = 19 | 52 |
+| **full method path**, without optional checkpoint-stability seeds | | **≈ 371–419** |
+| full path plus `bn_v4` / `id_v4` stability seeds | | **≈ 423–471** |
 | **minimum scientific path**: A, B, D, C pilot | | **≈ 147** |
 | minimum plus optional checkpoint-stability seeds | | **≈ 199** |
 
@@ -2024,9 +2028,11 @@ changes, and what is not run is reported as not run.
   unit**: evaluating a donor on Spanish before the damage ranking is committed
   would burn the bn × Spanish cell of the prospective G3 test, and the
   builder's `attach-pilot` refuses any panel unit. Synthetic builder tests are in
-  `analysis/test_cvqa_s1_builder.py`. **Still open**: run that job and commit
-  its completed `audits/cvqa_s1_prefreeze.json`. **Then commit "docs: freeze S1 v2.1.3 experimental
-  specification" before any new S1 `sbatch`.**
+  `analysis/test_cvqa_s1_builder.py`. **Done on 09-08**: job 20483784
+  completed both checks (third attempt; see the data-construction note below
+  for the two earlier failures) and its `audits/cvqa_s1_prefreeze.json` is
+  committed as `d3bfc4a`. **Still open: commit "docs: freeze S1 v2.1.3
+  experimental specification" before any new S1 `sbatch`.**
 - After that freeze: implement evaluator flags, shuffle-map generator,
   `eval_matrix.py`, its tests, manifests and launcher submit guard; generate
   and verify map hashes; submit Block A. If G0 passes, submit Blocks B and D
@@ -2108,6 +2114,21 @@ changes, and what is not run is reported as not run.
   `attach-pilot` refuses a warm-up that loaded faster than the timed runs.
   Expected from the next run: ≈0.37 s/item, warm load ≈12 s, cold load
   ≈350 s.
+  **Third run, job 20483784 (2026-09-08, HEAD `4049c83`): COMPLETED, both
+  checks pass; report committed as `d3bfc4a`.** Query audit PASS (0 missing,
+  0 extra, 0 mismatched of 286). Cold Spanish build 194 s (35 s parquet
+  hashing, 158 s scan/extract/write; 1,249 canonical images, 2,261 question
+  links). Japanese, `stage3_bn_dcl`, correct image: 57/203 = 0.281 (full) and
+  12/40 = 0.300 (`--limit`), same predictions as job 20443726. Measured
+  costs, page cache warm: **0.337 s/item, 19.5 s model load per
+  invocation**; cold first load 612 s (626 s warm-up minus 40 items), larger
+  than the 356 s seen on 20443726, so the cold load is Lustre-bound and
+  varies by node; budget ≈10 min per allocation. Scaled to the 12-unit,
+  5,202-item panel: 1,989 s ≈ 0.55 GPU-h per (donor, condition) panel pass;
+  **420 donor-confirmation invocations (Option 1) = 19.3 GPU-h**; the full
+  1,140-call panel (Option 2) = 1,140 × 165.6 s ≈ 52 GPU-h. Both are about
+  55% of the ledger's 5-min-per-eval placeholders (35 h and 95 h); the ledger
+  row is updated below. Pre-freeze evidence is complete.
 - **Evaluators abort on a missing image** instead of skipping it
   (`evaluate_vqa.py:174`, `evaluate_cvqa.py:140` skip today); incompatible flag
   combinations are rejected; NLLB and SigLIP2 are loaded only when their branch
