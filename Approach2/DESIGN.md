@@ -1436,7 +1436,7 @@ low-resource language and a second backbone.
 
 ---
 
-### S1 — Specification v2.1.3: input-necessity audit, branch factorial, freeze factorial (2026-09-07) — PLAN, NOT RUN
+### S1 — Specification v2.1.3: input-necessity audit, branch factorial, freeze factorial (2026-09-07) — FROZEN 2026-09-08, NOT RUN
 
 **Revision history.** v1 → v2.1.3 in four review rounds on 2026-09-07
 (Santiago, Claude, a second reviewing agent); the intermediate texts are in
@@ -1458,6 +1458,25 @@ submit time; none of this exists yet. "Before harvest" is not enough:
 `source_ablation.sh:159` commits harvested results on the cluster by itself.
 Job 20398782 predates the freeze and is **legacy / discovery** unless the
 audit in Block D shows otherwise.
+
+**Freeze record, 2026-09-08.** This entry is frozen by the commit titled
+"docs: freeze S1 v2.1.3 experimental specification"; its hash is the **spec
+SHA** every S1 manifest must carry. Verified in the tree at that commit:
+the four documents (`SCIENCE.md`, `DESIGN.md`, `README.md`, `CLAUDE.md`),
+`analysis/_boot.py`, `e3_noninferiority.py`, `x1_did.py`,
+`test_invariance.py`, `test_fail_closed.py`, `power_sim.py` +
+`audits/power_sim.json` (shared-image xGQA clusters), `block_d.py` +
+`test_block_d.py` (paired bootstrap, four G3 conditions),
+`inventory_cvqa.py` + `audits/cvqa_inventory.json` (sha256 `599afbf9…`
+matches its `.sha256`), `audits/20398782.md`, `audits/cvqa_s1_prefreeze.json`
+(job 20483784) and `audits/review_2026-09-08.md`; all four test suites pass.
+The pre-declared "promising" rule for the optional confirmatory donor launch
+was accepted by Santiago on 2026-09-08 as written under the Option 1
+decision. After this commit nothing in S1 is edited in place: a change is a
+new dated amendment below this entry that leaves the frozen text visible,
+and any run submitted before the amendment is analysed under the text that
+was frozen when it was submitted. No S1 job has been submitted yet; the
+implementation prerequisites listed at the end of this entry come first.
 
 #### Endpoints and statistics
 

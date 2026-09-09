@@ -57,7 +57,9 @@ predictable "before building anything".
 ## 3. How we work
 
 The method and statistics rules live in `CLAUDE.md`; the experimental
-contract, endpoints, gates and roadmap live in `DESIGN.md` → S1. This file
+contract, endpoints, gates and roadmap live in `DESIGN.md` → S1, **frozen on
+2026-09-08** by the commit "docs: freeze S1 v2.1.3 experimental
+specification" (its hash is the spec SHA of every S1 manifest). This file
 does not duplicate them. One rule is restated because it produced most of
 §5: **record a refutation as a refutation**; never soften a failed
 prediction of ours into a partial success.
