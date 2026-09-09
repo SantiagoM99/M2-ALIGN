@@ -1,0 +1,10 @@
+{
+  "benchmark": "xgqa",
+  "id_universe_sha256": "9e72297783124e1cad5669d98c0ca32666f6fc2a83215aae68e72f321c27fff7",
+  "maps": {
+    "0": "6d5e8078139f1f29ee50946a73b317b590dcca4347d8824201e226834cd877e8",
+    "1": "9a011a9a400227d14e29592f4118166ef23ea2a1b7b6a9bc8412866b6831aa6e",
+    "2": "216dbab7d1bd1ae6fffe6a296ded57388d48a4a0873707f2bd8e1b3aa1aa9f0a"
+  },
+  "panel": "xgqa_ko"
+}

@@ -1,0 +1,10 @@
+{
+  "benchmark": "cvqa",
+  "id_universe_sha256": "5134d7152ae5938f1dadc981565cd0d320ed2e9c6a9ae8bf606b0ee90f89f97f",
+  "maps": {
+    "0": "71751af5eb10a72cf76aa731d90b9a7c06de27979630ee17f356e023f6f226aa",
+    "1": "5e08be912127f82b36a630f9536b035887525f34147b5a7daac6d5bfa9f33c4b",
+    "2": "bb88549a29dcc4a9e410fc60116931a90b68ed289776fdbe89ab0955084793fd"
+  },
+  "panel": "cvqa_ga"
+}
