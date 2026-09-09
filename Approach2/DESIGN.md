@@ -2291,3 +2291,22 @@ specification"; (2) implementation, tests and launchers. The freeze commit
 does not exist until every item in (1) exists and agrees with this entry.
 
 ---
+
+### Implementation record — 2026-09-09 (after S1 freeze; no protocol amendment)
+
+Spec SHA remains `3b4faff4d673fad94cd3115b3f14212eeca9c12e`. The frozen S1
+entry above is unchanged. The post-freeze evaluator controls, strict branch
+loader, deterministic shuffle generator/registries, shared matrix runner,
+submission/runtime provenance guards, and `analysis/block_a.py` now exist.
+Stage 3 has optimizer-boundary snapshots, deterministic schedules, a distinct
+completion marker and the corrected S1 tower/split/C5 paths. Operational
+commands and the scope of verification are in `S1_IMPLEMENTATION.md`.
+
+**Measured effect:** software verification only. The synthetic A plan has
+156 cells and B has 376; per-item hash/condition failures abort. Tiny CPU
+models reproduce the frozen full-prefix forward/generation path and the
+production stage-3 loop produces identical mapping weights after interrupted
+and uninterrupted training. These tests do not establish parity for the
+real 9B checkpoints, GPU determinism or task accuracy. No S1 GPU job was
+submitted and no hypothesis verdict changes. Santiago will capture the
+Rorqual environment from his authenticated cluster session.

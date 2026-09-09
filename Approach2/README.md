@@ -75,13 +75,13 @@ nodes are offline):
 
 ## Status and scope (2026-09-08)
 
-The active experimental contract is **S1 in `DESIGN.md`** (v2.1.3, Option 1:
-Blocks A, B, D and a single-seed Block C pilot; R0/R1 and any preservation
-loss are future work). Read `DESIGN.md` S1 before touching the launchers:
-several scripts here (`job-scripts/train_stage3_all.sh`, `source_ablation.sh`,
-`donor_matrix.py`) predate S1 and are legacy; the S1 evaluator flags,
-`eval_matrix.py`, shuffle maps, manifests and the submit guard are listed
-there as post-freeze prerequisites and do not exist yet.
+The active experimental contract is **S1 in `DESIGN.md`**, frozen at
+`3b4faff4d673fad94cd3115b3f14212eeca9c12e` (Option 1). The evaluation,
+manifest, shuffle, Block A analysis and exact stage-3 continuation code is
+implemented and covered by local CPU tests. **No S1 GPU run has been made.**
+See [S1_IMPLEMENTATION.md](S1_IMPLEMENTATION.md) for data/plan preparation,
+guarded submissions, analysis, continuation and Rorqual environment capture.
+The historical launch commands above are not S1 launchers.
 
 **All three backbones stay frozen throughout S1.** A frozen LLM + MLP-only
 vision alignment is the weak configuration in the literature (BLIP-2 needed

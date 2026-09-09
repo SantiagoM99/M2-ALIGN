@@ -5,7 +5,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
-#SBATCH --time=18:00:00
+#SBATCH --time=12:00:00
+#SBATCH --signal=USR1@120
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_s3_all_%j.log
@@ -90,10 +91,6 @@ for L in $LANGS; do
   name="${NAME[$L]:-}"
   [ -n "$name" ] || { echo "### $L: unknown language code, skipping"; continue; }
   OUT="$A2/outputs/stage3_$L$R"
-  if [ -f "$OUT/mapping/pytorch_model.bin" ]; then
-    echo "### stage3 $L: checkpoint exists -> done"
-    continue
-  fi
   DATA="$DT/Stage3/data/stage3b/$(echo "$name" | tr '[:upper:]' '[:lower:]').jsonl"
   [ -f "$DATA" ] || DATA="$DT/Stage3/data/$L.jsonl"
   if [ ! -f "$DATA" ]; then
@@ -141,7 +138,7 @@ for L in $LANGS; do
   RESUME_ARGS=()
   [ -f "$OUT/training_state.pt" ] && RESUME_ARGS=(--resume-from-checkpoint "$OUT/training_state.pt")
   echo "=== stage3 $L ($name) === $(date)"
-  if ! python -u train_stage3_vqa.py \
+  TRAIN_ARGS=( \
       --data-path   "$DATA" \
       --images-dir  "$GQA_IMAGES" \
       --output-dir  "$OUT" \
@@ -162,21 +159,22 @@ for L in $LANGS; do
       --wandb-run-name "a2-stage3-$L$R" \
       --local-files-only \
       "${REPLAY_ARGS[@]}" \
-      "${RESUME_ARGS[@]}"; then
+      "${RESUME_ARGS[@]}" )
+  python train_stage3_vqa.py "${TRAIN_ARGS[@]}" --check-complete
+  COMPLETE_STATUS=$?
+  if [ "$COMPLETE_STATUS" -eq 0 ]; then
+    echo "### stage3 $L: complete marker and hashes verified"
+    continue
+  elif [ "$COMPLETE_STATUS" -ne 3 ]; then
+    echo "### stage3 $L: completion/configuration check FAILED"
+    FAILED+=("$L")
+    continue
+  fi
+  if ! srun python -u train_stage3_vqa.py "${TRAIN_ARGS[@]}"; then
     echo "### stage3 $L FAILED — continuing with next language"
     FAILED+=("$L")
   fi
 done
-
-echo "=== Harvest curves into git ==="
-RESULTS_DIR="$A2/results"
-mkdir -p "$RESULTS_DIR"
-grep -h -E "Epoch [0-9]+ \| val_loss" "$A2"/logs/a2_stage3_vqa_*.log 2>/dev/null \
-  > "$RESULTS_DIR/stage3_all_curves${R}_${SLURM_JOB_ID:-manual}.txt" || true
-cd "$PROJECT_ROOT"
-git add Approach2/results 2>/dev/null || true
-git commit -m "results: stage3 packed curves$R (job ${SLURM_JOB_ID:-manual})" Approach2/results \
-  || echo "No new results to commit."
 
 echo "=== Done === $(date)"
 if [ ${#FAILED[@]} -gt 0 ]; then

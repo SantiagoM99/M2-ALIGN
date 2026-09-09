@@ -3,6 +3,7 @@
 Consolidates the tokenisation, checkpoint, W&B and prompt utilities that
 Stage1-3 duplicate per stage, so the three Approach 2 scripts stay small.
 """
+
 from __future__ import annotations
 
 import json
@@ -22,6 +23,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Misc
 # ---------------------------------------------------------------------------
+
 
 def setup_logging(log_dir: str, name: str) -> logging.Logger:
     """Create a logger writing to stdout and a timestamped file in *log_dir*."""
@@ -59,6 +61,7 @@ def load_jsonl(path: str) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Tokenisation
 # ---------------------------------------------------------------------------
+
 
 def mt_input_features(
     texts: list[str],
@@ -146,7 +149,9 @@ def build_open_ended_prompt(question: str) -> str:
     """Task prompt for open-ended VQA — must match Stage3/evaluate.py on the
     `parallel` branch. "in English" pins the answer language so exact match
     doesn't punish correct answers given in the question's language."""
-    return f"Question: {question}\nAnswer with a single word or short phrase, in English."
+    return (
+        f"Question: {question}\nAnswer with a single word or short phrase, in English."
+    )
 
 
 def format_chat_prompt(tokenizer_llm, question: str, use_chat_template: bool) -> str:
@@ -176,13 +181,14 @@ def format_chat_prompt(tokenizer_llm, question: str, use_chat_template: bool) ->
     )
     bos = getattr(tokenizer_llm, "bos_token", None)
     if bos and text.startswith(bos):
-        text = text[len(bos):]
+        text = text[len(bos) :]
     return text
 
 
 # ---------------------------------------------------------------------------
 # Checkpoints
 # ---------------------------------------------------------------------------
+
 
 def save_mapping_checkpoint(path: str, model, step: int, loss: float) -> None:
     """Save the trainable mapping weights (whichever branches exist).
@@ -200,6 +206,26 @@ def save_mapping_checkpoint(path: str, model, step: int, loss: float) -> None:
     torch.save(payload, path)
 
 
+def load_branch_checkpoint(path, module, branch):
+    """Load exactly one branch; the only legacy exception is a missing gate.
+
+    Always reset that gate explicitly: a reused module may have a trained
+    value left over from a previous matrix cell. All other keys stay strict.
+    """
+    if module is None:
+        raise ValueError(f"Cannot load absent branch {branch}")
+    ckpt = torch.load(path, map_location="cpu", weights_only=True)
+    key = branch
+    if key not in ckpt and branch == "mapping_txt" and "model_state_dict" in ckpt:
+        key = "model_state_dict"
+    if key not in ckpt:
+        raise ValueError(f"{path}: checkpoint lacks {branch}")
+    state = dict(ckpt[key])
+    if "gate" not in state:
+        state["gate"] = torch.ones_like(module.gate.detach(), device="cpu")
+    module.load_state_dict(state, strict=True)
+
+
 def load_mapping_checkpoint(path: str, model, logger=None) -> None:
     """Load mapping weights into whichever branches the checkpoint covers.
 
@@ -207,25 +233,23 @@ def load_mapping_checkpoint(path: str, model, logger=None) -> None:
     and legacy Approach 1 checkpoints (``model_state_dict`` — interpreted as
     the text mapping).
     """
-    ckpt = torch.load(path, map_location="cpu")
+    ckpt = torch.load(path, map_location="cpu", weights_only=True)
     loaded = []
     # strict=False: pre-gate checkpoints lack the `gate` key — the module's
     # init value (1.0, identity) is the correct behavior for them.
     if "mapping_txt" in ckpt and model.mapping_txt is not None:
-        missing, unexpected = model.mapping_txt.load_state_dict(ckpt["mapping_txt"], strict=False)
-        if (missing or unexpected) and logger is not None:
-            logger.info("mapping_txt: missing=%s unexpected=%s", missing, unexpected)
+        load_branch_checkpoint(path, model.mapping_txt, "mapping_txt")
         loaded.append("mapping_txt")
     if "mapping_vis" in ckpt and model.mapping_vis is not None:
-        missing, unexpected = model.mapping_vis.load_state_dict(ckpt["mapping_vis"], strict=False)
-        if (missing or unexpected) and logger is not None:
-            logger.info("mapping_vis: missing=%s unexpected=%s", missing, unexpected)
+        load_branch_checkpoint(path, model.mapping_vis, "mapping_vis")
         loaded.append("mapping_vis")
     if "model_state_dict" in ckpt and model.mapping_txt is not None and not loaded:
-        model.mapping_txt.load_state_dict(ckpt["model_state_dict"], strict=False)
+        load_branch_checkpoint(path, model.mapping_txt, "mapping_txt")
         loaded.append("mapping_txt (legacy Approach 1 format)")
     if not loaded:
-        raise ValueError(f"No loadable mapping weights found in {path} (keys: {list(ckpt)})")
+        raise ValueError(
+            f"No loadable mapping weights found in {path} (keys: {list(ckpt)})"
+        )
     if logger is not None:
         logger.info("Loaded %s from %s", ", ".join(loaded), path)
 
@@ -287,6 +311,7 @@ def load_training_state(
 # W&B (same behaviour as Stage 2/3 scripts)
 # ---------------------------------------------------------------------------
 
+
 def _load_wandb_key_from_tokens() -> bool:
     for candidate in (
         os.path.join(os.getcwd(), ".tokens"),
@@ -300,7 +325,7 @@ def _load_wandb_key_from_tokens() -> bool:
                 if not line or line.startswith("#"):
                     continue
                 if line.startswith("export "):
-                    line = line[len("export "):].strip()
+                    line = line[len("export ") :].strip()
                 if "=" not in line:
                     continue
                 key, value = line.split("=", 1)

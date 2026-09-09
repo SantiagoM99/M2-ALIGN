@@ -24,6 +24,7 @@ Either branch can be disabled, so this single class serves all stages:
     Stage 2 (vision mapping): use_text_branch=False   → ``[BOS] + V_f + b_vis``
     Stage 3 (joint VQA):      both branches on        → full prefix
 """
+
 from __future__ import annotations
 
 import torch
@@ -66,7 +67,9 @@ def _squeeze_pad(
     masks_sum = masks.sum(dim=0)
     keep_idx = (masks_sum > 0).unsqueeze(0).expand_as(masks)
     masks = masks[keep_idx].view(bs, -1)
-    hidden_states = hidden_states[keep_idx.unsqueeze(-1).expand_as(hidden_states)].view(bs, -1, dim)
+    hidden_states = hidden_states[keep_idx.unsqueeze(-1).expand_as(hidden_states)].view(
+        bs, -1, dim
+    )
     return hidden_states, masks, keep_idx
 
 
@@ -84,12 +87,14 @@ class PresencePenaltyGeneratedOnly:
         self.penalty = float(penalty)
         self.prompt_len = int(prompt_len)
 
-    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
+    def __call__(
+        self, input_ids: torch.LongTensor, scores: torch.FloatTensor
+    ) -> torch.FloatTensor:
         if self.penalty == 0.0:
             return scores
         if input_ids.size(1) <= self.prompt_len:
             return scores
-        gen_part = input_ids[:, self.prompt_len:]
+        gen_part = input_ids[:, self.prompt_len :]
         for b in range(input_ids.size(0)):
             seen = torch.unique(gen_part[b])
             scores[b, seen] -= self.penalty
@@ -202,13 +207,13 @@ class DualEncoderMerger(nn.Module):
         local_files_only: bool = False,
     ) -> None:
         super().__init__()
-        if not use_text_branch and not use_vision_branch:
-            raise ValueError("At least one of use_text_branch/use_vision_branch must be True.")
         self.max_gen_len = max_gen_len
         self.use_text_branch = use_text_branch
         self.use_vision_branch = use_vision_branch
         self.max_vis_tokens = max_vis_tokens
-        self.vis_layers = [int(i) for i in vis_layers.split(",") if i.strip()] if vis_layers else []
+        self.vis_layers = (
+            [int(i) for i in vis_layers.split(",") if i.strip()] if vis_layers else []
+        )
 
         # Frozen text-only LLM (bf16 to keep Gemma2-9B within a single GPU).
         self.model_llm = AutoModelForCausalLM.from_pretrained(
@@ -218,7 +223,9 @@ class DualEncoderMerger(nn.Module):
             p.requires_grad = False
         self.llm_embedding_layer = self.model_llm.get_input_embeddings()
         llm_dim = getattr(
-            self.llm_embedding_layer, "embedding_dim", self.llm_embedding_layer.weight.shape[1]
+            self.llm_embedding_layer,
+            "embedding_dim",
+            self.llm_embedding_layer.weight.shape[1],
         )
 
         # Frozen NLLB encoder + trainable text mapping.
@@ -228,7 +235,9 @@ class DualEncoderMerger(nn.Module):
         if use_text_branch:
             if mt_path is None:
                 raise ValueError("mt_path is required when use_text_branch=True.")
-            self.model_mt = M2M100Model.from_pretrained(mt_path, local_files_only=local_files_only)
+            self.model_mt = M2M100Model.from_pretrained(
+                mt_path, local_files_only=local_files_only
+            )
             self.encoder_mt = self.model_mt.get_encoder()
             for p in self.model_mt.parameters():
                 p.requires_grad = False
@@ -240,19 +249,27 @@ class DualEncoderMerger(nn.Module):
         if use_vision_branch:
             if vis_path is None:
                 raise ValueError("vis_path is required when use_vision_branch=True.")
-            vis_model = AutoModel.from_pretrained(vis_path, local_files_only=local_files_only)
+            vis_model = AutoModel.from_pretrained(
+                vis_path, local_files_only=local_files_only
+            )
             # Dual-tower SigLIP checkpoints expose .vision_model; keep only that
             # so the text tower is released.
             self.encoder_vis = getattr(vis_model, "vision_model", vis_model)
             for p in self.encoder_vis.parameters():
                 p.requires_grad = False
-            vis_in_dim = self.encoder_vis.config.hidden_size * max(1, len(self.vis_layers))
+            vis_in_dim = self.encoder_vis.config.hidden_size * max(
+                1, len(self.vis_layers)
+            )
             self.mapping_vis = Mapping(vis_in_dim, llm_dim)
 
         self.llm_pad_token_id = llm_pad_token_id
-        self.llm_bos_token_id = llm_bos_token_id if llm_bos_token_id is not None else llm_pad_token_id
+        self.llm_bos_token_id = (
+            llm_bos_token_id if llm_bos_token_id is not None else llm_pad_token_id
+        )
         if self.llm_bos_token_id is None:
-            raise ValueError("Need at least one of llm_bos_token_id or llm_pad_token_id.")
+            raise ValueError(
+                "Need at least one of llm_bos_token_id or llm_pad_token_id."
+            )
 
         trainable = sum(p.numel() for p in self.parameters() if p.requires_grad)
         total = sum(p.numel() for p in self.parameters())
@@ -289,9 +306,13 @@ class DualEncoderMerger(nn.Module):
         x_f = self.mapping_txt(mt_out[0]).to(dtype)
         b_txt = self.mapping_txt.get_embed().expand(bs, 1, -1).to(dtype)
         ones = torch.ones(bs, 1, dtype=torch.long, device=input_ids_mt.device)
-        return torch.cat([x_f, b_txt], dim=1), torch.cat([attention_mask_mt, ones], dim=1)
+        return torch.cat([x_f, b_txt], dim=1), torch.cat(
+            [attention_mask_mt, ones], dim=1
+        )
 
-    def _encode_vision(self, pixel_values: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def _encode_vision(
+        self, pixel_values: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Run SigLIP vision tower + vision mapping, append the vision boundary.
 
         SigLIP at fixed resolution yields a constant patch count per image,
@@ -324,7 +345,9 @@ class DualEncoderMerger(nn.Module):
             vis_hidden = vis_hidden[:, : self.max_vis_tokens]
         v_f = self.mapping_vis(vis_hidden.float()).to(dtype)
         b_vis = self.mapping_vis.get_embed().expand(bs, 1, -1).to(dtype)
-        mask = torch.ones(bs, v_f.size(1) + 1, dtype=torch.long, device=pixel_values.device)
+        mask = torch.ones(
+            bs, v_f.size(1) + 1, dtype=torch.long, device=pixel_values.device
+        )
         return torch.cat([v_f, b_vis], dim=1), mask
 
     def _build_prefix_raw(
@@ -348,8 +371,10 @@ class DualEncoderMerger(nn.Module):
             ref = input_ids_mt
         elif pixel_values is not None:
             ref = pixel_values
+        elif input_ids_prompt is not None:
+            ref = input_ids_prompt
         else:
-            raise ValueError("Need at least one of input_ids_mt or pixel_values.")
+            raise ValueError("Need text, image or prompt inputs.")
         bs = ref.size(0)
         device = ref.device
         dtype = self.llm_dtype
@@ -458,10 +483,18 @@ class DualEncoderMerger(nn.Module):
             input_ids_mt, attention_mask_mt, pixel_values, input_ids_prompt, mask_prompt
         )
         llm_embeds, llm_mask, _ = _squeeze_pad(llm_embeds, llm_mask)
-        prefix_len = llm_embeds.size(1)
+        # With inputs_embeds only, decoder-only HF generation tracks an empty
+        # input_ids sequence and returns the generated suffix. Pass this
+        # explicitly rather than guessing from output length (A2/no-image
+        # prompts may be shorter than their generated answers).
+        generated_ids = torch.empty(
+            (llm_embeds.size(0), 0), dtype=torch.long, device=llm_embeds.device
+        )
+        prefix_len = 0
 
         gen_kw: dict = dict(
             inputs_embeds=llm_embeds,
+            input_ids=generated_ids,
             attention_mask=llm_mask,
             max_new_tokens=self.max_gen_len,
             pad_token_id=self.llm_pad_token_id,
@@ -475,8 +508,6 @@ class DualEncoderMerger(nn.Module):
             gen_kw.update(generation_kwargs)
 
         ids = self.model_llm.generate(**gen_kw)
-        # Some HF versions return only new tokens when using inputs_embeds.
-        new_ids = ids[:, prefix_len:] if ids.shape[1] > prefix_len else ids
         return tokenizer_llm.batch_decode(
-            new_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
+            ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )
