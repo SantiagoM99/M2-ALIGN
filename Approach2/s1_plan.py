@@ -144,18 +144,21 @@ def build(a):
                 for vn, vp in vis.items():
                     for c in conditions:
                         cid = add("cvqa", t, tn + "__" + vn, c, tp, vp)
+                        # Parity references must come from the SAME checkpoint the
+                        # cell evaluates. Legacy `eval_cvqa_{t}_zsbn*` on jv/mn/ga/si
+                        # were produced by stage3_bn_v4, not stage3_bn_dcl (= V3_bn),
+                        # and no id-donor result exists on CVQA-bn; those cells have
+                        # no reference and are not parity cells. That leaves bn/bn on
+                        # bn (`eval_cvqa_bn_dcl*`) and id/id on the four targets.
+                        donor = tn[3:] if tn in ("T3_bn", "T3_id") else None
                         if (
-                            tn in ("T3_bn", "T3_id")
-                            and vn == "V3_" + tn[3:]
+                            donor
+                            and vn == "V3_" + donor
                             and c in ("correct", "gray")
+                            and ((donor == "bn") == (t == "bn"))
                         ):
-                            donor = tn[3:]
-                            tag = (
-                                (f"{t}_v4" if c == "correct" else f"{t}_BLIND_v4")
-                                if donor == t
-                                else f"{t}_zs{donor}"
-                                + ("_BLIND" if c == "gray" else "")
-                            )
+                            blind = "_BLIND" if c == "gray" else ""
+                            tag = f"bn_dcl{blind}" if donor == "bn" else f"{t}_zsid{blind}"
                             parity.append(
                                 {
                                     "cell_id": cid,

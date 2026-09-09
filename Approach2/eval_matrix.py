@@ -60,11 +60,14 @@ def read_plan(path):
         ):
             raise ValueError("Block B requires G0 to pass under the frozen S1 spec")
         targets = {a.target for _, a in result if a.benchmark == "cvqa"}
+        # bn/bn is only referenceable on CVQA-bn (stage3_bn_dcl results exist
+        # there alone); id/id on every other target (stage3_id_v4 `zsid` files).
         required = {
             (s, t, cond)
             for s in ("bn", "id")
             for t in targets
             for cond in ("correct", "gray")
+            if (s == "bn") == (t == "bn")
         }
         actual = set()
         for p in parity:
@@ -86,9 +89,28 @@ def read_plan(path):
             actual.add((p["donor"], a.target, condition(a)))
         if actual != required:
             raise ValueError(
-                "Block B requires bn/bn and id/id parity on every CVQA target, correct and gray"
+                "Block B requires bn/bn parity on CVQA-bn and id/id parity on every other "
+                "CVQA target, correct and gray"
             )
     return plan, result
+
+
+PARITY_CHECKPOINT = {"bn": "stage3_bn_dcl", "id": "stage3_id_v4"}
+
+
+def check_parity_lineage(plan):
+    """Every legacy reference must have been produced by the checkpoint the cell evaluates."""
+    for p in plan.get("parity", []):
+        summary_path = p["expected_path"] + ".summary.json"
+        if not Path(p["expected_path"]).is_file() or not Path(summary_path).is_file():
+            raise ValueError(f"parity reference or its summary is missing: {p['expected_path']}")
+        ckpt = str(read_json(summary_path).get("ckpt", ""))
+        expected = PARITY_CHECKPOINT[p["donor"]]
+        if expected not in Path(ckpt).parts:
+            raise ValueError(
+                f"parity reference {p['expected_path']} was produced by {ckpt or 'an unknown checkpoint'}, "
+                f"not {expected}"
+            )
 
 
 def compare_predictions(actual, expected):
@@ -153,6 +175,7 @@ def run(submission_path):
                 m = previous
         prepared[cell["id"]] = prep
         manifests[cell["id"]] = m
+    check_parity_lineage(plan)
     for p in plan.get("parity", []):
         if file_sha(p["expected_path"]) != submission["parity_hashes"][p["cell_id"]]:
             raise ValueError("legacy parity reference changed after submission")

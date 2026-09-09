@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 import subprocess
 
-from eval_matrix import read_plan, validate_submission
+from eval_matrix import check_parity_lineage, read_plan, validate_submission
 from eval_runtime import prepare, make_manifest
 from s1_contract import ROOT, SPEC_SHA, atomic_json, digest, file_sha, git_state
 
@@ -51,6 +51,8 @@ def build_submission(plan_path):
         from analysis.block_a import validate_grid
 
         validate_grid(grid)
+    else:
+        check_parity_lineage(plan)
     git_state(expected_code=state["code_sha"])
     return {
         **state,

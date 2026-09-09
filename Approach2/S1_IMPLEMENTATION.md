@@ -156,10 +156,17 @@ fails, and G1-T remains unresolved under Option 1's deferred replication.
 For B, add xGQA `id` and CVQA `bn` to the panels file and use `--block B`,
 `--block-a-report` and optionally `--legacy-results` with `s1_plan.py`.
 This creates **376 cells** (360 CVQA + 16 xGQA). B requires a passing G0 and
-20 mandatory matched-checkpoint parity cells (bn/bn and id/id, each CVQA
-target, correct and grey). Those run and must match historical per-item
-predictions before any crossed cell runs. A mismatch aborts the allocation.
-The exact checkpoint parity is still to be tested with real cluster weights.
+**10 mandatory matched-checkpoint parity cells**: bn/bn on CVQA-bn (correct
+and grey, against `eval_cvqa_bn_dcl*.jsonl`, the only legacy CVQA results of
+`stage3_bn_dcl`) and id/id on jv/mn/ga/si (against `eval_cvqa_{t}_zsid*.jsonl`
+from `stage3_id_v4`). The legacy `eval_cvqa_{t}_zsbn*.jsonl` files were
+produced by `stage3_bn_v4`, a different checkpoint, and no id-donor result
+exists on CVQA-bn, so those cells have no reference and are not parity cells
+(review 2026-09-09). Preparation and every allocation verify each reference's
+`summary.json` names the expected checkpoint. Parity cells run and must match
+historical per-item predictions before any crossed cell runs; a mismatch
+aborts the allocation. The exact checkpoint parity is still to be tested with
+real cluster weights.
 The plan conservatively evaluates all sixteen xGQA task-control cells; the
 frozen ledger already budgets them. Existing CVQA files serve as parity
 references, not as unmanifested substitutes for primary S1 observations.

@@ -142,7 +142,8 @@ class EndToEndTests(unittest.TestCase):
             atomic_json(str(path) + ".complete.json", marker)
             with self.assertRaisesRegex(ValueError, "assigned image"):
                 load_cells(root / "submission.json")
-            # B has 360 CVQA + 16 xGQA cells and twenty mandatory parity cells.
+            # B has 360 CVQA + 16 xGQA cells and ten mandatory parity cells: bn/bn on
+            # CVQA-bn (the only legacy stage3_bn_dcl CVQA results) and id/id on jv/mn/ga/si.
             panels["cvqa"]["bn"] = panels["cvqa"]["jv"]
             panels["xgqa"]["id"] = panels["xgqa"]["bn"]
             atomic_json(root / "panels.json", panels)
@@ -157,7 +158,14 @@ class EndToEndTests(unittest.TestCase):
                 build(a)
             bp, bc = read_plan(a.output)
             self.assertEqual(len(bc), 376)
-            self.assertEqual(len(bp["parity"]), 20)
+            self.assertEqual(len(bp["parity"]), 10)
+            self.assertEqual(
+                sorted({(p["donor"], Path(p["expected_path"]).name) for p in bp["parity"]}),
+                sorted(
+                    {("bn", "eval_cvqa_bn_dcl.jsonl"), ("bn", "eval_cvqa_bn_dcl_BLIND.jsonl")}
+                    | {("id", f"eval_cvqa_{t}_zsid{b}.jsonl") for t in ("jv", "mn", "ga", "si") for b in ("", "_BLIND")}
+                ),
+            )
             bp["parity"].pop()
             atomic_json(a.output, bp)
             with self.assertRaisesRegex(ValueError, "parity"):

@@ -168,11 +168,24 @@ def model_records(a):
     }
 
 
+def _package_version(name):
+    try:
+        return importlib.metadata.version(name)
+    except importlib.metadata.PackageNotFoundError:
+        return None
+
+
 def environment_record():
+    """Installed versions of the packages that shape a result; None when absent.
+
+    A missing package is recorded, not fatal: the manifest comparison between
+    preparation and each allocation is what enforces that the environment did
+    not change, and model loading fails on its own if torch is absent.
+    """
     return {
         "python": platform.python_version(),
         "packages": {
-            name: importlib.metadata.version(name)
+            name: _package_version(name)
             for name in (
                 "torch",
                 "transformers",
