@@ -73,10 +73,22 @@ nodes are offline):
   `<bos>`; `common.format_chat_prompt` folds the system text into the user
   turn and strips the leading BOS (the model adds its own BOS embedding).
 
-## Known risk (expected, part of the story)
+## Status and scope (2026-09-08)
 
-A frozen LLM + MLP-only vision alignment is the weak configuration in the
-literature (BLIP-2 needed a Q-Former + 129M pairs; LLaVA unfreezes the LLM).
-If Stage 2/3 plateau, the planned mitigation is LoRA on the Gemma body
-during Stage 3 (keeping the parameter-efficiency story), which is also what
-MERLIN's stage 2 does on the text side.
+The active experimental contract is **S1 in `DESIGN.md`** (v2.1.3, Option 1:
+Blocks A, B, D and a single-seed Block C pilot; R0/R1 and any preservation
+loss are future work). Read `DESIGN.md` S1 before touching the launchers:
+several scripts here (`job-scripts/train_stage3_all.sh`, `source_ablation.sh`,
+`donor_matrix.py`) predate S1 and are legacy; the S1 evaluator flags,
+`eval_matrix.py`, shuffle maps, manifests and the submit guard are listed
+there as post-freeze prerequisites and do not exist yet.
+
+**All three backbones stay frozen throughout S1.** A frozen LLM + MLP-only
+vision alignment is the weak configuration in the literature (BLIP-2 needed
+a Q-Former + 129M pairs; LLaVA unfreezes the LLM), and that is the point:
+S1 measures what the two frozen-tower connectors do and do not transport.
+LoRA on the Gemma body is **not** part of S1 and is not the planned next
+step; if it is ever considered it is a new design entry. For the record,
+MERLIN applies LoRA in its *reasoning* stage (its stage 3, where the
+mapping and MT encoder are frozen; `MERLIN/train_merlin.py`), not in its
+mapping stage.

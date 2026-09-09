@@ -1,3 +1,12 @@
+# M2-ALIGN
+
+Two approaches share this repository. The recipe below is **Approach 1**
+(Maryam: multilingual encoder injected into Qwen3-VL, `Stage1`–`Stage3`).
+**Approach 2** (Santiago: frozen NLLB-200 + frozen SigLIP 2 → two mapping
+MLPs → frozen Gemma 2) lives in `Approach2/`; its active experimental
+contract is `Approach2/DESIGN.md` S1, and `Approach2/README.md` explains the
+layout and which launchers are legacy.
+
 # Activate the environment:
 module --force purge
 module load StdEnv/2023

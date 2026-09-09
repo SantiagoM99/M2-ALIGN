@@ -1488,10 +1488,17 @@ audit in Block D shows otherwise.
   image where an image carries several questions (xGQA: 398 images), with
   **one cluster resample applied jointly to all arms and translations**
   (paired). 4,000 resamples, fixed seed.
-- **Non-inferiority, three regions.** For D = reference − candidate on the
-  same items (positive = candidate worse): non-inferior if the one-sided
-  95% upper bound UB < δ; materially inferior if the lower bound LB > δ;
-  inconclusive otherwise. Failing non-inferiority never means inferiority.
+- **Non-inferiority, three regions.** The operational statistic, the one
+  `analysis/_boot.region` and every S1 script compute and report, is
+  **D = candidate − reference** on the same items, in accuracy points,
+  **negative = candidate worse**: non-inferior if the one-sided 5th
+  percentile LB5(D) > −δ; materially inferior if the 95th percentile
+  UB95(D) < −δ; inconclusive otherwise. The contrasts P1–P8 below are
+  written the other way round (reference − candidate) for readability; each
+  is the negation of the statistic that is computed, and every reported
+  interval, including E3's −0.75 [−1.21, −0.29] and the power tables, is in
+  the candidate − reference convention. Failing non-inferiority never means
+  inferiority.
 - **Margins are substantive, then power is computed; never the reverse.**
   δ_U = δ_G = **1.0 point** on every VQA panel: the largest loss this project
   treats as immaterial, below the smallest lever it ever accepted (D11's
@@ -1514,30 +1521,40 @@ audit in Block D shows otherwise.
 
   | panel | endpoint | items / images | discordance | intra-image corr. of ε |
   |---|---|---|---|---|
-  | xGQA bn/de/ko | grounding (Δ_gray proxy) | 37,734 / 1,194 | 0.24 | 0.006 |
-  | xGQA bn/de/ko | utility | 37,734 / 1,194 | 0.16 | 0.007 |
+  | xGQA bn/de/ko | grounding (Δ_gray proxy) | 37,734 / 398 shared images | 0.24 | 0.002 |
+  | xGQA bn/de/ko | utility | 37,734 / 398 shared images | 0.16 | 0.004 |
   | CVQA jv/mn/ga | grounding (Δ_gray proxy) | 935 / 401 | 0.21 | ≈ 0 |
   | CVQA jv/mn/ga | utility | 935 / 401 | 0.14 | ≈ 0 |
 
   Δ_ground has never been measured, so its noise is proxied by Δ_gray's;
   grounding power is therefore optimistic. Dominant region and its
-  probability per true effect d (reference − candidate):
+  probability per true effect d (candidate − reference; d = −2 is a true
+  2-point loss of the candidate):
 
   | panel | endpoint | d = 0 | d = −0.5 | d = −1 | d = −2 | d = −3 | half-width |
   |---|---|---|---|---|---|---|---|
-  | xGQA bn/de/ko | grounding | NI .96 | NI .53 | inc .88 | MI .97 | MI 1.00 | 0.57 |
-  | xGQA bn/de/ko | utility | NI 1.00 | NI .72 | inc .92 | MI .98 | MI 1.00 | 0.44 |
+  | xGQA bn/de/ko | grounding | NI .93 | NI .55 | inc .93 | MI .95 | MI 1.00 | 0.58 |
+  | xGQA bn/de/ko | utility | NI 1.00 | NI .69 | inc .90 | MI .99 | MI 1.00 | 0.47 |
   | CVQA jv/mn/ga | grounding | inc .79, NI .21 | inc .84 | inc .88 | inc .80, MI .18 | inc .57, MI .43 | 3.0 |
   | CVQA jv/mn/ga | utility | inc .68, NI .32 | inc .87 | inc .88 | inc .77, MI .23 | inc .53, MI .47 | 2.2 |
 
-  Under equality xGQA establishes non-inferiority with probability 0.96–1.00,
-  CVQA with 0.21–0.32; a true 2-point loss is detected on xGQA (0.97–0.98)
+  Under equality xGQA establishes non-inferiority with probability 0.93–1.00,
+  CVQA with 0.21–0.32; a true 2-point loss is detected on xGQA (0.95–0.99)
   and rarely on CVQA (0.18–0.23); a loss exactly at the margin is
-  inconclusive everywhere, as it should be. **G3 attainable power**, seven
-  donors, α_conf = −1.0 × rank(damage) + N(0, σ) points, exact one-sided
-  permutation test at 0.10: P(p < 0.10) = 1.00 at σ = 0.5 and 1.0, 0.75 at
-  σ = 2.0, 0.54 at σ = 3.0. For the paper's appendix rerun with
-  `--boot 2000 --sims 400`.
+  inconclusive everywhere, as it should be. (Recomputed 2026-09-08 with the
+  398 shared xGQA image clusters perturbed and resampled jointly across the
+  three translations, as the pooling rule above requires; the first artifact
+  had treated the 1,194 (language, image) pairs as independent clusters and
+  was slightly optimistic: NI under equality 0.96, MI at −2 0.97–0.98. CVQA
+  images are disjoint across languages and its rows did not change.) **G3
+  attainable power, correlation criterion only**, seven donors, α_conf = −1.0
+  × rank(damage) + N(0, σ) points, exact one-sided permutation test at 0.10:
+  P(p < 0.10) = 1.00 at σ = 0.5 and 1.0, 0.75 at σ = 2.0, 0.54 at σ = 3.0.
+  This says nothing about the conjunction with the regret, pooled-grounding
+  and utility guardrails, whose power depends on the unmeasured Δ_ground
+  panel; MGSM/MSVAMP (δ_R) power is not simulated, since no paired per-item
+  text results with a comparator arm exist yet. For the paper's appendix
+  rerun with `--boot 2000 --sims 400`.
 - **Seeds, inferential rule.** Replicated arms use the same paired seed
   list. Each contrast is computed per seed on identical items; the primary
   statistic is the mean over seeds, and its CI comes from the cluster
@@ -1862,13 +1879,14 @@ saturation for id).
   images. **Images**: only 20–85% of rows per subset carry an `Image Source`
   URL; the rest are embedded in the 4.9 GB parquet and must be extracted from
   a local copy before evaluation, which the timed pilot has to include.
-  *Budget, recomputed from
-  the item count*: one pass over the panel at the ~5 min per 300 items of the
-  existing CVQA evals costs ≈ 1.4 h per (donor, condition), so donor
-  confirmation is 7 donors × 5 conditions ≈ **51 h**, not the 35 h of the
-  ledger; Spanish alone is 40% of the panel. Under Option 1 this runs only if
-  Block D's exploratory test is promising and budget remains at A+12; the
-  timed pilot replaces this estimate. The confirmatory panel is the **only**
+  *Budget*: the pre-freeze
+  pilot (job 20483784, 2026-09-08) measured 0.337 s/item + 19.5 s load per
+  invocation, so one (donor, condition) pass over the 5,202-item panel costs
+  0.55 GPU-h and donor confirmation is 7 donors × 5 conditions = **19.3
+  GPU-h** (the earlier 5-min-per-eval placeholders gave 35 h and 51 h; both
+  are superseded). Spanish alone is 40% of the panel. Under Option 1 this
+  runs only if Block D's exploratory test is promising (defined under the
+  Option 1 decision below) and budget remains at A+12. The confirmatory panel is the **only**
   prospective test of the donor predictor (see G3): the seven-donor Spearman
   on the current targets is exploratory because four donors' outcomes shaped
   the hypothesis, and a three-donor ranking has chance 1/6. Candidate subsets
@@ -1954,7 +1972,7 @@ the totals below use that measurement; the other rows keep their placeholders.
 
 | stage | content | GPU-h |
 |---|---|---|
-| Block A | 60 xGQA + 72 CVQA evals | 46 |
+| Block A | 60 xGQA + 96 CVQA evals (4 arms × 4 languages × 6, as specified in Block A) | 48 |
 | Block B | 360 CVQA + 16 xGQA evals | 41 |
 | Block D | 84 shuffled CVQA evals + 23 alignment scorings (11 stage 1 + 11 stage 3 + joint) | 10 |
 | Block C pilot | C1–C3 training/evals plus C4 reuse and its 3 missing xGQA shuffles | 50 |
@@ -1963,10 +1981,10 @@ the totals below use that measurement; the other rows keep their placeholders.
 | C1/C2 three-seed replication | 4 × (10 + 6) | 64 |
 | R0/R1 × 3 seeds | 6 × (10 + 8) | 108 |
 | confirmatory panel | 1,140 invocations (measured 09-08; was 95 at 5 min/eval); Option 1's 420 donor-confirmation calls alone = 19 | 52 |
-| **full method path**, without optional checkpoint-stability seeds | | **≈ 371–419** |
-| full path plus `bn_v4` / `id_v4` stability seeds | | **≈ 423–471** |
-| **minimum scientific path**: A, B, D, C pilot | | **≈ 147** |
-| minimum plus optional checkpoint-stability seeds | | **≈ 199** |
+| **full method path**, without optional checkpoint-stability seeds | | **≈ 373–421** |
+| full path plus `bn_v4` / `id_v4` stability seeds | | **≈ 425–473** |
+| **minimum scientific path**: A, B, D, C pilot | | **≈ 149** |
+| minimum plus optional checkpoint-stability seeds | | **≈ 201** |
 
 Window: 2026-09-08 to 10-06 is 28 days, i.e. 672 h of a single GPU with zero
 queue time; the project's own constraints are minimal concurrency and 12 h
@@ -1985,11 +2003,25 @@ before 2026-10-12 under these constraints.
 **Decision, 2026-09-07: Option 1.** Taken by Santiago after the reviewing
 agents independently recommended it. What runs before the deadline: Blocks
 A, B and D (D's 84 shuffled donor evals included, its seven-donor analysis
-exploratory), the Block C single-seed pilot, and the extra seeds of `bn_v4`
-and `id_v4`. What is declared **future work** now, not after a result:
-R0/R1, the preservation loss and its confirmatory intervention evals, the
-three-seed replication of C1/C2/C5. The confirmatory **donor** panel runs
-only if Block D's exploratory test is promising and budget remains at A+12.
+exploratory), the Block C single-seed pilot, and, only if capacity remains
+after those, the extra seeds of `bn_v4` and `id_v4` (checkpoint-stability
+work, never a prerequisite for any gate). What is declared **future work**
+now, not after a result: R0/R1, the preservation loss and its confirmatory
+intervention evals, the three-seed replication of C1/C2/C5.
+**Option 1 override for C5 / G1-T**: if G1-I is inconclusive, C5 runs as a
+single-seed pilot arm (its cost is in the C-pilot row), but the three paired
+seeds that P8 requires to decide G1-T are future work; G1-T is therefore
+**undecidable under Option 1**, G1 is reported as inconclusive, and the loss
+gate cannot pass through the G1-T route. The confirmatory **donor** panel
+runs only if Block D's exploratory test is promising and budget remains at
+A+12. **"Promising" is pre-declared as**: the exploratory D-donor analysis
+on P_current (7 × 4, `block_d.py`, the identical procedure and thresholds,
+including the four G3 conditions with their bootstrap) returns a *defined*
+one-sided exact p < 0.10 **and** the least-damage donor's exploratory
+Δ_ground regret point estimate ≤ 1.0. If either fails, or the correlation is
+undefined, the panel is not launched and G3 is reported as not tested;
+nothing about P_current's outcome is allowed to alter the confirmatory
+procedure itself.
 The paper's method section is therefore the functional decomposition (Block
 B) with the freeze-text pilot reported as exploratory; C2 is discussed as the
 candidate method, never claimed. Every criterion in this entry stays as
@@ -2000,8 +2032,9 @@ commit, as required:
   The 52 h of checkpoint-stability seeds run only if capacity remains. Block C is a
   single-seed pilot reported as exploratory; C2 is discussed as the candidate
   method, not claimed; R0/R1 and the confirmatory intervention evals are
-  future work. The confirmatory **donor** evals (420, ≈ 35 h) run only if
-  Block D's exploratory test is promising and budget remains on 09-27.
+  future work. The confirmatory **donor** evals (420, 19.3 GPU-h measured) run only if
+  Block D's exploratory test is promising, as defined above, and budget
+  remains on 09-27.
 - *Option 2, full path*: requires either a second concurrent GPU through the
   post-implementation window **or** an extension beyond 10-12, subject to the
   timed pilot and queue. The full path is not reachable on one GPU by the
@@ -2038,9 +2071,10 @@ changes, and what is not run is reported as not run.
   and verify map hashes; submit Block A. If G0 passes, submit Blocks B and D
   (including the 84 shuffled donor evals); otherwise do not launch B–C, while
   D may proceed independently under its own confirmatory grounding guard.
-- A+7: Block C pilot (C1–C3, C5 only if G1-I is inconclusive); extra
-  `bn_v4` / `id_v4` seeds are checkpoint-stability work, not a prerequisite
-  for the gate.
+- A+7: Block C pilot (C1–C3, C5 single-seed only if G1-I is inconclusive;
+  G1-T stays undecidable under Option 1, see the decision above); extra
+  `bn_v4` / `id_v4` seeds are checkpoint-stability work, run only if capacity
+  remains, not a prerequisite for the gate.
 - A+12: loss gate (G0, G1, G2, G4, G5). G3 cannot be decided here; it waits
   for the confirmatory panel and does not block R0/R1.
 - After A+12: under Option 1, write the minimum-path paper and run only the
@@ -2058,6 +2092,55 @@ changes, and what is not run is reported as not run.
   culturally diverse stage-2 imagery (a hypothesis the CVQA − xGQA gap
   cannot test); Honeybee C-Abstractor for spatial; existence-QA for yes/no;
   an LwF-KL do-no-harm loss; a gate ramp-up schedule for D7's frontier.
+
+#### Review corrections, 2026-09-08 (pre-freeze; accepted by Santiago the same day)
+
+An independent review (`audits/review_2026-09-08.md`) reproduced E3 and X1
+and found that two pre-freeze artifacts did not implement what this entry
+promises. Corrections, all verified by synthetic tests that encode the
+failure they fix:
+
+- **`analysis/block_d.py`, rewritten (schema 2).** (i) The bootstrap drew
+  images independently per donor because the RNG key contained the donor;
+  seven identical donors gave regret 0 with UB95 = 25 points. Now one image
+  draw per (target, subset) stratum is shared by every donor; identical
+  donors give a regret distribution that is exactly 0. (ii) A constant
+  damage or α vector made Spearman NaN, every permutation comparison false,
+  and p = 0: a degenerate case became significant evidence. Now the
+  correlation is reported as undefined, p is null and the verdict is
+  `undefined`, never a pass. (iii) The verdict had three conditions; G3 has
+  four. The utility regret UB95(max_s α^U_s − α^U_selected) ≤ δ_U is
+  implemented from a second per-item endpoint, and the selected donor's
+  pooled Δ_ground is item-micro over all targets (α stays macro over
+  targets, the declared exception). (iv) The input carries subset, image
+  and question ids and every donor must present the identical item universe,
+  otherwise the analysis aborts; non-finite values abort. The production
+  adapter from `eval_*` files remains post-freeze work: no evaluator
+  produces the shuffled condition yet.
+- **`analysis/power_sim.py`, xGQA pairing.** bn/de/ko are translations of
+  the same questions on the same 398 images, and the pooling rule above
+  requires one cluster resample applied jointly to all translations. The
+  simulation had 1,194 independent (language, image) clusters for both the
+  sign-flip perturbation and the bootstrap. Now one stratum of 398 shared
+  image clusters; the artifact is regenerated (numbers above), the sign
+  convention is explicit in the code, the artifact and this entry (see
+  "Non-inferiority, three regions"), and the G3 grid is labelled as the
+  correlation criterion only.
+- **Specification reconciled** (this entry): Block A's ledger row now
+  carries the 96 CVQA evals Block A specifies; the 35 h / 51 h donor
+  estimates are superseded by the measured 19.3 GPU-h; Option 1 states the
+  C5 / G1-T override, makes the `bn_v4` / `id_v4` seeds conditional on
+  capacity everywhere, and pre-declares what "promising" means for the
+  optional confirmatory donor launch. `README.md` (root and Approach 2)
+  point to S1 and no longer propose LoRA.
+- **Not changed, deliberately**: the scientific question, the architecture,
+  Option 1, every threshold and margin. The review's remaining findings
+  (evaluator flags, strict branch loading, `eval_matrix.py`, manifests,
+  submit guard, the stage-3 completion marker and exact resume) block the
+  corresponding launches, not the freeze; they are listed below.
+- **Still missing for reproducibility**: a pinned environment capture of the
+  validated cluster venv (`pip freeze`) with model and tokenizer revisions.
+  To be added from a Rorqual login node.
 
 #### Post-freeze implementation prerequisites (none exist yet)
 

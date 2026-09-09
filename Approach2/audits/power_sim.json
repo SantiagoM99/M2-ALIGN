@@ -3,21 +3,26 @@
  "boot": 400,
  "sims": 120,
  "seed": 7,
+ "sign_convention": "D = candidate - reference in accuracy points; negative = candidate worse; non-inferior when LB5 > -margin, materially inferior when UB95 < -margin",
+ "clustering": {
+  "xGQA bn/de/ko": "one stratum; clusters = the 398 images shared by the three translations, perturbed and resampled jointly",
+  "CVQA jv/mn/ga": "strata = language units; clusters = images"
+ },
  "descriptives": {
   "xGQA bn/de/ko": {
    "grounding(\u0394_gray proxy)": {
     "items": 37734,
-    "images": 1194,
+    "images": 398,
     "mean_paired_diff": 0.03180155827635554,
     "discordance": 0.24338792600837442,
-    "icc": 0.00573132897225428
+    "icc": 0.0023470158996000317
    },
    "utility": {
     "items": 37734,
-    "images": 1194,
+    "images": 398,
     "mean_paired_diff": -0.625430646101659,
     "discordance": 0.16287698097206763,
-    "icc": 0.007254403924192217
+    "icc": 0.004238041340553621
    }
   },
   "CVQA jv/mn/ga": {
@@ -43,39 +48,41 @@
   "2.0": 0.75,
   "3.0": 0.5375
  },
- "assumptions": "-------------------\n1. \u0394_ground has never been measured; its noise is proxied by \u0394_gray's\n   (correct \u2212 gray) per-item paired differences. \u0394_ground noise is expected\n   to be at least as large (shuffled images vary), so power is optimistic.\n2. Comparators: xGQA uses bn zero-shot vs the target-supervised checkpoint;\n   CVQA uses bn-source vs id-source zero-shot. Both are real arms on\n   identical items.\n3. Regions use the same stratified image-cluster bootstrap as\n   e3_noninferiority.py, one-sided 5/95 bounds, \u03b4 = 1.0.\n4. B and S are small by design (cluster-level sums make each bootstrap\n   cheap); rerun with --boot 2000 --sims 400 for the paper's appendix.\n\nRun from Approach2/results:\n    python3 ../analysis/power_sim.py --out ../audits/power_sim.json",
+ "g3_power_scope": "correlation criterion only",
+ "assumptions": "-------------------\n1. \u0394_ground has never been measured; its noise is proxied by \u0394_gray's\n   (correct \u2212 gray) per-item paired differences. \u0394_ground noise is expected\n   to be at least as large (shuffled images vary), so power is optimistic.\n2. Comparators: xGQA uses bn zero-shot vs the target-supervised checkpoint;\n   CVQA uses bn-source vs id-source zero-shot. Both are real arms on\n   identical items.\n3. Regions use the same stratified image-cluster bootstrap as\n   e3_noninferiority.py, one-sided 5/95 bounds, \u03b4 = 1.0.\n4. B and S are small by design (cluster-level sums make each bootstrap\n   cheap); rerun with --boot 2000 --sims 400 for the paper's appendix.",
+ "limits": "--------------\n* MGSM / MSVAMP (\u03b4_R) power is not simulated here: no paired per-item text\n  results with a comparator arm exist at this HEAD.\n* The G3 grid below simulates only the correlation criterion (exact\n  one-sided permutation p < 0.10 over seven donors). It says nothing about\n  the conjunction with the regret, pooled-grounding and utility guardrails,\n  whose power depends on the unmeasured \u0394_ground panel.\n\nRun from Approach2/results:\n    python3 ../analysis/power_sim.py --out ../audits/power_sim.json",
  "results": {
   "xGQA bn/de/ko": {
    "grounding(\u0394_gray proxy)": {
     "0.0": {
-     "non-inferior": 0.9583333333333334,
-     "inconclusive": 0.041666666666666664,
+     "non-inferior": 0.925,
+     "inconclusive": 0.075,
      "mat. inferior": 0.0,
-     "half_width": 0.5676099997264947
+     "half_width": 0.5805745487304524
     },
     "-0.5": {
-     "non-inferior": 0.5333333333333333,
-     "inconclusive": 0.4666666666666667,
-     "mat. inferior": 0.0,
-     "half_width": 0.5668518055061537
+     "non-inferior": 0.55,
+     "inconclusive": 0.43333333333333335,
+     "mat. inferior": 0.016666666666666666,
+     "half_width": 0.581805092276257
     },
     "-1.0": {
-     "non-inferior": 0.06666666666666667,
-     "inconclusive": 0.8833333333333333,
-     "mat. inferior": 0.05,
-     "half_width": 0.565116963847911
+     "non-inferior": 0.041666666666666664,
+     "inconclusive": 0.9333333333333333,
+     "mat. inferior": 0.025,
+     "half_width": 0.5837120845403149
     },
     "-2.0": {
      "non-inferior": 0.0,
-     "inconclusive": 0.03333333333333333,
-     "mat. inferior": 0.9666666666666667,
-     "half_width": 0.5670313129444142
+     "inconclusive": 0.05,
+     "mat. inferior": 0.95,
+     "half_width": 0.5822208412203543
     },
     "-3.0": {
      "non-inferior": 0.0,
      "inconclusive": 0.0,
      "mat. inferior": 1.0,
-     "half_width": 0.5709205062798953
+     "half_width": 0.5815211613927803
     }
    },
    "utility": {
@@ -83,31 +90,31 @@
      "non-inferior": 1.0,
      "inconclusive": 0.0,
      "mat. inferior": 0.0,
-     "half_width": 0.4445684115419794
+     "half_width": 0.4653850623293886
     },
     "-0.5": {
-     "non-inferior": 0.725,
-     "inconclusive": 0.275,
+     "non-inferior": 0.6916666666666667,
+     "inconclusive": 0.30833333333333335,
      "mat. inferior": 0.0,
-     "half_width": 0.4482996705840856
+     "half_width": 0.4705060906531291
     },
     "-1.0": {
-     "non-inferior": 0.041666666666666664,
-     "inconclusive": 0.9166666666666666,
-     "mat. inferior": 0.041666666666666664,
-     "half_width": 0.4434224121699583
+     "non-inferior": 0.05,
+     "inconclusive": 0.9,
+     "mat. inferior": 0.05,
+     "half_width": 0.4690807419492984
     },
     "-2.0": {
      "non-inferior": 0.0,
-     "inconclusive": 0.016666666666666666,
-     "mat. inferior": 0.9833333333333333,
-     "half_width": 0.4466991265117746
+     "inconclusive": 0.008333333333333333,
+     "mat. inferior": 0.9916666666666667,
+     "half_width": 0.4664285140212334
     },
     "-3.0": {
      "non-inferior": 0.0,
      "inconclusive": 0.0,
      "mat. inferior": 1.0,
-     "half_width": 0.4456864391003524
+     "half_width": 0.4661037385693922
     }
    }
   },
