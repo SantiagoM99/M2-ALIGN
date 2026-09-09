@@ -1,0 +1,546 @@
+{
+  "cached_models": [
+    {
+      "configuration_hashes": {
+        "config.json": "8ecc124513fdb0bb31bf51b4f0dd6c8658a68296dc8cd30af612205ff4a1bc49",
+        "generation_config.json": "99b4f0bfe91aa4a78fc10018c17de56706db39d6ca87bc76f9be17aed7fe18c9",
+        "model.safetensors.index.json": "c38b39b80b2d7aa422464a9b816af4c30d2177e471b89e5325df1336a23ad284",
+        "special_tokens_map.json": "baec30ea10906f16adb8c18af7a34023002c1746542612b8b41c9f09e1351351",
+        "tokenizer.json": "3f289bc05132635a8bc7aca7aa21255efd5e18f3710f43e3cdb96bcd41be4922",
+        "tokenizer_config.json": "cb32b7929c62608d46572e813112b3ad8a841fb98fdd6a4da8559e368a951c89"
+      },
+      "model_cache": "models--google--gemma-2-9b-it",
+      "ref": "main",
+      "revision": "11c9b309abf73637e4b6f9a3fa1e92e615547819"
+    },
+    {
+      "configuration_hashes": {
+        "config.json": "73477b47ae9a395f008f993ebd8fb5c16ce0b5e8419ffdf2f5b2183b260f9cff",
+        "preprocessor_config.json": "fb2817d3523ca3b666c859f15320c7138416bc38ffc515e2963f78c868c51c90",
+        "special_tokens_map.json": "baec30ea10906f16adb8c18af7a34023002c1746542612b8b41c9f09e1351351",
+        "tokenizer.json": "cb9140fae3ac5122c972d37adf83e1248471a38147ad76f8215c8872c6fd8322",
+        "tokenizer_config.json": "14afe629fe4959b9e0d51e1852b8d9f7ad074f90a1a7125a4fcdd17f06e78fc8"
+      },
+      "model_cache": "models--google--siglip2-so400m-patch14-384",
+      "ref": "main",
+      "revision": "e8e487298228002f3d8a82e0cd5c8ea9c567f57f"
+    },
+    {
+      "configuration_hashes": {
+        "config.json": "f9b4081d3d108e9d06532ea8d92b932c04ed3a15ff2f87e6982f8e14db51fbc5",
+        "generation_config.json": "0bb604cdb8392649176935a447ce994128f170a6908c135a17d0e3dfb8113cb2",
+        "special_tokens_map.json": "992bd4ed610d644d6823081937bcc91bb8878dd556cea4ae5327f2480361330e",
+        "tokenizer.json": "e316b82de11d0f951f370943b3c438311629547285129b0b81dadabd01bca665",
+        "tokenizer_config.json": "d1aa8c3697d3e35674f97b5b7e9c99d22b010f528e80140257d97316be90d044"
+      },
+      "model_cache": "models--facebook--nllb-200-distilled-600M",
+      "ref": "main",
+      "revision": "f8d333a098d19b4fd9a8b18f94170487ad3f821d"
+    }
+  ],
+  "captured_at_utc": "2026-09-09T15:28:32.394089+00:00",
+  "executable": "/scratch/santimn/venvs/m2-align/bin/python",
+  "git": {
+    "code_sha": "c29fb8f434005f4647d5740034fd9062badec60c",
+    "dirty": false,
+    "spec_sha": "3b4faff4d673fad94cd3115b3f14212eeca9c12e"
+  },
+  "host": "rorqual2",
+  "modules": [
+    "CCconfig",
+    "gentoo/2023",
+    "gcccore/.12.3",
+    "gcc/12.3",
+    "hwloc/2.9.1",
+    "ucx/1.14.1",
+    "libfabric/1.18.0",
+    "pmix/4.2.4",
+    "ucc/1.2.0",
+    "openmpi/4.1.5",
+    "flexiblas/3.3.1",
+    "aocl-blas/5.1",
+    "aocl-lapack/5.1",
+    "StdEnv/2023",
+    "python/3.11.5",
+    "cudacore/.12.2.2",
+    "ipykernel/2026a",
+    "scipy-stack/2026a",
+    "arrow/21.0.0"
+  ],
+  "packages": [
+    {
+      "name": "aiohappyeyeballs",
+      "version": "2.7.1+computecanada"
+    },
+    {
+      "name": "aiohttp",
+      "version": "3.13.3+computecanada"
+    },
+    {
+      "name": "aiosignal",
+      "version": "1.4.0+computecanada"
+    },
+    {
+      "name": "annotated_doc",
+      "version": "0.0.4+computecanada"
+    },
+    {
+      "name": "annotated_types",
+      "version": "0.7.0+computecanada"
+    },
+    {
+      "name": "anyio",
+      "version": "4.14.2"
+    },
+    {
+      "name": "asttokens",
+      "version": "3.0.1+computecanada"
+    },
+    {
+      "name": "attrs",
+      "version": "26.1.0+computecanada"
+    },
+    {
+      "name": "certifi",
+      "version": "2026.6.17"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.4.9"
+    },
+    {
+      "name": "click",
+      "version": "8.4.2+computecanada"
+    },
+    {
+      "name": "comm",
+      "version": "0.2.3+computecanada"
+    },
+    {
+      "name": "contourpy",
+      "version": "1.3.3+computecanada"
+    },
+    {
+      "name": "cycler",
+      "version": "0.12.1+computecanada"
+    },
+    {
+      "name": "datasets",
+      "version": "2.21.0+computecanada"
+    },
+    {
+      "name": "debugpy",
+      "version": "1.8.19+computecanada"
+    },
+    {
+      "name": "decorator",
+      "version": "5.2.1+computecanada"
+    },
+    {
+      "name": "dill",
+      "version": "0.3.8+computecanada"
+    },
+    {
+      "name": "executing",
+      "version": "2.2.1+computecanada"
+    },
+    {
+      "name": "filelock",
+      "version": "3.29.7"
+    },
+    {
+      "name": "fonttools",
+      "version": "4.61.1+computecanada"
+    },
+    {
+      "name": "frozenlist",
+      "version": "1.8.0+computecanada"
+    },
+    {
+      "name": "fsspec",
+      "version": "2024.6.1+computecanada"
+    },
+    {
+      "name": "gitdb",
+      "version": "4.0.12+computecanada"
+    },
+    {
+      "name": "GitPython",
+      "version": "3.1.51"
+    },
+    {
+      "name": "h11",
+      "version": "0.16.0+computecanada"
+    },
+    {
+      "name": "hf_xet",
+      "version": "1.5.1+computecanada"
+    },
+    {
+      "name": "httpcore",
+      "version": "1.0.9+computecanada"
+    },
+    {
+      "name": "httpx",
+      "version": "0.28.1+computecanada"
+    },
+    {
+      "name": "huggingface_hub",
+      "version": "1.23.0"
+    },
+    {
+      "name": "idna",
+      "version": "3.18+computecanada"
+    },
+    {
+      "name": "ipykernel",
+      "version": "7.1.0+computecanada"
+    },
+    {
+      "name": "ipython",
+      "version": "9.9.0+computecanada"
+    },
+    {
+      "name": "ipython_pygments_lexers",
+      "version": "1.1.1+computecanada"
+    },
+    {
+      "name": "ipywidgets",
+      "version": "8.1.8+computecanada"
+    },
+    {
+      "name": "jedi",
+      "version": "0.19.2+computecanada"
+    },
+    {
+      "name": "jinja2",
+      "version": "3.1.6+computecanada"
+    },
+    {
+      "name": "jupyter_client",
+      "version": "8.8.0+computecanada"
+    },
+    {
+      "name": "jupyter_core",
+      "version": "5.9.1+computecanada"
+    },
+    {
+      "name": "jupyterlab_widgets",
+      "version": "3.0.16+computecanada"
+    },
+    {
+      "name": "kiwisolver",
+      "version": "1.4.9+computecanada"
+    },
+    {
+      "name": "markdown_it_py",
+      "version": "4.2.0+computecanada"
+    },
+    {
+      "name": "markupsafe",
+      "version": "3.0.3+computecanada"
+    },
+    {
+      "name": "matplotlib",
+      "version": "3.10.8+computecanada"
+    },
+    {
+      "name": "matplotlib_inline",
+      "version": "0.2.1+computecanada"
+    },
+    {
+      "name": "mdurl",
+      "version": "0.1.2+computecanada"
+    },
+    {
+      "name": "mpmath",
+      "version": "1.3.0+computecanada"
+    },
+    {
+      "name": "multidict",
+      "version": "6.7.1+computecanada"
+    },
+    {
+      "name": "multiprocess",
+      "version": "0.70.16+computecanada"
+    },
+    {
+      "name": "nest_asyncio",
+      "version": "1.6.0+computecanada"
+    },
+    {
+      "name": "networkx",
+      "version": "3.6.1+computecanada"
+    },
+    {
+      "name": "nose",
+      "version": "1.3.7+computecanada"
+    },
+    {
+      "name": "numpy",
+      "version": "2.4.6"
+    },
+    {
+      "name": "numpy",
+      "version": "2.4.2+computecanada"
+    },
+    {
+      "name": "packaging",
+      "version": "26.3+computecanada"
+    },
+    {
+      "name": "packaging",
+      "version": "26.0+computecanada"
+    },
+    {
+      "name": "packaging",
+      "version": "26.0+computecanada"
+    },
+    {
+      "name": "pandas",
+      "version": "3.0.5"
+    },
+    {
+      "name": "pandas",
+      "version": "3.0.0+computecanada"
+    },
+    {
+      "name": "parso",
+      "version": "0.8.5+computecanada"
+    },
+    {
+      "name": "pexpect",
+      "version": "4.9.0+computecanada"
+    },
+    {
+      "name": "pillow",
+      "version": "12.1.0+computecanada"
+    },
+    {
+      "name": "Pillow_SIMD",
+      "version": "9.5.0.post2+computecanada"
+    },
+    {
+      "name": "pip",
+      "version": "23.2.1"
+    },
+    {
+      "name": "pip",
+      "version": "25.2+computecanada"
+    },
+    {
+      "name": "platformdirs",
+      "version": "4.11.7"
+    },
+    {
+      "name": "platformdirs",
+      "version": "3.11.0+computecanada"
+    },
+    {
+      "name": "prompt_toolkit",
+      "version": "3.0.52+computecanada"
+    },
+    {
+      "name": "propcache",
+      "version": "0.5.2+computecanada"
+    },
+    {
+      "name": "protobuf",
+      "version": "7.35.1+computecanada"
+    },
+    {
+      "name": "psutil",
+      "version": "7.2.2+computecanada"
+    },
+    {
+      "name": "ptyprocess",
+      "version": "0.7.0+computecanada"
+    },
+    {
+      "name": "pure_eval",
+      "version": "0.2.3+computecanada"
+    },
+    {
+      "name": "pyarrow",
+      "version": "25.0.1"
+    },
+    {
+      "name": "pyarrow",
+      "version": "21.0.0"
+    },
+    {
+      "name": "pydantic",
+      "version": "2.13.4+computecanada"
+    },
+    {
+      "name": "pydantic_core",
+      "version": "2.46.4+computecanada"
+    },
+    {
+      "name": "pygments",
+      "version": "2.19.2+computecanada"
+    },
+    {
+      "name": "pyparsing",
+      "version": "3.3.2+computecanada"
+    },
+    {
+      "name": "python-dateutil",
+      "version": "2.9.0.post0"
+    },
+    {
+      "name": "python_dateutil",
+      "version": "2.9.0.post0+computecanada"
+    },
+    {
+      "name": "python_dateutil",
+      "version": "2.9.0.post0+computecanada"
+    },
+    {
+      "name": "pytz",
+      "version": "2025.2+computecanada"
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.3+computecanada"
+    },
+    {
+      "name": "pyzmq",
+      "version": "27.1.0+computecanada"
+    },
+    {
+      "name": "regex",
+      "version": "2026.1.15+computecanada"
+    },
+    {
+      "name": "requests",
+      "version": "2.34.2+computecanada"
+    },
+    {
+      "name": "rich",
+      "version": "15.0.0+computecanada"
+    },
+    {
+      "name": "safetensors",
+      "version": "0.8.0+computecanada"
+    },
+    {
+      "name": "scipy",
+      "version": "1.17.0+computecanada"
+    },
+    {
+      "name": "sentencepiece",
+      "version": "0.2.0+computecanada"
+    },
+    {
+      "name": "sentry_sdk",
+      "version": "2.64.0+computecanada"
+    },
+    {
+      "name": "setuptools",
+      "version": "83.0.0+computecanada"
+    },
+    {
+      "name": "shellingham",
+      "version": "1.5.4+computecanada"
+    },
+    {
+      "name": "six",
+      "version": "1.17.0"
+    },
+    {
+      "name": "six",
+      "version": "1.17.0+computecanada"
+    },
+    {
+      "name": "six",
+      "version": "1.17.0+computecanada"
+    },
+    {
+      "name": "smmap",
+      "version": "5.0.3+computecanada"
+    },
+    {
+      "name": "stack_data",
+      "version": "0.6.3+computecanada"
+    },
+    {
+      "name": "sympy",
+      "version": "1.14.0+computecanada"
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.22.2+computecanada"
+    },
+    {
+      "name": "torch",
+      "version": "2.13.0+computecanada"
+    },
+    {
+      "name": "torchvision",
+      "version": "0.28.0+computecanada"
+    },
+    {
+      "name": "tornado",
+      "version": "6.5.4+computecanada"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.68.4+computecanada"
+    },
+    {
+      "name": "traitlets",
+      "version": "5.14.3+computecanada"
+    },
+    {
+      "name": "transformers",
+      "version": "5.13.1"
+    },
+    {
+      "name": "typer",
+      "version": "0.26.8+computecanada"
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.16.0+computecanada"
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.15.0+computecanada"
+    },
+    {
+      "name": "typing_inspection",
+      "version": "0.4.2+computecanada"
+    },
+    {
+      "name": "tzdata",
+      "version": "2025.3+computecanada"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.7.0+computecanada"
+    },
+    {
+      "name": "wandb",
+      "version": "0.27.2+computecanada"
+    },
+    {
+      "name": "wcwidth",
+      "version": "0.5.2+computecanada"
+    },
+    {
+      "name": "widgetsnbextension",
+      "version": "4.0.15+computecanada"
+    },
+    {
+      "name": "xxhash",
+      "version": "3.5.0+computecanada"
+    },
+    {
+      "name": "yarl",
+      "version": "1.24.2+computecanada"
+    }
+  ],
+  "platform": "Linux-5.14.0-687.42.1.el9_8.x86_64-x86_64-AMD_EPYC_9654_96-Core_Processor-with-glibc2.37",
+  "python": "3.11.5"
+}
