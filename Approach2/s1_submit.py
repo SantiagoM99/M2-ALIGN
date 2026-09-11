@@ -52,7 +52,7 @@ def build_submission(plan_path):
         from analysis.block_a import validate_grid
 
         validate_grid(grid)
-    else:
+    elif plan["block"] == "B":
         check_parity_lineage(plan)
     git_state(expected_code=state["code_sha"])
     return {

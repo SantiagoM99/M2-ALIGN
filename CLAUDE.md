@@ -70,9 +70,10 @@ it again without saying so explicitly and recording it in both files.
   self-cells are skipped, so donors that are also targets break the common set.
 - The zero-shot reference is the **target's own supervised checkpoint**, and
   "A significant, B not" is never "A > B": test the difference directly.
-- The candidate experimental contract is `Approach2/DESIGN.md` **S1
-  v2.1.3**; it is not frozen until its audit, inventory, power and Block-D
-  analysis artifacts are committed. Edit the spec first, then the launcher.
+- The experimental contract is `Approach2/DESIGN.md` **S1 v2.1.3**, **frozen
+  2026-09-08** by commit `3b4faff`; that hash is the spec SHA every manifest
+  carries. The frozen text is never edited in place: a change is a new dated
+  entry below it. Edit the spec first, then the launcher.
 - Non-inferiority margins are substantive (δ = 1.0 point), never derived from
   precision; CVQA panels are underpowered for non-inferiority and say so.
 - Any preservation-loss arm trained with reasoning replay needs a matched
@@ -95,9 +96,14 @@ data at `DT=/scratch/santimn/datatransfer`.
 - **Python on the cluster is 3.11.5.** A backslash inside an f-string
   expression is a `SyntaxError` there and legal on a 3.12+ laptop. Check
   embedded heredoc Python before submitting.
-- **Partitions are by walltime** (3/12/24/72/168h). Ask for 12h and chain;
-  ask for 3h when the job really is short — it schedules far faster.
-- **Minimal concurrent jobs.** Packed or chained is the default.
+- **Partitions are by walltime** (3/12/24/72/168h). Chaining 12h links
+  schedules fastest; Santiago often prefers one long block instead, to enter
+  the queue once (2026-09-09). Either works: the S1 runners resume per cell.
+- Concurrency: packed or chained by default, but three streams ran together
+  in September when the deadline required it.
+- S1 allocations run from a **detached worktree of their submitted commit**
+  (`$SCRATCH/s1_worktrees/<code sha>`), so pulling in the main clone no longer
+  kills a queued job. Preparing a submission still needs the intended HEAD.
 - **Launchers must be idempotent**: skip work whose output already exists, so
   a re-run only fills gaps.
 - SLURM **freezes the batch script at submit time** — a queued job will not
@@ -131,9 +137,12 @@ data at `DT=/scratch/santimn/datatransfer`.
   pulling `1aafc1a` (job 20398782's results) do **not** run it until
   `analysis/block_d.py` exists and the freeze commit is in `HEAD`.
 - Every reported number comes from a versioned script in `analysis/`. Current:
-  `_boot.py`, `e3_noninferiority.py`, `x1_did.py`, `test_invariance.py`,
-  `test_fail_closed.py`; report scripts run from `Approach2/results/`, the
-  fail-closed test from anywhere.
+  `_boot.py`, `e3_noninferiority.py`, `x1_did.py`, `block_a.py`, `block_d.py`,
+  `block_d_input.py`, `power_sim.py`, plus the tests `test_invariance.py`,
+  `test_fail_closed.py`, `test_block_a.py`, `test_block_d.py`,
+  `test_block_d_input.py`, `test_cvqa_s1_builder.py`. The legacy report scripts
+  run from `Approach2/results/`; the S1 ones take a submission path and run from
+  anywhere. Operational commands for the S1 blocks: `Approach2/S1_IMPLEMENTATION.md`.
 
 ## Security
 

@@ -1,9 +1,10 @@
-"""Build the exact frozen A/B cell grid and deterministic maps without GPU.
+"""Build the exact frozen A/B/D cell grid and deterministic maps without GPU.
 
 Panels JSON: {"xgqa": {"bn": {"data": "...", "images": "..."}, ...},
               "cvqa": {"jv": {"data": "...", "images": "..."}, ...}}
 A needs xGQA bn/de/ko/en and CVQA jv/mn/ga/si. B needs xGQA bn/id and
-CVQA jv/mn/ga/si/bn. Use build_cvqa_s1.py outputs with explicit subsets.
+CVQA jv/mn/ga/si/bn. D needs CVQA jv/mn/ga/si only. Use build_cvqa_s1.py
+outputs with explicit subsets.
 """
 
 import argparse
@@ -26,6 +27,14 @@ def build(a):
         "V2": ck("stage2_dc_llava"),
         "V3_bn": ck("stage3_bn_dcl"),
         "V3_id": ck("stage3_id_v4"),
+    }
+    # Block D evaluates seven whole stage-3 checkpoints, one per donor language,
+    # on the four current transfer targets. The bn donor is `stage3_bn_dcl`, the
+    # checkpoint every transfer number so far came from; the rest are the v4 runs.
+    donors = {
+        "bn": "stage3_bn_dcl", "id": "stage3_id_v4", "ru": "stage3_ru_v4",
+        "zh": "stage3_zh_v4", "de": "stage3_de_v4", "pt": "stage3_pt_v4",
+        "ko": "stage3_ko_v4",
     }
     cells = []
     parity = []
@@ -61,7 +70,7 @@ def build(a):
             "--arm",
             arm,
             "--source",
-            "bn" if a.block == "A" else arm,
+            {"A": "bn", "D": arm.removeprefix("D_")}.get(a.block, arm),
             "--target",
             t,
             "--data-path",
@@ -80,13 +89,17 @@ def build(a):
             "--output-path",
             str((Path(a.results) / f"{cid}.jsonl").resolve()),
             "--hypothesis",
-            "S1 P1/P2: input necessity and grounding"
-            if a.block == "A"
-            else "S1 P3/P4: functional branch localisation and co-adaptation",
+            {
+                "A": "S1 P1/P2: input necessity and grounding",
+                "B": "S1 P3/P4: functional branch localisation and co-adaptation",
+                "D": "S1 Block D-donor: stage 1 -> stage 3 alignment damage predicts donor effect",
+            }[a.block],
             "--prediction",
-            "A1 grounding > 0 on each panel; A2 necessity classified by frozen NI regions"
-            if a.block == "A"
-            else "D_T > 0 and D_T-D_V > 0; P4 two-sided",
+            {
+                "A": "A1 grounding > 0 on each panel; A2 necessity classified by frozen NI regions",
+                "B": "D_T > 0 and D_T-D_V > 0; P4 two-sided",
+                "D": "Spearman(damage, alpha) < 0 one-sided; exploratory on the current targets",
+            }[a.block],
             "--seed",
             "42",
         ]  # historical source checkpoint seed, not a new training run
@@ -113,7 +126,19 @@ def build(a):
         return cid
 
     conditions = ["correct", "shuffled0", "shuffled1", "shuffled2", "gray"]
-    if a.block == "A":
+    if a.block == "D":
+        # Delta_ground needs correct and the three shuffles on identical items.
+        # The gray canvas is Delta_gray, a different endpoint, and D does not use
+        # it. The historical correct-condition files are NOT reused: they were
+        # produced under transformers 4.x, whose CVQA choice scores differ from
+        # 5.x by enough to move the argmax (DESIGN 2026-09-11), so a Delta_ground
+        # mixing an old correct with a new shuffled would not be a paired
+        # difference at all.
+        for t in ["jv", "mn", "ga", "si"]:
+            for donor, name in sorted(donors.items()):
+                for c in conditions[:-1]:
+                    add("cvqa", t, "D_" + donor, c, ck(name), ck(name))
+    elif a.block == "A":
         for b, targets in [
             ("xgqa", ["bn", "de", "ko"]),
             ("cvqa", ["jv", "mn", "ga", "si"]),
@@ -224,7 +249,7 @@ def falsifier_first(cells):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--panels", required=True)
-    p.add_argument("--block", choices=["A", "B"], required=True)
+    p.add_argument("--block", choices=["A", "B", "D"], required=True)
     p.add_argument("--checkpoints", required=True)
     p.add_argument("--results", required=True)
     p.add_argument("--maps-dir", default=str(ROOT / "evaluation"))

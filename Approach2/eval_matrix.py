@@ -20,8 +20,8 @@ from s1_contract import (
 
 def read_plan(path):
     plan = read_json(path)
-    if plan.get("spec_sha") != SPEC_SHA or plan.get("block") not in ("A", "B"):
-        raise ValueError("plan requires exact S1 spec SHA and block A or B")
+    if plan.get("spec_sha") != SPEC_SHA or plan.get("block") not in ("A", "B", "D"):
+        raise ValueError("plan requires exact S1 spec SHA and block A, B or D")
     cells = plan.get("cells", [])
     if not cells or len({c["id"] for c in cells}) != len(cells):
         raise ValueError("empty matrix or duplicate cell id")

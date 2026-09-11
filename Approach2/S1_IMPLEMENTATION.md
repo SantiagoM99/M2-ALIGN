@@ -181,6 +181,69 @@ The plan conservatively evaluates all sixteen xGQA task-control cells; the
 frozen ledger already budgets them. Existing CVQA files serve as parity
 references, not as unmanifested substitutes for primary S1 observations.
 
+## Block D: donor damage against donor effect
+
+D needs two inputs that come from different runs, and the predictor must be
+committed before the outcome is read.
+
+**1. Alignment scorings (the predictor).** Damage is read from each donor's
+OWN stage-1 and stage-3 checkpoints, so all fourteen must be scored. Four
+already are (`stage1`, `stage1_joint`, `stage3_bn_dcl`, `stage3_id_v4`); the
+launcher skips whatever exists and whatever has no checkpoint:
+
+```bash
+CKPTS="stage1_id stage1_ru stage1_zh stage1_de stage1_pt stage1_ko \
+       stage3_ru_v4 stage3_zh_v4 stage3_de_v4 stage3_pt_v4 stage3_ko_v4" \
+  sbatch Approach2/job-scripts/pair_alignment.sh
+```
+
+Commit the resulting `Approach2/results/pairalign_*.json` **before** building
+the D plan: that is what fixes the donor ranking ahead of any outcome.
+
+**2. The evaluation matrix (the outcome).** Seven donors on the four current
+transfer targets, correct plus three shuffles, **112 cells**, about four hours:
+
+```bash
+python Approach2/s1_plan.py --block D \
+  --panels evaluation/s1_panels.json \
+  --checkpoints "$PWD/Approach2/outputs" \
+  --results "$PWD/Approach2/outputs/s1_D" \
+  --output evaluation/s1_D.plan.json
+python Approach2/s1_submit.py --plan evaluation/s1_D.plan.json \
+  --submission "$PWD/Approach2/outputs/s1_D.submission.json"
+```
+
+The grey canvas is not in the grid: D's endpoint is Δ_ground, and Δ_gray is a
+different quantity. The historical correct-image files are not reused either,
+even though they exist for these donors and targets. They were produced under
+transformers 4.x, whose CVQA choice scores differ from 5.x by enough to move
+the argmax, so a Δ_ground pairing an old correct with a new shuffled would not
+be a paired difference at all.
+
+**3. Analysis.**
+
+```bash
+python Approach2/analysis/block_d_input.py \
+  --submission Approach2/outputs/s1_D.submission.json \
+  --alignment-dir Approach2/results \
+  --output Approach2/outputs/s1_D.input.json
+python Approach2/analysis/block_d.py --from-json Approach2/outputs/s1_D.input.json
+```
+
+The adapter authenticates every cell exactly as Block A's analysis does, then
+emits per item `ground` (correct minus the mean of the three shuffles) and
+`utility` (correct), keyed by subset and image so the bootstrap can resample
+images jointly across donors. `block_d.py` reports the Spearman with its exact
+one-sided permutation p, the selected donor, both regrets and G3's four
+conditions; an undefined correlation is reported as `undefined`, never as a
+pass.
+
+**This run is exploratory.** Four of the seven donors shaped the hypothesis,
+so the current targets cannot test it prospectively. The prospective test is
+the twelve-unit confirmatory panel, and under Option 1 it runs only if this
+exploratory result is promising, which DESIGN pre-declares as a defined
+p < 0.10 together with a selected-donor regret point estimate of at most 1.0.
+
 ## Exact stage-3 continuation
 
 `training_resume.py` and the stage-3 loop save explicit deterministic batch

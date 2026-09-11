@@ -2425,3 +2425,37 @@ the environment with the results.
 **Not changed**: no gate, margin, endpoint or cell. `analysis/block_a.py` is
 untouched and Block A's report stands, since all 156 of its cells ran in the
 same environment.
+
+### Block D implementation — 2026-09-11 (no protocol amendment)
+
+The frozen Block D-donor procedure had an analysis (`analysis/block_d.py`) and
+no way to feed it. That path now exists, in three pieces, and nothing in the
+frozen text changed.
+
+- **`s1_plan.py --block D`** emits the grid: seven donors, each a whole stage-3
+  checkpoint (bn is `stage3_bn_dcl`, the rest are v4), on the four current
+  transfer targets, correct plus the three seeded shuffles. **112 cells,
+  about four hours.** The grey canvas is absent on purpose: D's endpoint is
+  Δ_ground and Δ_gray is a different quantity. The historical correct-image
+  files are not reused either, although they exist for exactly these donors and
+  targets: they predate the move to transformers 5.x, so pairing an old correct
+  with a new shuffled would not be a paired difference (see the entry above).
+- **`analysis/block_d_input.py`** joins the matrix to the predictor. It
+  authenticates every cell through `block_a.load_cells`, now shared, then emits
+  per item `ground` = correct − mean of the three shuffles and `utility` =
+  correct, keyed by subset and image so the bootstrap can resample images
+  jointly across donors. Damage comes from each donor's OWN stage-1 and stage-3
+  pair-alignment files, as the spec requires, and the adapter aborts with the
+  exact `CKPTS=` line to run when one is missing rather than treating an absent
+  margin as zero. Tests in `analysis/test_block_d_input.py`, including that its
+  output is accepted by `block_d.analyse`.
+- **Still to run before the plan is built**: eleven `pair_alignment.sh`
+  scorings, `stage1_{id,ru,zh,de,pt,ko}` and `stage3_{ru,zh,de,pt,ko}_v4`. Only
+  four of the fourteen checkpoints are scored today. **The scorings are
+  committed before the D plan is built**, which is what fixes the donor ranking
+  ahead of any outcome.
+
+`pair_alignment.sh` and `evaluate_all.sh` no longer commit their harvest by
+themselves, for the reason given under the environment entry: a harvest that
+moves HEAD kills a queued S1 allocation. And S1 allocations now run from a
+detached worktree of their own commit, so pulling in the main clone is safe.

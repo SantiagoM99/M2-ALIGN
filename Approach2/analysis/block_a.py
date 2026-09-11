@@ -29,14 +29,19 @@ from _boot import boot_stratified, pct, region
 CONDITIONS = ("correct", "shuffled0", "shuffled1", "shuffled2", "gray", "no-image")
 
 
-def load_cells(submission_path, results_dir=None):
+def load_cells(submission_path, results_dir=None, block="A"):
+    """Authenticate every cell of a finished submission and return its rows.
+
+    Shared with Block D, which needs the same provenance, completion-hash,
+    universe, shuffle-map and condition checks on exactly the same cell shape.
+    """
     sub = read_json(submission_path)
     if (
         sub.get("spec_sha") != SPEC_SHA
-        or sub["plan"]["block"] != "A"
+        or sub["plan"]["block"] != block
         or digest(sub["plan"]) != sub["plan_sha256"]
     ):
-        raise ValueError("not an authenticated S1 Block A submission")
+        raise ValueError(f"not an authenticated S1 Block {block} submission")
     cells = {}
     for cid, expected in sub["manifests"].items():
         original = Path(expected["arguments"]["output_path"])

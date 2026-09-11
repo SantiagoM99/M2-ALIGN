@@ -91,8 +91,10 @@ echo
 echo "=== Read it with: cd Approach2/results && python3 ../analysis/donor_matrix.py ==="
 
 cd "$PROJECT_ROOT"
-git add Approach2/results 2>/dev/null || true
-git commit -m "results: X2b pairwise FLORES alignment (job ${SLURM_JOB_ID:-manual})" Approach2/results \
-  || echo "No new results to commit."
+# No automatic commit: an S1 allocation validates that HEAD still equals the
+# code SHA frozen into its submission, so a harvest that moves HEAD while an S1
+# job is queued kills it. Commit by hand from a login node.
+echo "Scored into Approach2/results; review and commit by hand."
+git -C "$PROJECT_ROOT" status --short Approach2/results | head -40
 echo "=== Done === $(date)"
 [ ${#FAILED[@]} -gt 0 ] && { echo "FAILED: ${FAILED[*]}"; exit 1; } || exit 0
