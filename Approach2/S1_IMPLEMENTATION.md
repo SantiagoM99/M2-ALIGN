@@ -126,8 +126,18 @@ python Approach2/s1_submit.py --resume --submit \
   --submission "$PWD/Approach2/outputs/s1_A.submission.json"
 ```
 
-To chain another 12-hour allocation, use the same command with
-`--dependency afterany:JOB_ID`. Keep HEAD unchanged while the chain is active.
+To chain another allocation, use the same command with
+`--dependency afterany:JOB_ID`.
+
+Each allocation runs from a **detached worktree of the submitted commit**,
+created under `$SCRATCH/s1_worktrees/<code sha>` (override with
+`S1_WORKTREE_ROOT`), so pulling, branching or editing in the main clone cannot
+change what a queued job will execute. Results still land in the main clone:
+every path inside a submission is absolute. Worktrees are cheap to discard;
+`git worktree prune` after their directories are gone, or
+`git worktree remove <path>`. Preparing a submission still requires the main
+clone's HEAD to be the commit you intend to freeze, since that is the commit
+the worktree will be made from.
 Every allocation validates the submitted code and input hashes before model
 loading. Results with valid completion hashes are skipped; partial cells are
 recomputed and attributed to the allocation that finished them. Per-cell
