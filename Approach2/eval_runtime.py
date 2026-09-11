@@ -197,6 +197,23 @@ def environment_record():
     }
 
 
+def require_complete_environment():
+    """Refuse to FREEZE a submission from a shell that cannot see the packages.
+
+    Without the venv active every version reads None, that None is frozen into
+    the submission, and the allocation then reports the real version and aborts
+    on an environment mismatch (job 20659537, 2026-09-09). Runtime keeps the
+    lenient record: there the frozen manifest is the authority.
+    """
+    absent = sorted(k for k, v in environment_record()["packages"].items() if v is None)
+    if absent:
+        raise ValueError(
+            f"no version recorded for {', '.join(absent)}: prepare submissions with the "
+            "cluster modules and venv active, so the manifest describes the environment "
+            "the allocation will run in"
+        )
+
+
 def prepare(a, image_cache=None):
     """Validate all original images for every condition, before loading towers."""
     from PIL import Image

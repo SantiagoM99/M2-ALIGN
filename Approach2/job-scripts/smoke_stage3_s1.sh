@@ -25,7 +25,7 @@ export HF_HOME="$SCRATCH/huggingface" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 cd "$ROOT"
 SMOKE="$ROOT/Approach2/outputs/smoke_stage3_s1_${SLURM_JOB_ID}"
 mkdir -p "$SMOKE"
-head -n 120 "$DT/Stage3/data/stage3b/bengali.jsonl" > "$SMOKE/rows.jsonl"
+head -n 120 "$DT/Stage3/data/bn.jsonl" > "$SMOKE/rows.jsonl"
 srun python -u Approach2/train_stage3_vqa.py --s1 \
   --data-path "$SMOKE/rows.jsonl" \
   --images-dir "$DT/Stage3/data/gqa/images" \

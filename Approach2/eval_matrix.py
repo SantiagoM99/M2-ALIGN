@@ -158,11 +158,14 @@ def run(submission_path):
             {"spec_sha": SPEC_SHA, "code_sha": submission["code_sha"], "dirty": False},
         )
         frozen = submission["manifests"][cell["id"]]
-        if {k: v for k, v in m.items() if k != "slurm_job_id"} != {
-            k: v for k, v in frozen.items() if k != "slurm_job_id"
-        }:
+        changed = sorted(
+            k
+            for k in set(m) | set(frozen)
+            if k != "slurm_job_id" and m.get(k) != frozen.get(k)
+        )
+        if changed:
             raise ValueError(
-                f"{cell['id']}: data, image, checkpoint, argument or map changed after submission"
+                f"{cell['id']}: changed after submission: {', '.join(changed)}"
             )
         old = Path(a.output_path + ".manifest.json")
         if old.exists():

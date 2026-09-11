@@ -5,11 +5,12 @@ from pathlib import Path
 import subprocess
 
 from eval_matrix import check_parity_lineage, read_plan, validate_submission
-from eval_runtime import prepare, make_manifest
+from eval_runtime import make_manifest, prepare, require_complete_environment
 from s1_contract import ROOT, SPEC_SHA, atomic_json, digest, file_sha, git_state
 
 
 def build_submission(plan_path):
+    require_complete_environment()
     state = git_state()
     plan, cells = read_plan(plan_path)
     # All analysis/instrument components must exist before submission.

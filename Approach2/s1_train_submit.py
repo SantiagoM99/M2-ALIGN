@@ -19,10 +19,11 @@ from s1_contract import (
     read_rows,
 )
 from training_resume import epoch_batches, split_rows
-from eval_runtime import environment_record, model_record
+from eval_runtime import environment_record, model_record, require_complete_environment
 
 
 def build(a):
+    require_complete_environment()
     state = git_state()
     gate = read_json(a.block_a_report)
     if gate.get("spec_sha") != SPEC_SHA or gate.get("gates", {}).get("G0") is not True:
@@ -31,7 +32,7 @@ def build(a):
         raise ValueError("C5 is skipped when G1-I is dispensable")
     dt = Path(a.data_root).resolve()
     ck = Path(a.checkpoints).resolve()
-    data = dt / "Stage3/data/stage3b/bengali.jsonl"
+    data = dt / "Stage3/data/bn.jsonl"
     tr, va = split_rows(read_rows(data), 0.03, a.seed, True)
     checkpoints = {
         "mapping_txt": file_record(ck / "stage1/mapping/pytorch_model.bin"),
