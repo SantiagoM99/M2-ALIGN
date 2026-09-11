@@ -35,8 +35,8 @@ MT_PATH="${MT_PATH:-facebook/nllb-200-distilled-600M}"
 GQA_IMAGES="${GQA_IMAGES:-$DT/Stage3/data/gqa/images}"
 [ -d "$GQA_IMAGES" ] || GQA_IMAGES="$PROJECT_ROOT/Stage3/data/gqa/images"
 
-XGQA_LANGS="bn de ru zh pt id ko"
-CVQA_LANGS="bn ru zh pt id ko jv mn si ga"
+XGQA_LANGS="${XGQA_LANGS:-bn de ru zh pt id ko}"
+CVQA_LANGS="${CVQA_LANGS:-bn ru zh pt id ko jv mn si ga}"
 
 if [ -d "$MT_PATH" ]; then
   for d in "$MT_PATH"/*; do
@@ -191,9 +191,12 @@ for L in $XGQA_LANGS $CVQA_LANGS; do
 done
 harvest_dir "$TXT_OUT"
 cd "$PROJECT_ROOT"
-git add Approach2/results 2>/dev/null || true
-git commit -m "results: packed evals$R (job ${SLURM_JOB_ID:-manual})" Approach2/results \
-  || echo "No new results to commit."
+# No automatic commit. Every S1 allocation validates that HEAD still equals the
+# code SHA frozen into its submission, so a harvest that moves HEAD while an S1
+# job is queued or running kills it (s1_contract.git_state). Summaries are left
+# in Approach2/results for a person to inspect and commit from a login node.
+echo "Harvested into Approach2/results; review and commit by hand."
+git -C "$PROJECT_ROOT" status --short Approach2/results | head -40
 
 echo "=== Done === $(date)"
 if [ ${#FAILED[@]} -gt 0 ]; then
