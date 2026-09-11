@@ -2374,3 +2374,54 @@ full grid still runs.
 **Not restated.** The question in `SCIENCE.md` §2 stands. A bounds one
 channel; it does not answer whether the transfer variation comes from
 source-conditioned connector co-adaptation.
+
+### Environment change and the parity gate — 2026-09-11 (job 20919626)
+
+Block B's first allocation aborted after nine minutes on its first parity
+cell, `s1_B_cvqa_jv_T3_id__V3_id_correct`, item `5865939224274762645_2`.
+
+**What the gate proved, and what it did not.** `query`, `choices` and
+`answer_index` were identical to the historical `eval_cvqa_jv_zsid.jsonl`, so
+the CVQA panels rebuilt by `build_cvqa_s1.py` reproduce the files the legacy
+runs used, for Javanese as well as the Bengali unit the pre-freeze audit
+checked. What differed were the choice log-likelihoods: −14.156, −12.585,
+−12.452, −21.719 became −13.599, −12.275, −12.395, −21.756, shifts of 0.037
+to 0.557 nats. The reference's top two choices were 0.133 apart, so the argmax
+flipped.
+
+**Cause.** The cluster venv now carries transformers 5.13.1; the reference
+runs were produced under 4.x. Gemma 2 applies attention-logit soft-capping,
+whose implementation differs across versions and attention backends. This is
+consistent with the rest of Block A: xGQA reproduced the historical
+`eval_xgqa_bn_dcl` accuracy exactly (47.66), because greedy decoding is
+robust, while an argmax over four nearly tied log-likelihoods is not. In the
+reference cells 4% of items have their top two choices within 0.1 nat and
+10% within 0.2; resampling them with shifts of the observed size flips 4 to 9%
+of predictions.
+
+**Decision.** Exact per-item parity is not satisfiable across that boundary,
+and dropping the gate would lose a real regression guard, so
+`compare_predictions` is recalibrated rather than removed. Inputs stay
+absolutely strict: the item universe, `query`, `choices` and `answer_index`
+must be identical, which is what catches a wrong checkpoint, panel, prompt or
+image. Open-ended cells still demand exact prediction equality. For choice
+cells three guards replace exact equality: the 99th percentile of the per-item
+score shift, measured over items that did **not** flip, must stay under 2.0
+nats; disagreements must stay under 25% of the panel, against the 50 to 75%
+a wrong checkpoint would give on four choices; and no disagreement may sit on
+an item whose reference top-2 gap exceeds twice the largest shift observed on
+an item that agreed. The drift is estimated on agreeing items on purpose: over
+all items a broken pipeline would inflate the estimate until it excused its
+own flips. Each cell prints its disagreement count, drift and both accuracies.
+
+**Consequence for the record, and it is not small.** Numbers produced under
+4.x and under 5.13.1 are not interchangeable on CVQA multiple choice. Every
+S1 block computes all of its own cells in one environment, so its contrasts
+are paired and unaffected. But **no contrast may mix a legacy CVQA number
+with a new one**, and the legacy figures in this log (E3, X1, the D series)
+stay valid only as the internally consistent set they were. The paper reports
+the environment with the results.
+
+**Not changed**: no gate, margin, endpoint or cell. `analysis/block_a.py` is
+untouched and Block A's report stands, since all 156 of its cells ran in the
+same environment.

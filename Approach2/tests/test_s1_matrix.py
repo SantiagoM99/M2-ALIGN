@@ -72,27 +72,55 @@ class MatrixTests(unittest.TestCase):
             )
 
     def test_prediction_parity_checks_gold_and_universe(self):
+        def rows(scores_by_item):
+            out = []
+            for i, scores in sorted(scores_by_item.items()):
+                best = max(range(len(scores)), key=scores.__getitem__)
+                out.append({
+                    "id": i, "query": "q", "choices": ["a", "b"], "answer_index": 0,
+                    "scores": list(scores), "pred_index": best, "correct": best == 0,
+                })
+            return "\n".join(json.dumps(r) for r in out) + "\n"
+
+        # Twenty confident items plus one near-tie, the shape of a real CVQA cell.
+        reference = {f"i{k:02d}": [0.0, -2.0] for k in range(20)}
+        reference["tie"] = [0.0, -0.05]
         with tempfile.TemporaryDirectory() as d:
-            a = Path(d) / "a"
-            b = Path(d) / "b"
-            row = {
-                "id": "x",
-                "query": "q",
-                "choices": ["a", "b"],
-                "answer_index": 0,
-                "pred_index": 0,
-                "correct": True,
-            }
-            a.write_text(json.dumps(row) + "\n")
-            b.write_text(json.dumps(row) + "\n")
+            a, b = Path(d) / "a", Path(d) / "b"
+            b.write_text(rows(reference))
+
+            a.write_text(rows(reference))
             compare_predictions(a, b)
-            row["pred_index"] = 1
-            b.write_text(json.dumps(row) + "\n")
-            with self.assertRaises(ValueError):
+
+            # Library drift: every score moves a little, only the near tie flips.
+            drifted = {k: [v[0] - 0.1, v[1] + 0.1] for k, v in reference.items()}
+            a.write_text(rows(drifted))
+            self.assertEqual(json.loads(a.read_text().splitlines()[-1])["pred_index"], 1)
+            compare_predictions(a, b)
+
+            # A confident item flipping is a pipeline difference, not drift.
+            broken = dict(drifted)
+            broken["i00"] = [-3.0, -2.0]
+            a.write_text(rows(broken))
+            with self.assertRaisesRegex(ValueError, "top-2 gap"):
                 compare_predictions(a, b)
-            row["id"] = "different"
-            b.write_text(json.dumps(row) + "\n")
-            with self.assertRaises(ValueError):
+
+            # A pipeline that moves everything cannot excuse itself: the drift is
+            # estimated only on items that agree, and the rate cap fires first.
+            a.write_text(rows({k: [v[1], v[0]] for k, v in reference.items()}))
+            with self.assertRaisesRegex(ValueError, "not library drift"):
+                compare_predictions(a, b)
+
+            # Inputs are never allowed to differ, and neither is the universe.
+            changed = [json.loads(l) for l in rows(reference).splitlines()]
+            changed[0]["query"] = "other"
+            a.write_text("\n".join(json.dumps(r) for r in changed) + "\n")
+            with self.assertRaisesRegex(ValueError, "parity input mismatch on query"):
+                compare_predictions(a, b)
+            changed[0]["query"] = "q"
+            changed[0]["id"] = "different"
+            a.write_text("\n".join(json.dumps(r) for r in changed) + "\n")
+            with self.assertRaisesRegex(ValueError, "universe"):
                 compare_predictions(a, b)
 
     def test_guard_dirty_and_ancestry(self):

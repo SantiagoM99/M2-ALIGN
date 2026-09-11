@@ -113,19 +113,91 @@ def check_parity_lineage(plan):
             )
 
 
+# Three guards, each aimed at a different way the pipeline could be wrong,
+# sized against the drift transformers 5.x actually produces here: the choice
+# scores of the failing item moved by 0.037 to 0.557 nats on a base of 12 to 22.
+# Resampling the reference cells with shifts of that size flips 4 to 9 percent
+# of predictions, so the rate cap sits well above that and still far below the
+# 50 to 75 percent a wrong checkpoint would give on four choices.
+PARITY_MAX_DRIFT = 2.0
+PARITY_MAX_DISAGREEMENT = 0.25
+PARITY_GAP_FACTOR = 2.0
+
+
+def _quantile(values, q):
+    ordered = sorted(values)
+    return ordered[min(len(ordered) - 1, max(0, int(round(q * (len(ordered) - 1)))))]
+
+
 def compare_predictions(actual, expected):
+    """Check a cell against a historical run of the same checkpoint.
+
+    The inputs must be identical, item for item: that is what catches a wrong
+    checkpoint, panel, prompt or image. Predictions are treated differently by
+    task. Open-ended answers come from greedy decoding and must match exactly.
+    Multiple choice is an argmax over four choice log-likelihoods, and the
+    reference runs predate the cluster's move to transformers 5.x, which
+    changed Gemma 2's attention numerics: scores shift by a few tenths of a nat
+    and the argmax flips wherever two choices were nearly tied (2026-09-11, job
+    20919626, jv id-donor cell, legacy gap 0.133). Requiring exact per-item
+    equality across that boundary is not satisfiable, so each disagreement must
+    instead be explained by the drift this very comparison measures.
+    """
     a = {str(r["id"]): r for r in read_rows(actual)}
     e = {str(r["id"]): r for r in read_rows(expected)}
     if a.keys() != e.keys():
         raise ValueError("parity item universe mismatch")
+    choice_task = "choices" in next(iter(e.values()))
     for i in a:
-        fields = (
-            ("query", "choices", "answer_index", "pred_index", "correct")
-            if "choices" in e[i]
-            else ("query", "answer", "pred", "correct")
+        for k in ("query", "choices", "answer_index") if choice_task else ("query", "answer"):
+            if a[i].get(k) != e[i].get(k):
+                raise ValueError(f"parity input mismatch on {k} for item {i}")
+    if not choice_task:
+        for i in a:
+            if a[i].get("pred") != e[i].get("pred"):
+                raise ValueError(f"prediction parity mismatch on item {i}")
+        return
+
+    shift = {}
+    for i in a:
+        if len(a[i]["scores"]) != len(e[i]["scores"]):
+            raise ValueError(f"parity choice count differs on item {i}")
+        shift[i] = max(abs(x - y) for x, y in zip(a[i]["scores"], e[i]["scores"]))
+    disagree = [i for i in a if a[i]["pred_index"] != e[i]["pred_index"]]
+    # Estimate the drift from the items that did NOT flip. Taking it over all
+    # items would let a broken pipeline excuse itself: it moves every score, so
+    # the measured drift would grow until it covered its own flips.
+    agreed = [shift[i] for i in a if i not in set(disagree)]
+    drift = _quantile(agreed, 0.99) if agreed else float("inf")
+    explainable = PARITY_GAP_FACTOR * max(agreed) if agreed else 0.0
+    accuracy = (
+        100.0 * sum(r["correct"] for r in a.values()) / len(a),
+        100.0 * sum(r["correct"] for r in e.values()) / len(e),
+    )
+    print(
+        f"parity {Path(actual).name}: {len(disagree)}/{len(a)} predictions differ, "
+        f"score drift p99 {drift:.3f}, accuracy {accuracy[0]:.2f} vs {accuracy[1]:.2f}"
+    )
+    if len(disagree) > PARITY_MAX_DISAGREEMENT * len(a):
+        raise ValueError(
+            f"parity {Path(actual).name}: {len(disagree)}/{len(a)} predictions differ, "
+            f"more than {PARITY_MAX_DISAGREEMENT:.0%}; this is not library drift"
         )
-        if any(a[i].get(k) != e[i].get(k) for k in fields):
-            raise ValueError(f"prediction parity mismatch on item {i}")
+    if drift > PARITY_MAX_DRIFT:
+        raise ValueError(
+            f"parity {Path(actual).name}: choice scores moved by {drift:.3f} nats at the "
+            f"99th percentile, beyond {PARITY_MAX_DRIFT}; the checkpoint, panel or prompt differs"
+        )
+    for i in disagree:
+        ordered = sorted(e[i]["scores"], reverse=True)
+        gap = ordered[0] - ordered[1]
+        if gap > explainable:
+            raise ValueError(
+                f"parity {Path(actual).name}: item {i} flipped although its reference "
+                f"top-2 gap is {gap:.3f}, beyond {PARITY_GAP_FACTOR:.0f} x the largest shift "
+                f"seen on an item that did not flip ({explainable / PARITY_GAP_FACTOR:.3f}); "
+                "the pipeline differs, not just the library"
+            )
 
 
 def validate_submission(path):
