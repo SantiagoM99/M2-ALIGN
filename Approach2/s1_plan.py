@@ -179,6 +179,8 @@ def build(a):
                 for vn in ["V3_bn", "V3_id"]:
                     for c in ["correct", "gray"]:
                         add("xgqa", t, tn + "__" + vn, c, txt[tn], vis[vn])
+    if a.block == "B":
+        cells = falsifier_first(cells)
     plan = {"spec_sha": SPEC_SHA, "block": a.block, "cells": cells, "parity": parity}
     if a.block_a_report:
         plan["block_a_report"] = str(Path(a.block_a_report).resolve())
@@ -186,6 +188,37 @@ def build(a):
     print(
         f"{len(cells)} cells; maps generated. Commit the hash registries before s1_submit.py."
     )
+
+
+# The eight cells P3 needs for D_T and D_V, on the three primary targets.
+# D_T contrasts T1 against T3 with vision held at the shared pre-VQA V2;
+# D_V contrasts V3_bn against V3_id with text held at each lineage's stage 1.
+P3_CORE = {("T1_bn", "V2"), ("T1_id", "V2"), ("T3_bn", "V2"), ("T3_id", "V2"),
+           ("T1_bn", "V3_bn"), ("T1_bn", "V3_id"), ("T1_id", "V3_bn"), ("T1_id", "V3_id")}
+PRIMARY_TARGETS = ("jv", "mn", "ga")
+
+
+def falsifier_first(cells):
+    """Emit P3/P4's own cells before the rest of the factorial.
+
+    Same grid, same criteria: only the order changes. Block A bounded the text
+    branch's whole inference contribution at roughly zero on CVQA, so D_T is
+    the statistic most likely to end the main hypothesis, and it needs eight
+    of the twelve combinations on three of the five targets. Running those
+    first spends ~4 h before the remaining ~19 h of controls instead of after.
+    """
+    def primary(cell):
+        parts = cell["id"].split("_")
+        arm = cell["argv"][cell["argv"].index("--arm") + 1]
+        target = cell["argv"][cell["argv"].index("--target") + 1]
+        pair = tuple(arm.split("__")[:2])
+        return not (
+            len(arm.split("__")) == 2
+            and pair in P3_CORE
+            and target in PRIMARY_TARGETS
+        )
+
+    return sorted(cells, key=primary)
 
 
 if __name__ == "__main__":

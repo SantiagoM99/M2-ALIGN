@@ -39,8 +39,9 @@ chain is kept in DESIGN.md for the record.
 2. A checkpoint tuned for VQA in Bengali retains **95.7%** of the
    target-supervised visual contribution across six unseen xGQA languages
    (−1.58 full-accuracy points). The contribution is Δ_gray, correct minus
-   gray canvas; instance-specific grounding (Δ_ground) is untested until
-   S1 Block A. *(E3, corrected reference)*
+   gray canvas. Instance-specific grounding **is now measured**: Block A
+   gives Δ_ground +19.01 [+18.00, +20.00] on xGQA and +3.89 [+2.24, +5.64]
+   on CVQA jv/mn/ga. *(E3, corrected reference; A-ground)*
 3. Transfer to the CVQA targets jv/mn/ga varies with the VQA source language;
    S1 does not infer a resource-level effect from a cross-benchmark contrast.
    *(X1, difference-in-differences +3.32 [+0.32, +6.43], stratified image-cluster)*
@@ -71,7 +72,8 @@ prediction of ours into a partial success.
 | id | claim | evidence |
 |---|---|---|
 | **E3** | Bengali-only VQA supervision transfers to six unseen xGQA languages | vs each target's own `stage3_<L>_v4`: full 48.42 vs 49.99 (−1.58), ΔV 16.73 vs 17.48 (**95.7%**); de/pt/id significantly below, ru/zh/ko not; non-inferiority (post hoc, sensitivity; three regions): at δ=1 ru/zh non-inferior, pt materially inferior, de/id/ko inconclusive. Source-relative 99.4% is secondary. DESIGN 2026-09-07 |
-| **E2** | Natural images beat a gray canvas (Δ_gray) in a language never seen with an image; instance-specific grounding untested | CVQA, 9 languages, pooled n=2657, p=**2.0e-13** |
+| **E2** | Natural images beat a gray canvas (Δ_gray) in a language never seen with an image; instance-specific grounding untested | CVQA, 9 languages, pooled n=2657, p=**2.0e-13**. The grounding caveat is now closed by A-ground |
+| **A-ground** | Instance-specific grounding exists: the correct image beats a *shuffled* image, not only a gray canvas | S1 Block A, job 20674060, arm A1: xGQA pooled bn/de/ko Δ_ground **+19.01 [+18.00, +20.00]**; CVQA pooled jv/mn/ga **+3.89 [+2.24, +5.64]**, LB5 > 0, so **G0 passes**. Per unit the picture is uneven: ga +8.69, jv +4.15, **mn −1.39 [−4.01, +1.23]**, i.e. Mongolian shows none. Validation: A1 on xGQA-bn reproduces the historical `eval_xgqa_bn_dcl` accuracy exactly (47.66), so the rewritten S1 evaluator agrees with the pre-S1 pipeline |
 | **H1** | The vision branch is not a tax on the text bridge; better vision helps more | Paired McNemar vs matched v4 arm: MGSM 102-vs-6 (p=**1.3e-23**), MSVAMP 238-vs-53 (p=**3.7e-29**); gap **widens** on the clean subset; monotone across none → weak → strong alignment |
 | **X1** | Source choice matters for jv/mn/ga; a target-intrinsic explanation is refuted | Paired difference-in-differences (ΔV_id − ΔV_bn) on identical items, image-cluster bootstrap, pooled jv/mn/ga **+3.32 [+0.32, +6.43]** (stratified by target); per language all three CIs cross zero; control si transfers from every source. Evidence for an Indonesian *advantage* is suggestive, not established |
 | D6 | Reasoning replay in stage 3 | ACCEPTED |
@@ -91,6 +93,8 @@ prediction of ours into a partial success.
 | D7 | Zero-init prefix gate | REJECTED as trained (xGQA 19.41) |
 | — | "Text-side DenseConnector" is novel | Already published: Puranegedara et al., arXiv 2508.09091 |
 | — | "dcl would drift less than dc" | It drifted more |
+| **text-bridge-necessary** | The NLLB text bridge is needed at inference by a checkpoint trained with it | S1 Block A arm A2 removes the branch and leaves the question in Gemma's own prompt. xGQA pooled: Δ_ground **−0.22 [−0.48, +0.04]**, non-inferior at δ=1; utility −0.82 [−1.09, −0.55], which misses non-inferiority by 0.09 of a point. CVQA pooled: +0.14 [−1.10, +1.44] and −0.11 [−1.29, +1.10]. A4, the English question straight into the prompt with no bridge at all, scores **+36.90** utility on CVQA against A1's +35.72. The frozen rule needs both endpoints non-inferior, so **G1-I is recorded as inconclusive**, not as dispensable; but the bridge's entire inference contribution is bounded under one point. This is an *inference* verdict on a checkpoint trained with the bridge, and says nothing about training (that is C5) |
+| **text-bridge-sufficient** | The text bridge carries the question into the LLM | S1 Block A arm A3 removes the question from the prompt and leaves only NLLB to carry it. xGQA utility 47.66 → **11.06**, Δ_ground 19.01 → **2.08**, both materially inferior; CVQA utility −4.39 [−6.31, −2.35], materially inferior. The question reaches the model through its own prompt tokens |
 
 ### Open
 
@@ -99,7 +103,7 @@ prediction of ours into a partial success.
 | **X2b** | Does *pairwise* alignment predict pairwise transfer? | **Verdict deferred.** Four checkpoints scored. Corrected per-source reading: id beats bn on alignment and retention **4/4**; within-target Spearman +0.35. Not decidable until ru and zh have own-checkpoint alignment — both prospectively recorded conditions name them. The earlier "FAILED" came from the wrong bridge and is withdrawn |
 | **donor-level** | Does a donor's stage 1 → stage 3 *damage* (centered margin) predict its donor effect? | **Live, untested, and a separate contribution** (not part of the intervention gate). Only Bengali's damage is measured; `stage3_id_v4` descends from the unscored `stage1_id`, so the earlier "Indonesian preserves alignment" is withdrawn. The seven-donor test on the current targets is exploratory (four donors shaped the hypothesis); the prospective test is the confirmatory panel with the damage ranking committed first. de/pt/ko count as prospective only if the cluster audit shows their results were neither produced, committed nor read |
 | **X3 / D12** | Does a joint multilingual stage-1 mapping remove donor dependence? | Exploratory only (S1 v2.1.3): its joint stage 1 has ~1/10 the per-language exposure. Prospectively recorded **differential** prediction: must lift jv/mn/ga and leave de/ru/zh flat. A uniform lift refutes it as surely as no lift |
-| **E4** | Why does better visual pretraining buy jv/mn/ga nothing? | Unexplained. Uses each language's own checkpoint, so no donor is involved — a different phenomenon from E2's failure |
+| **E4** | Why does better visual pretraining buy jv/mn/ga nothing? | Unexplained. Uses each language's own checkpoint, so no donor is involved — a different phenomenon from E2's failure. **Partial evidence 2026-09-11**: Block A shows Mongolian has no instance-specific grounding to improve (Δ_ground −1.39 [−4.01, +1.23]), while Irish has +8.69. For mn the question becomes why grounding is absent, not why it fails to grow |
 | **preservation method** | Can an alignment-preservation loss retain transfer and reasoning? | Conditional on the S1 loss gate. It requires matched replay arms R0 (no loss) and R1 (loss), three paired seeds and the confirmatory panel. R1 versus no-replay C1/C2 alone cannot identify a loss effect |
 | — | Donor matrix beyond 4 sources | Eval only, checkpoints exist |
 | — | AlignVLM connector under our frozen setting | Required by the positioning sweep; a reviewer will say the interference is an MLP artifact |

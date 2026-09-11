@@ -2310,3 +2310,67 @@ and uninterrupted training. These tests do not establish parity for the
 real 9B checkpoints, GPU determinism or task accuracy. No S1 GPU job was
 submitted and no hypothesis verdict changes. Santiago will capture the
 Rorqual environment from his authenticated cluster session.
+
+### Block A result — 2026-09-11 (job 20674060, spec SHA `3b4faff`)
+
+156 cells, 27 h 53 min on one H100, report `audits/s1_A_analysis.json`
+(committed `345ad4d`). Every gate applied exactly as frozen; nothing below
+was chosen after seeing a number.
+
+**Pipeline validation.** A1 on xGQA-bn returns utility **47.66**, identical
+to the historical `eval_xgqa_bn_dcl` accuracy for the same checkpoint. The
+rewritten S1 evaluator therefore agrees with the pre-S1 one on a real panel.
+
+**G0 passes.** A1 Δ_ground on the primary CVQA panel jv/mn/ga is **+3.89
+[+2.24, +5.64]**, LB5 > 0, so Blocks B and C are authorised. On xGQA it is
++19.01 [+18.00, +20.00]. This closes the caveat E2 and E3 have carried since
+09-07: the visual contribution is instance-specific, not only "an image
+beats a gray canvas". Per unit it is uneven: ga +8.69 [+5.88, +11.49], jv
++4.15 [+0.67, +7.78], **mn −1.39 [−4.01, +1.23]** and si (secondary) +17.04.
+Mongolian shows no instance-specific grounding at all, which is evidence on
+E4 and a limitation the paper must state: the pooled pass is carried by ga
+and jv.
+
+**G1-I inconclusive, and the reason matters.** A2 removes the text branch and
+leaves the question in Gemma's own prompt. On xGQA, Δ_ground is **−0.22
+[−0.48, +0.04], non-inferior** at δ=1 with 12,578 items per language, and
+utility is −0.82 [−1.09, −0.55], which misses non-inferiority by **0.09 of a
+point**. On CVQA pooled, +0.14 [−1.10, +1.44] and −0.11 [−1.29, +1.10], both
+inconclusive as `power_sim.py` predicted for this panel (inconclusive with
+probability 0.79–0.88 across the whole grid). The frozen rule requires both
+endpoints non-inferior to call the branch dispensable, so the verdict is
+**inconclusive**, recorded as such. What the numbers bound, separately from
+the gate: the text bridge's entire contribution at inference is under one
+point on either endpoint. A4, the English question straight into the prompt
+with no bridge, scores **+36.90** utility on CVQA against A1's +35.72.
+
+**A3: the bridge does not carry the question.** Removing the question from
+the prompt and leaving only NLLB to carry it costs xGQA utility 47.66 →
+**11.06** and Δ_ground 19.01 → **2.08**, both materially inferior; CVQA
+utility −4.39 [−6.31, −2.35]. So the bridge is neither necessary nor
+sufficient at inference: the question reaches the model as prompt tokens.
+
+**What this does and does not decide.** It is an inference verdict on a
+checkpoint *trained* with the bridge. DESIGN has separated these since v2.1.2
+(G1-I versus G1-T) precisely so this reading is available: A cannot say the
+bridge was unnecessary during training. That is Block C, and **C5, the arm
+trained with no text branch at all, is now the most informative run in the
+plan**: C5 ≈ C1 would mean the bridge is idle in training too; C5 < C1 would
+mean it shapes training while remaining removable at inference. Under Option
+1 the three paired seeds P8 needs stay future work, so G1-T remains
+undecidable and C5 runs as a single-seed pilot arm, exactly as the Option 1
+override says.
+
+**Consequence for Block B, recorded before B runs.** B asks whether the donor
+difference *follows* the text branch, with LB95(D_T) > 0 required. A has
+bounded the branch's whole inference contribution on CVQA at roughly zero, so
+a detectably positive D_T is now unlikely; substitution is not removal, so it
+is not impossible. No criterion, margin or cell is changed. What changes is
+**execution order only**: `s1_plan.py` now emits the eight P3/P4 cells on
+jv/mn/ga first, so the ~4 h that can falsify the main hypothesis run before
+the remaining ~19 h of factorial and controls. Cheapest falsifier first; the
+full grid still runs.
+
+**Not restated.** The question in `SCIENCE.md` §2 stands. A bounds one
+channel; it does not answer whether the transfer variation comes from
+source-conditioned connector co-adaptation.
