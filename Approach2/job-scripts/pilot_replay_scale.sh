@@ -26,7 +26,16 @@
 # Single variable vs stage3_bn_v4: the replay pool. Same stage-2 checkpoint,
 # same epochs, same lr, same replay-every.
 #
-# Env: DT (required), N_REPLAY (30000), S3_EPOCHS (2), REPLAY_EVERY (3).
+# Env: DT (required), REPLAY_SOURCE (metamath), N_REPLAY (30000), S3_EPOCHS (2),
+#      REPLAY_EVERY (3).
+#
+# REPLAY_SOURCE=gsm8k is D13's control (2026-09-12): the D6/v4 GSM8K pool that
+# stage3_bn_dcl trained with, rerun under the current trainer and transformers
+# 5.x. The MetaMathQA run and the dcl checkpoint differ in pool, trainer and
+# environment at once; the control shares trainer and environment with the
+# MetaMathQA run, so metamath minus gsm8k is the pool alone. Note that the
+# trainer caps every replay file at --replay-max-rows-per-file (10,000), so
+# N_REPLAY=30000 trains on a 10,000-row sample; GSM8K's 7,473 are all kept.
 
 set -uo pipefail
 
@@ -46,9 +55,13 @@ GQA_IMAGES="${GQA_IMAGES:-$DT/Stage3/data/gqa/images}"
 
 STAGE1_CKPT="$A2/outputs/stage1/mapping/pytorch_model.bin"
 S2_CKPT="$A2/outputs/stage2_dc_llava/mapping/pytorch_model.bin"
-MATH_REPLAY="$A2/data/math_replay_bn_metamath.jsonl"
+REPLAY_SOURCE="${REPLAY_SOURCE:-metamath}"
+case "$REPLAY_SOURCE" in
+  metamath) MATH_REPLAY="$A2/data/math_replay_bn_metamath.jsonl"; TAG="mm${N_REPLAY}" ;;
+  gsm8k)    MATH_REPLAY="$A2/data/math_replay_bn.jsonl";          TAG="gsm8k" ;;
+  *) echo "ERROR: REPLAY_SOURCE must be metamath or gsm8k"; exit 1 ;;
+esac
 TRANS_REPLAY="$DT/Stage1/data/Bengali_to_English.jsonl"
-TAG="mm${N_REPLAY}"
 S3_OUT="$A2/outputs/stage3_bn_$TAG"
 
 if [ -d "$MT_PATH" ]; then
@@ -81,38 +94,41 @@ done
 
 cd "$A2"
 
-echo "=== [1] Build the MetaMathQA replay pool ==="
+echo "=== [1] Replay pool: $REPLAY_SOURCE ==="
 if [ -f "$MATH_REPLAY" ]; then
   echo "exists -> skipping ($(wc -l < "$MATH_REPLAY") rows)"
 else
-  python -u build_math_replay.py \
-    --source metamath --metamath-types GSM_ \
-    --n "$N_REPLAY" --nllb-tag ben_Beng \
-    --mt-path "$MT_PATH" --output "$MATH_REPLAY" \
+  BUILD_ARGS=(--source "$REPLAY_SOURCE")
+  [ "$REPLAY_SOURCE" = metamath ] && BUILD_ARGS+=(--metamath-types GSM_ --n "$N_REPLAY")
+  python -u build_math_replay.py "${BUILD_ARGS[@]}" \
+    --nllb-tag ben_Beng --mt-path "$MT_PATH" --output "$MATH_REPLAY" \
     --local-files-only || exit 1
 fi
 
-echo "=== [2] Stage 3 bn with the scaled replay ==="
-if [ -f "$S3_OUT/mapping/pytorch_model.bin" ]; then
-  echo "checkpoint exists -> skipping"
-else
-  RESUME_ARGS=()
-  [ -f "$S3_OUT/training_state.pt" ] && RESUME_ARGS=(--resume-from-checkpoint "$S3_OUT/training_state.pt")
-  DATA="$DT/Stage3/data/stage3b/bengali.jsonl"
-  [ -f "$DATA" ] || DATA="$DT/Stage3/data/bn.jsonl"
-  python -u train_stage3_vqa.py \
-    --data-path "$DATA" --images-dir "$GQA_IMAGES" --output-dir "$S3_OUT" \
-    --stage1-ckpt "$STAGE1_CKPT" --stage2-ckpt "$S2_CKPT" \
-    --mt-path "$MT_PATH" --vis-path "$VIS_PATH" --llm-path "$LLM_PATH" \
-    --vis-layers "$VIS_LAYERS" \
-    --replay-data "$MATH_REPLAY,$TRANS_REPLAY" --replay-every "$REPLAY_EVERY" \
-    --epochs "$S3_EPOCHS" --lr 2e-5 \
-    --train-batch-size 2 --eval-batch-size 2 --grad-accum 16 \
-    --max-gen-len 64 --save-steps 200 \
-    --use-wandb --wandb-mode offline --wandb-project m2-align \
-    --wandb-run-name "a2-stage3-bn-$TAG" --local-files-only \
-    "${RESUME_ARGS[@]}" || exit 1
-fi
+echo "=== [2] Stage 3 bn with the $REPLAY_SOURCE replay pool ==="
+DATA="$DT/Stage3/data/stage3b/bengali.jsonl"
+[ -f "$DATA" ] || DATA="$DT/Stage3/data/bn.jsonl"
+TRAIN_ARGS=(
+  --data-path "$DATA" --images-dir "$GQA_IMAGES" --output-dir "$S3_OUT"
+  --stage1-ckpt "$STAGE1_CKPT" --stage2-ckpt "$S2_CKPT"
+  --mt-path "$MT_PATH" --vis-path "$VIS_PATH" --llm-path "$LLM_PATH"
+  --vis-layers "$VIS_LAYERS"
+  --replay-data "$MATH_REPLAY,$TRANS_REPLAY" --replay-every "$REPLAY_EVERY"
+  --epochs "$S3_EPOCHS" --lr 2e-5
+  --train-batch-size 2 --eval-batch-size 2 --grad-accum 16
+  --max-gen-len 64 --save-steps 200
+  --use-wandb --wandb-mode offline --wandb-project m2-align
+  --wandb-run-name "a2-stage3-bn-$TAG" --local-files-only
+)
+# Done means the trainer's completion marker, not the best checkpoint: that file
+# is written after the first improving epoch, so a run preempted in epoch 2
+# would be skipped as finished. The trainer resumes its own snapshot.
+python -u train_stage3_vqa.py "${TRAIN_ARGS[@]}" --check-complete
+case $? in
+  0) echo "training complete -> skipping" ;;
+  3) python -u train_stage3_vqa.py "${TRAIN_ARGS[@]}" || exit 1 ;;
+  *) echo "ERROR: completion check failed for $S3_OUT"; exit 1 ;;
+esac
 CKPT="$S3_OUT/mapping/pytorch_model.bin"
 
 echo "=== [3] Evaluations ==="
@@ -146,7 +162,8 @@ cp "$S3_OUT"/eval_*.summary.json "$A2/results/" 2>/dev/null || true
 cp "$S3_OUT"/eval_*.jsonl "$A2/results/" 2>/dev/null || true   # per-item files: needed for the paired tests
 cp "$S3_OUT"/eval_xgqa_*.jsonl "$A2/results/" 2>/dev/null || true
 cd "$PROJECT_ROOT"
-git add Approach2/results 2>/dev/null || true
-git commit -m "results: replay-scale pilot bn ($TAG, job ${SLURM_JOB_ID:-manual})" Approach2/results \
-  || echo "No new results to commit."
+# No automatic commit: a harvest that moves HEAD under a prepared S1 submission
+# breaks it. Commit by hand from a login node.
+echo "Harvested into Approach2/results; review and commit by hand."
+git -C "$PROJECT_ROOT" status --short Approach2/results | head -20
 echo "=== Done === $(date)"
