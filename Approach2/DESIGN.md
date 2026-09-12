@@ -2543,3 +2543,61 @@ comparison is `gap_report.py v4_tf5 vj_tf5`, and the untagged `vj` files never
 exist. Same six languages, same benchmarks, same launcher for both arms. The
 training half of the confound (old trainer for v4, rewritten trainer for vj)
 is not removed by this and stays stated with any pooling result.
+
+### D13 and D12 controls, recorded before launch — 2026-09-12
+
+Decided by Santiago the same day: reproduce the GSM8K replay in the current
+environment, and retrain the independent arm of the pooling comparison with
+the current trainer. Both are launched only after this entry is pushed.
+
+**Replay volume, a correction to the D13 record.** The stage-3 trainer caps
+every replay file at `--replay-max-rows-per-file`, default 10,000, a cap that
+entered in `4beae75` on 2026-08-24, before D11 trained `stage3_bn_dcl`. So the
+run tagged `mm30000` trained on a seeded 10,000-row sample of its 30,000
+MetaMathQA rows, against GSM8K's 7,473, all of which are kept; the Bengali
+translation file is capped at 10,000 rows in every arm, dcl included. D13
+compared 10,000 against 7,473 math rows, not 30,000. The tag stays as it is
+for traceability.
+
+**D13 control: `REPLAY_SOURCE=gsm8k`, checkpoint `stage3_bn_gsm8k`.** Same
+launcher, stage 1, stage 2, VQA data, translation replay, row cap, replay
+interval, epochs, learning rate, trainer and environment as `mm30000`; only
+the math pool differs, and it is the GSM8K file `stage3_bn_dcl` trained with.
+Two paired comparisons on identical items, each with its own exact McNemar
+test and point difference, never one read from the other's significance:
+- **pool**: `mm30000` against `gsm8k`, on MGSM, MSVAMP and xGQA full;
+- **trainer and environment**: `gsm8k` against `stage3_bn_dcl`, on the same.
+
+What each outcome means, fixed now. If `gsm8k` does not differ significantly
+from dcl on MGSM and MSVAMP while `mm30000` is significantly below `gsm8k`,
+the MetaMathQA sample costs reasoning. If `gsm8k` is itself significantly
+below dcl, the loss belongs at least in part to the trainer rewrite or to
+transformers 5.x, and then **every checkpoint trained after 09-09 carries it,
+including the pooled `vj` round and every Block C arm**: that outcome is the
+more urgent one and would be raised before any C launch. If both differences
+are significant, both are reported with their sizes and no single cause is
+named.
+
+**D12 control: `launch_v4r.sh`, round `v4r`.** Stage 3 for jv, mn, ga, de, ru
+and zh, each from its own `stage1_<L>`, with `stage2_dc_llava`, replay, two
+epochs and the current trainer: exactly the arguments `launch_joint.sh` gave
+`vj`, minus the shared text mapping. The launcher requires all six own stage-1
+mappings, unsets any exported `STAGE1_CKPT` so the control cannot silently
+become a second joint arm, and chains its evaluations with `afterok` under
+`EVAL_TAG=tf5`. `vj` is evaluated under the same tag.
+
+**How D12 is read, fixed before any tf5 number exists.** D12 registered
+`gap_report.py` and the differential prediction "lift jv/mn/ga, leave de/ru/zh
+flat; a uniform lift refutes it as surely as no lift". `gap_report.py`'s groups
+(low-resource bn jv mn si ga, higher-resource ru zh pt id ko) contain
+languages neither arm trained; it reports them as missing and is shown for
+completeness. The verdict is read on the six named languages, `vj_tf5` minus
+`v4r_tf5`, paired on identical items with the image-cluster bootstrap:
+- **lift**: CVQA pooled jv/mn/ga, LB5 > 0;
+- **flat**: xGQA pooled de/ru/zh within the project's δ = 1.0, that is
+  LB5 > −1.0 and UB95 < +1.0 (xGQA's 12,578 items per language can resolve
+  that; CVQA's ru/zh cannot and are reported descriptively).
+Supported only if both hold. Refuted if the lift fails, or if de/ru/zh lift by
+at least as much as jv/mn/ga. Anything else is inconclusive. `v4_tf5` against
+`v4r_tf5` measures the trainer's effect on the independent arm and is
+descriptive.
