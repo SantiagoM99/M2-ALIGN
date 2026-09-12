@@ -2533,3 +2533,13 @@ the current environment; the training half is removable only by retraining
 the independent arm with the current trainer, about as long as the vj run.
 The registered prediction in D12 and X3 stands as written; what changes is
 that no verdict is drawn from a mixed-environment comparison.
+
+**Evaluation half of the D12 confound: how it is removed.** `evaluate_all.sh`
+gained `EVAL_TAG`. With `EVAL_TAG=tf5`, both arms are evaluated in the current
+environment into tagged subdirectories and harvested as
+`eval_<bench>_<L>[_BLIND]_<round>_tf5`, so the versioned 4.x-era v4 files are
+never overwritten and a mixed read is impossible by name: the pooling
+comparison is `gap_report.py v4_tf5 vj_tf5`, and the untagged `vj` files never
+exist. Same six languages, same benchmarks, same launcher for both arms. The
+training half of the confound (old trainer for v4, rewritten trainer for vj)
+is not removed by this and stays stated with any pooling result.

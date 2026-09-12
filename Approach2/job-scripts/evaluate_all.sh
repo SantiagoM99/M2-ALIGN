@@ -27,6 +27,13 @@ PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
 DT="${DT:?set DT}"
 R="${ROUND:+_$ROUND}"
+# EVAL_TAG re-evaluates a round without touching its earlier results: outputs go
+# to a subdirectory and harvested names gain the tag, e.g. eval_xgqa_de_v4_tf5.
+# Without it, re-evaluating v4 would skip every cell (summaries exist) and, if
+# forced, overwrite the versioned 4.x-era files in Approach2/results. CVQA
+# choice scores differ between transformers 4.x and 5.x (DESIGN 2026-09-11), so
+# a comparison needs both arms evaluated under one tag.
+EVAL_TAG="${EVAL_TAG:-}"
 VIS_LAYERS="${VIS_LAYERS:-}"
 
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
@@ -70,7 +77,7 @@ FAILED=()
 run_one () {  # <kind:xgqa|cvqa> <lang> <blind:0|1>
   local kind="$1" L="$2" blind="$3"
   local ckpt="$A2/outputs/stage3_$L$R/mapping/pytorch_model.bin"
-  local outdir="$A2/outputs/stage3_$L$R"
+  local outdir="$A2/outputs/stage3_$L$R${EVAL_TAG:+/eval_$EVAL_TAG}"
   local suffix="" script="evaluate_vqa.py" args=() data images
   [ "$blind" = 1 ] && { suffix="_BLIND"; args+=(--blind); }
   if [ "$kind" = cvqa ]; then
@@ -85,6 +92,7 @@ run_one () {  # <kind:xgqa|cvqa> <lang> <blind:0|1>
   if [ ! -f "$ckpt" ]; then echo "--- skip $kind $L blind=$blind (no stage-3 ckpt)"; return; fi
   if [ ! -f "$data" ]; then echo "--- skip $kind $L blind=$blind (no data)"; return; fi
   if [ -f "$out.summary.json" ]; then echo "--- skip $kind $L blind=$blind (summary exists)"; return; fi
+  mkdir -p "$outdir"
   echo "=== $kind $L blind=$blind === $(date)"
   if ! python -u "$script" \
       --data-path   "$data" \
@@ -124,7 +132,7 @@ echo "=== Text evals MGSM/MSVAMP (stage-3 variant) ==="
 # instead of 1. Per-language files are evaluation/<BENCH>_<lang>.jsonl;
 # Bengali falls back to the original untagged evaluation/<BENCH>.jsonl and
 # keeps its historical output filename, so old summaries still skip.
-TXT_OUT="$A2/outputs/text_eval_bn_v2$R"
+TXT_OUT="$A2/outputs/text_eval_bn_v2$R${EVAL_TAG:+/eval_$EVAL_TAG}"
 TEXT_LANGS="${TEXT_LANGS:-bn de ru zh}"
 # jv/mn/si/ga are covered by neither MGSM nor MSVAMP; their files come from
 # build_translated_benchmark.py and are machine-translated (see its docstring
@@ -173,7 +181,7 @@ harvest_dir () {
   for f in "$dir"/eval_*.summary.json; do
     [ -f "$f" ] || continue
     base="$(basename "${f%.jsonl.summary.json}")"
-    cp "$f" "$RESULTS_DIR/${base}${R}.jsonl.summary.json" 2>/dev/null || true
+    cp "$f" "$RESULTS_DIR/${base}${R}${EVAL_TAG:+_$EVAL_TAG}.jsonl.summary.json" 2>/dev/null || true
   done
   # Per-item predictions too. xGQA/CVQA feed the category breakdowns and
   # paired McNemar; CVQA especially, because at n=286 per language only a
@@ -183,11 +191,11 @@ harvest_dir () {
            "$dir"/eval_mgsm_*.jsonl "$dir"/eval_msvamp_*.jsonl; do
     [ -f "$f" ] || continue
     base="$(basename "${f%.jsonl}")"
-    cp "$f" "$RESULTS_DIR/${base}${R}.jsonl" 2>/dev/null || true
+    cp "$f" "$RESULTS_DIR/${base}${R}${EVAL_TAG:+_$EVAL_TAG}.jsonl" 2>/dev/null || true
   done
 }
 for L in $XGQA_LANGS $CVQA_LANGS; do
-  harvest_dir "$A2/outputs/stage3_$L$R"
+  harvest_dir "$A2/outputs/stage3_$L$R${EVAL_TAG:+/eval_$EVAL_TAG}"
 done
 harvest_dir "$TXT_OUT"
 cd "$PROJECT_ROOT"
