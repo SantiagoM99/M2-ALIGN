@@ -2459,3 +2459,77 @@ frozen text changed.
 themselves, for the reason given under the environment entry: a harvest that
 moves HEAD kills a queued S1 allocation. And S1 allocations now run from a
 detached worktree of their own commit, so pulling in the main clone is safe.
+
+### Block B analysis, one pre-declared reading, and the D13 and D12 runs — 2026-09-12
+
+**Recorded before `analysis/block_b.py` is run on Block B's data.** B's 376
+cells finished in job 20925480 (16 h 10 min, exit 0). Their outputs exist only
+on the cluster; no contrast has been computed or looked at.
+
+**Block B analysis.** `analysis/block_b.py` implements P3, P4 and G2 as frozen.
+Each contrast is a fixed linear combination of cell endpoints taken item by
+item on identical items, pooled micro over jv/mn/ga, with the CI from the
+paired image-cluster bootstrap stratified by target and subset, 4,000
+resamples; Δ_ground per item is correct minus the mean of the three shuffles.
+It fails closed on an incomplete 376-cell grid, a checkpoint that is not the
+arm's lineage, a text-branch flag that does not match the arm, and unpaired or
+differing items. `analysis/test_block_b.py` fixes every contrast's arithmetic
+in closed form, including a null factorial that must return exactly zero.
+
+**Sign, clarified and not amended.** The non-inferiority paragraph says P1–P8
+are written reference − candidate and are the negation of what is computed.
+That sentence governs contrasts judged against the δ margin. P3 and P4 have no
+margin: their formulas state their direction (Indonesian lineage minus Bengali
+lineage; matched minus crossed pairs) and G2's own gate row fixes the sign as
+LB95(D_T) > 0. `block_b.py` reports them exactly as written. Reading the
+negation into them would invert G2 against its own row.
+
+**One exploratory reading, declared now.** Block A bounded the text branch's
+inference contribution near zero (09-11), which makes "the donor difference
+follows the vision branch" the likelier outcome. No frozen criterion names
+that reading; G2 defines only the text one. It is therefore declared here,
+before the analysis runs, as an **exploratory** reading symmetric to G2 and
+not as a gate: **LB95(D_V) > 0 and UB95(D_T − D_V) < 0**, on Δ_ground, primary
+panel. It cannot pass or fail the loss gate and cannot rescue G2; if it holds
+it is reported as a localisation observation from recombined checkpoints,
+functional and not causal, as Block B's labels already say. The statement on
+09-11 that such an outcome would be "a clean positive result" was made without
+a criterion and is withdrawn in that form.
+
+**D13, MetaMathQA replay: measured, not attributable.** Job 20925481,
+`stage3_bn_mm30000` against the v4 reference `stage3_bn_dcl`, identical items:
+
+| benchmark | v4 | mm30000 | lost / gained | exact McNemar |
+|---|---|---|---|---|
+| MGSM (n=250) | 62.00 | 35.20 | 76 / 9 | p = 2.4e-14 |
+| MSVAMP (n=1000) | 64.50 | 50.70 | 193 / 55 | p = 3.7e-19 |
+| xGQA full (n=12,578) | 47.66 | 47.54 | 875 / 859 | p = 0.72 |
+| xGQA blind | 30.83 | 30.10 | | |
+
+An answer-format artifact was checked and ruled out: `extract_math_answer`
+accepts MetaMathQA's "The answer is:" form, and the lost items extract cleanly
+and are wrong on the arithmetic. **The run was not a single variable**,
+contrary to its launcher header: besides the replay pool, the stage-3 trainer
+was rewritten on 09-09 (optimizer-boundary snapshots, deterministic replay
+schedule) and the environment moved to transformers 5.13.1, whereas
+`stage3_bn_dcl` was trained and evaluated before both. The drop cannot be
+attributed to MetaMathQA until the GSM8K replay is reproduced with the current
+trainer and environment. The measured statement is only that this run, as a
+whole, lost about 27 MGSM and 14 MSVAMP points and left xGQA unchanged. MSVAMP
+shares no source with GSM8K, so a loss of MGSM train-test overlap alone would
+not explain the MSVAMP drop either.
+
+**D12, pooling: training finished, and its comparison is confounded the same
+way.** `launch_joint.sh` with `LANGS="jv mn ga de ru zh"`: job 20937497 trained
+all six in 22 h 25 min and job 20937498 only verified completion (58 s);
+`train_stage3_all.sh` exits non-zero on any failed language and both exited 0.
+The `vj` arm was trained with the rewritten trainer under transformers 5.x.
+The independent arm, the v4 checkpoints, was trained and evaluated before
+both. **So `gap_report.py v4 vj` is not a single variable**, and on CVQA it
+would also pair multiple-choice scores from two environments, which the 09-11
+entry forbids. Recorded now so the pooling result is never read without it.
+The evaluation half is removable by re-evaluating the six v4 checkpoints in
+the current environment; the training half is removable only by retraining
+the independent arm with the current trainer, about as long as the vj run.
+The registered prediction in D12 and X3 stands as written; what changes is
+that no verdict is drawn from a mixed-environment comparison.

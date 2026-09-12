@@ -76,6 +76,12 @@ it again without saying so explicitly and recording it in both files.
   entry below it. Edit the spec first, then the launcher.
 - Non-inferiority margins are substantive (δ = 1.0 point), never derived from
   precision; CVQA panels are underpowered for non-inferiority and say so.
+- **Two environment boundaries split the record.** Evaluations before
+  2026-09-11 ran under transformers 4.x, later ones under 5.13.1, and CVQA
+  multiple-choice scores differ between them enough to flip near-tied items;
+  checkpoints trained before 2026-09-09 also used the old stage-3 trainer. No
+  contrast may pair numbers across either boundary: re-evaluate (and, for a
+  training comparison, retrain) the older arm in the current environment first.
 - Any preservation-loss arm trained with reasoning replay needs a matched
   replay-only control; comparison only with no-replay arms cannot identify
   the loss effect.
@@ -137,9 +143,10 @@ data at `DT=/scratch/santimn/datatransfer`.
   pulling `1aafc1a` (job 20398782's results) do **not** run it until
   `analysis/block_d.py` exists and the freeze commit is in `HEAD`.
 - Every reported number comes from a versioned script in `analysis/`. Current:
-  `_boot.py`, `e3_noninferiority.py`, `x1_did.py`, `block_a.py`, `block_d.py`,
-  `block_d_input.py`, `power_sim.py`, plus the tests `test_invariance.py`,
-  `test_fail_closed.py`, `test_block_a.py`, `test_block_d.py`,
+  `_boot.py`, `e3_noninferiority.py`, `x1_did.py`, `block_a.py`, `block_b.py`,
+  `block_d.py`, `block_d_input.py`, `power_sim.py`, plus the tests
+  `test_invariance.py`, `test_fail_closed.py`, `test_block_a.py`, `test_block_b.py`,
+  `test_block_d.py`,
   `test_block_d_input.py`, `test_cvqa_s1_builder.py`. The legacy report scripts
   run from `Approach2/results/`; the S1 ones take a submission path and run from
   anywhere. Operational commands for the S1 blocks: `Approach2/S1_IMPLEMENTATION.md`.
