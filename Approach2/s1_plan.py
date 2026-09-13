@@ -129,11 +129,11 @@ def build(a):
     if a.block == "D":
         # Delta_ground needs correct and the three shuffles on identical items.
         # The gray canvas is Delta_gray, a different endpoint, and D does not use
-        # it. The historical correct-condition files are NOT reused: they were
-        # produced under transformers 4.x, whose CVQA choice scores differ from
-        # 5.x by enough to move the argmax (DESIGN 2026-09-11), so a Delta_ground
-        # mixing an old correct with a new shuffled would not be a paired
-        # difference at all.
+        # it. The historical correct-condition files are NOT reused: they scored
+        # a different copy of the CVQA images than the S1 panels, which re-encode
+        # them, and choice scores move with the pixels (DESIGN 2026-09-12), so a
+        # Delta_ground mixing an old correct with a new shuffled would not be a
+        # paired difference at all.
         for t in ["jv", "mn", "ga", "si"]:
             for donor, name in sorted(donors.items()):
                 for c in conditions[:-1]:

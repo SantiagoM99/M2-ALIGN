@@ -30,9 +30,9 @@ R="${ROUND:+_$ROUND}"
 # EVAL_TAG re-evaluates a round without touching its earlier results: outputs go
 # to a subdirectory and harvested names gain the tag, e.g. eval_xgqa_de_v4_tf5.
 # Without it, re-evaluating v4 would skip every cell (summaries exist) and, if
-# forced, overwrite the versioned 4.x-era files in Approach2/results. CVQA
-# choice scores differ between transformers 4.x and 5.x (DESIGN 2026-09-11), so
-# a comparison needs both arms evaluated under one tag.
+# forced, overwrite the versioned files in Approach2/results. Both arms of a
+# comparison should be scored under one tag, by one launcher, on one image copy
+# (DESIGN 2026-09-12).
 EVAL_TAG="${EVAL_TAG:-}"
 VIS_LAYERS="${VIS_LAYERS:-}"
 

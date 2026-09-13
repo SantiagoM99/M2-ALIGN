@@ -76,12 +76,14 @@ it again without saying so explicitly and recording it in both files.
   entry below it. Edit the spec first, then the launcher.
 - Non-inferiority margins are substantive (δ = 1.0 point), never derived from
   precision; CVQA panels are underpowered for non-inferiority and say so.
-- **Two environment boundaries split the record.** Evaluations before
-  2026-09-11 ran under transformers 4.x, later ones under 5.13.1, and CVQA
-  multiple-choice scores differ between them enough to flip near-tied items;
-  checkpoints trained before 2026-09-09 also used the old stage-3 trainer. No
-  contrast may pair numbers across either boundary: re-evaluate (and, for a
-  training comparison, retrain) the older arm in the current environment first.
+- **Two boundaries split the record.** CVQA scored on the legacy image copy
+  (`$DT/Stage3/data/cvqa/images`) differs from CVQA scored on an S1 panel, whose
+  builder re-encodes every image: near-tied items flip and one cell moved about
+  one point (DESIGN 2026-09-12). The model path itself reproduces across
+  transformers versions (gray cells exact, xGQA exact). Separately, checkpoints
+  trained before 2026-09-09 used the old stage-3 trainer. No contrast may pair
+  numbers across either boundary: score both arms on the same image copy, and
+  retrain the older arm for any training comparison.
 - Any preservation-loss arm trained with reasoning replay needs a matched
   replay-only control; comparison only with no-replay arms cannot identify
   the loss effect.

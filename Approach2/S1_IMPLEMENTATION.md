@@ -215,10 +215,10 @@ python Approach2/s1_submit.py --plan evaluation/s1_D.plan.json \
 
 The grey canvas is not in the grid: D's endpoint is Δ_ground, and Δ_gray is a
 different quantity. The historical correct-image files are not reused either,
-even though they exist for these donors and targets. They were produced under
-transformers 4.x, whose CVQA choice scores differ from 5.x by enough to move
-the argmax, so a Δ_ground pairing an old correct with a new shuffled would not
-be a paired difference at all.
+even though they exist for these donors and targets. They scored a
+different copy of the CVQA images than the S1 panel, whose builder re-encodes
+them, and choice scores move with the pixels, so a Δ_ground pairing an old
+correct-image run with a new shuffled one would not be a paired difference at all.
 
 **3. Analysis.**
 
