@@ -2389,6 +2389,8 @@ checked. What differed were the choice log-likelihoods: −14.156, −12.585,
 to 0.557 nats. The reference's top two choices were 0.133 apart, so the argmax
 flipped.
 
+**Corrected on 2026-09-12: the cause stated in the next paragraph is wrong.** The drift comes from the CVQA image files, not from transformers; the evidence is in the entry "Block B result, and the corrected cause of the CVQA parity drift". The original text is kept below as it was written.
+
 **Cause.** The cluster venv now carries transformers 5.13.1; the reference
 runs were produced under 4.x. Gemma 2 applies attention-logit soft-capping,
 whose implementation differs across versions and attention backends. This is
@@ -2601,3 +2603,106 @@ Supported only if both hold. Refuted if the lift fails, or if de/ru/zh lift by
 at least as much as jv/mn/ga. Anything else is inconclusive. `v4_tf5` against
 `v4r_tf5` measures the trainer's effect on the independent arm and is
 descriptive.
+
+### Block B result, and the corrected cause of the CVQA parity drift — 2026-09-12
+
+**The cause recorded on 09-11 was wrong, and Block B's own parity cells refute
+it.** Every gray-canvas parity cell reproduced its historical run exactly:
+0 of 297, 312, 326, 225 and 286 predictions differ, score drift 0.000. The
+gray canvas is generated in memory, so those cells run the same NLLB, SigLIP 2,
+both mappings and Gemma 2 as the correct-image cells, under transformers
+5.13.1. Had the library moved Gemma 2's numerics, they would drift too. Only
+real images drift: the correct-image cells differ on 0 to 10 items with drift
+p99 of 0.71 to 1.03 nats. xGQA, whose image files are the same in both
+pipelines, reproduced exactly (47.66). The CVQA files are not the same: of 20
+Javanese items compared between the legacy copy (`$DT/Stage3/data/cvqa/images`)
+and the S1 panel (`$DT/Stage3/data/cvqa_s1/images`), **0 are byte-identical**,
+all have the same size, and the largest per-pixel difference is 11 to 28 out of
+255. `build_cvqa_s1.py` decodes every embedded image and re-encodes it as JPEG
+at quality 95 (`canonical_image_bytes`); the legacy copies came through a
+different pipeline. **The S1 CVQA panels feed the model different pixels.
+Transformers 5.x is not implicated at inference.**
+
+What changes because of it:
+- **The rule stands, with a different reason.** No contrast may pair a CVQA
+  number scored on the legacy image copy with one scored on an S1 panel. Every
+  S1 block (A, B, D, the confirmatory panel) evaluates all of its arms on the
+  S1 panels, so its contrasts are unaffected; the legacy CVQA figures (E2, X1,
+  the D series) stay valid as their own internally consistent set.
+- **A sensitivity to state in the paper.** Lossy re-encoding alone moved one
+  CVQA cell by 1.05 accuracy points (the bn correct-image parity cell, 39.16
+  historical against 38.11), the size of δ. CVQA multiple-choice accuracy is
+  fragile at that scale, which is one more reason the project reads CVQA only
+  pooled.
+- **`compare_predictions` stays as recalibrated**; only its stated cause is
+  corrected. Its tolerance was sized on this drift, and all ten Block B parity
+  cells passed with at most 10 of 286 predictions differing.
+- **D12.** `evaluate_all.sh` scores both arms on the legacy copy and the model
+  path reproduces across versions, so the evaluation half of the D12 confound
+  is very likely absent. The tagged re-evaluation is kept as a check, with a
+  prediction fixed now: a `v4_tf5` evaluation reproduces the historical v4
+  numbers exactly on xGQA and within a handful of items per CVQA cell. The
+  training half (old trainer for v4, rewritten trainer for vj) is real, and is
+  what round `v4r` removes.
+- **D13.** MGSM and MSVAMP have no images, so evaluating under 5.x is no
+  confound there either. The live confound is training alone: the rewritten
+  trainer, and training numerics under 5.x, which the gray cells do not test.
+  The GSM8K control addresses exactly that.
+- **Retracted wording**, kept visible where it was written: "Gemma 2 applies
+  attention-logit soft-capping, whose implementation differs across versions"
+  (09-11 environment entry); "they predate the move to transformers 5.x" as the
+  reason not to reuse historical correct-image files (09-11 Block D
+  implementation entry); the same claim in the 09-12 D13/D12 entries. The
+  decisions those sentences supported stand: historical correct-image CVQA
+  files are still not reused in S1, now because their pixels differ.
+
+**Block B result** (job 20925480; report `audits/s1_B_analysis.json`,
+`1c34190`). Primary panel CVQA jv/mn/ga pooled, 935 items, paired
+image-cluster bootstrap stratified by target and subset, 4,000 resamples.
+Contrasts exactly as frozen; one-sided 5/95 bounds, and the two-sided 95% CI
+for P4.
+
+| contrast | Δ_ground | LB5 / UB95 | utility | LB5 / UB95 |
+|---|---|---|---|---|
+| D_T, stage-3 text imprint, id − bn, vision at V2 | +3.24 | +0.72 / +5.74 | +1.93 | −0.54 / +4.39 |
+| D_V, vision imprint, id − bn, text at stage 1 | +3.24 | +1.93 / +4.59 | +4.65 | +3.19 / +6.24 |
+| D_T − D_V | +0.00 | −2.75 / +2.81 | −2.73 | −5.60 / +0.11 |
+| P4, matched − crossed | −0.87 | CI95 −2.29 / +0.58 | −1.66 | CI95 −3.06 / −0.32 |
+
+- **G2 fails.** LB95(D_T) = +0.72 > 0, but LB95(D_T − D_V) = −2.75. The
+  frozen text-localisation prediction is not supported and is recorded as
+  failed.
+- **The exploratory vision reading declared this morning fails too.**
+  LB95(D_V) = +1.93 > 0, but UB95(D_T − D_V) = +2.81.
+- **What the numbers do say.** Both connectors carry a positive
+  Indonesian-minus-Bengali grounding difference, each with its lower bound
+  above zero, and the difference between them is estimated at 0.00 with an
+  interval 5.6 points wide. On this panel the donor difference is carried by
+  both branches and cannot be localised to either. The 09-11 reasoning "if the
+  text bridge carries nothing at inference, the imprint must live on the
+  vision mapping" is refuted by D_T's positive lower bound and is withdrawn.
+- **P4 on grounding is null; on utility it is negative** with a CI excluding
+  zero: crossed pairs compose slightly better than matched ones, the opposite
+  sign to co-adaptation. P4 predicted no direction; this is reported as
+  measured, functional, one seed per checkpoint.
+- **Secondary panels and controls, descriptive only.** CVQA-bn, the
+  same-language out-of-domain control: D_V +7.98 [LB5 +4.76], D_T −0.93,
+  D_T − D_V −8.92 [UB95 −3.22], so there the difference follows the vision
+  branch clearly. Per target the pattern varies (mn: D_V +4.43 [+2.21], D_T
+  +1.92 [−1.79]; ga: D_T +5.01 [+0.20], D_V +3.99 [+1.75]; jv: neither lower
+  bound above zero) and single-language cells are not read alone. No-X_f
+  controls: removing the text branch from the bn checkpoint moves grounding by
+  +0.14 and utility by −0.11, the same values Block A measured for A2 on these
+  cells, a cross-block consistency check; removing it from the id checkpoint
+  **raises** grounding by +2.85 [+0.77, +4.91] and utility by +4.92 [+3.00,
+  +6.85]. xGQA task controls: the matched bn checkpoint reproduces 47.66, and
+  swapping either branch costs 2.9 to 3.5 utility points on xGQA-bn.
+- Every label is functional, not causal, and conditional on one seed per
+  checkpoint.
+
+**What it does to the question, stated and not acted on.** SCIENCE.md §2
+point 4 asks whether the source effect arises from source-conditioned
+connector co-adaptation. P4 does not support co-adaptation in its registered
+sense, and localisation is undetermined. The question is not restated here;
+restating it is Santiago's decision, and if made it will be dated and recorded
+in both files.
