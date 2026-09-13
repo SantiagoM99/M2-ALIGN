@@ -114,8 +114,11 @@ def check_parity_lineage(plan):
 
 
 # Three guards, each aimed at a different way the pipeline could be wrong,
-# sized against the drift transformers 5.x actually produces here: the choice
-# scores of the failing item moved by 0.037 to 0.557 nats on a base of 12 to 22.
+# sized against the drift seen when an S1 panel is compared with a legacy run.
+# The S1 CVQA builder re-encodes every image, so the choice scores of the first
+# failing item moved by 0.037 to 0.557 nats on a base of 12 to 22, while
+# gray-canvas cells, which read no image file, reproduced exactly (DESIGN
+# 2026-09-12).
 # Resampling the reference cells with shifts of that size flips 4 to 9 percent
 # of predictions, so the rate cap sits well above that and still far below the
 # 50 to 75 percent a wrong checkpoint would give on four choices.
@@ -136,11 +139,12 @@ def compare_predictions(actual, expected):
     checkpoint, panel, prompt or image. Predictions are treated differently by
     task. Open-ended answers come from greedy decoding and must match exactly.
     Multiple choice is an argmax over four choice log-likelihoods, and the
-    reference runs predate the cluster's move to transformers 5.x, which
-    changed Gemma 2's attention numerics: scores shift by a few tenths of a nat
-    and the argmax flips wherever two choices were nearly tied (2026-09-11, job
-    20919626, jv id-donor cell, legacy gap 0.133). Requiring exact per-item
-    equality across that boundary is not satisfiable, so each disagreement must
+    reference runs read a different copy of the CVQA images than the S1 panels,
+    whose builder re-encodes every image: scores shift by a few tenths of a nat
+    and the argmax flips wherever two choices were nearly tied (job 20919626,
+    jv id-donor cell, legacy gap 0.133). Gray-canvas cells, which read no image
+    file, reproduce exactly. Pixels are not among the inputs checked below, so
+    exact per-item equality is not satisfiable, and each disagreement must
     instead be explained by the drift this very comparison measures.
     """
     a = {str(r["id"]): r for r in read_rows(actual)}
@@ -181,7 +185,7 @@ def compare_predictions(actual, expected):
     if len(disagree) > PARITY_MAX_DISAGREEMENT * len(a):
         raise ValueError(
             f"parity {Path(actual).name}: {len(disagree)}/{len(a)} predictions differ, "
-            f"more than {PARITY_MAX_DISAGREEMENT:.0%}; this is not library drift"
+            f"more than {PARITY_MAX_DISAGREEMENT:.0%}; this is not score drift"
         )
     if drift > PARITY_MAX_DRIFT:
         raise ValueError(
@@ -196,7 +200,7 @@ def compare_predictions(actual, expected):
                 f"parity {Path(actual).name}: item {i} flipped although its reference "
                 f"top-2 gap is {gap:.3f}, beyond {PARITY_GAP_FACTOR:.0f} x the largest shift "
                 f"seen on an item that did not flip ({explainable / PARITY_GAP_FACTOR:.3f}); "
-                "the pipeline differs, not just the library"
+                "the pipeline differs, not just the input pixels"
             )
 
 

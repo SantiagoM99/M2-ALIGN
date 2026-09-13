@@ -92,7 +92,7 @@ class MatrixTests(unittest.TestCase):
             a.write_text(rows(reference))
             compare_predictions(a, b)
 
-            # Library drift: every score moves a little, only the near tie flips.
+            # Score drift: every score moves a little, only the near tie flips.
             drifted = {k: [v[0] - 0.1, v[1] + 0.1] for k, v in reference.items()}
             a.write_text(rows(drifted))
             self.assertEqual(json.loads(a.read_text().splitlines()[-1])["pred_index"], 1)
@@ -108,7 +108,7 @@ class MatrixTests(unittest.TestCase):
             # A pipeline that moves everything cannot excuse itself: the drift is
             # estimated only on items that agree, and the rate cap fires first.
             a.write_text(rows({k: [v[1], v[0]] for k, v in reference.items()}))
-            with self.assertRaisesRegex(ValueError, "not library drift"):
+            with self.assertRaisesRegex(ValueError, "not score drift"):
                 compare_predictions(a, b)
 
             # Inputs are never allowed to differ, and neither is the universe.
