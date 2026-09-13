@@ -2828,3 +2828,74 @@ loaded nothing into `mapping_txt` from stage 2, and that warm-start difference
 cannot explain the gsm8k − dcl gap. Also confirmed in production: Block D's
 allocation (job 21009129) started from the detached worktree of its submitted
 commit, `/scratch/santimn/s1_worktrees/807a08e...`.
+
+### Deciding run: the reasoning loss is in training, not in evaluation — 2026-09-13
+
+Job 21009320 re-evaluated `stage3_bn_dcl` on MGSM and MSVAMP with the current
+code and environment (results `9efea67`, tag `dcl_tf5`). Identical items,
+exact McNemar, "gained / lost" relative to the reference named second.
+
+| benchmark | dcl historical | dcl_tf5 | gsm8k | dcl_tf5 − historical | dcl_tf5 − gsm8k |
+|---|---|---|---|---|---|
+| MGSM (n=250) | 62.00 | 60.80 | 39.20 | −1.20, 3 / 6, p = 0.51 | +21.60, 63 / 9, p = 4.2e-11 |
+| MSVAMP (n=1000) | 64.50 | 65.00 | 54.40 | +0.50, 7 / 2, p = 0.18 | +10.60, 166 / 60, p = 1.1e-12 |
+
+The extracted answer is identical between the historical and current
+evaluation on 234 of 250 MGSM items and 977 of 1,000 MSVAMP items.
+
+**Verdict under the rule fixed before this run: training.** On both
+benchmarks dcl_tf5 is significantly above gsm8k and not significantly below
+the historical dcl run. The current evaluation code reproduces dcl's reasoning
+scores, including long chain-of-thought generation; the start-of-text slice
+of the old `generate` changed how some outputs read, not what they answered.
+The 22.8-point MGSM and 10.1-point MSVAMP gap between `stage3_bn_gsm8k` and
+`stage3_bn_dcl` comes from how the checkpoint was trained.
+
+Consequences, as pre-declared:
+- **Every checkpoint trained with the rewritten trainer carries this loss on
+  reasoning**: `stage3_bn_gsm8k`, `stage3_bn_mm30000`, the pooled round `vj`,
+  the independent round `v4r` now training, and any Block C arm. Their MGSM and
+  MSVAMP numbers are not comparable with any pre-09-09 checkpoint.
+- **The pooling verdict is unaffected**: it is read on VQA, both arms share the
+  trainer, and xGQA reproduced dcl within 0.04 points.
+- **No Block C arm is launched until the cause is found and fixed.** Block C
+  has no replay by design, but the cause is not yet known to be confined to
+  replay.
+- **D13 re-read**: the pool effect is the mm30000 − gsm8k row of the previous
+  entry, −4.0 MGSM (not significant) and −3.7 MSVAMP (significant), plus a more
+  verbose output style. The −26.8 first reported was mostly the trainer.
+- Candidate already excluded: the stage-2 warm start (the checkpoint has no
+  text branch). Next, the remaining training differences between the trainer
+  at `b45552a` and at `d224c15`.
+
+**Where the training loss can come from, and the run that splits it
+(recorded before launch).** Read side by side, the trainer at `b45552a`
+(dcl's pilot) and at `d224c15` run the same training loop: plain AdamW at the
+same learning rate, no scheduler, no gradient clipping, no autocast, one replay
+batch every three VQA batches, the same accumulation cadence, and the best
+checkpoint chosen by VQA validation loss. What differs is small on paper: the
+old replay stream was `itertools.cycle` over a shuffled loader, which repeats
+its first shuffled pass in the same order forever, while the new one reshuffles
+deterministically each cycle; the validation split is a different permutation;
+and the new trainer turns on deterministic CUDA algorithms and turns TF32 off.
+The stage-2 warm start is already excluded. None of these is an obvious
+23-point cause, so the next step is an experiment rather than more reading.
+
+`job-scripts/bisect_trainer.sh` trains Bengali stage 3 with the GSM8K replay
+using the trainer at `287bae9`, the last commit before the rewrite, from a
+detached worktree so its `model.py` and `common.py` come with it, in the
+current venv, with the exact arguments of `stage3_bn_gsm8k`; it evaluates MGSM
+and MSVAMP with the current code, which reproduces dcl. Tag `gsm8k_old287bae9`.
+- **Near dcl** (not significantly below 62.0 / 64.5 and significantly above
+  gsm8k, paired exact McNemar, both benchmarks): the rewrite causes the loss,
+  and the next step bisects the 09-09 changes inside the trainer.
+- **Near gsm8k** (significantly below dcl and not significantly above gsm8k,
+  both benchmarks): training under the current environment causes the loss,
+  whatever the code, and the next step is the environment (torch 2.13 and
+  transformers 5.13.1 during training, where inference was shown to reproduce).
+- Anything else is reported as a split with both sizes.
+
+One operational caveat: the old `common.py` calls `torch.load` without
+`weights_only`, which defaults to `True` in the current torch. Mapping
+checkpoints load under that default; a resumed `training_state.pt` may not.
+The job requests 12 h for a training of about 4 h, so a resume is not expected.
