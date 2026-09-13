@@ -2819,3 +2819,12 @@ dcl_tf5 against the historical dcl run, and dcl_tf5 against gsm8k.
   `model.generate` is fixed before any further text evaluation.
 - Anything else, including a split between benchmarks, is reported as a split
   with both sizes.
+
+**One candidate excluded before the deciding run returns.** The keys of
+`outputs/stage2_dc_llava/mapping/pytorch_model.bin` are `loss`, `mapping_vis`
+and `step`: the stage-2 checkpoint has no text branch. The dcl-era trainer's
+habit of loading every branch present in each warm-start checkpoint therefore
+loaded nothing into `mapping_txt` from stage 2, and that warm-start difference
+cannot explain the gsm8k − dcl gap. Also confirmed in production: Block D's
+allocation (job 21009129) started from the detached worktree of its submitted
+commit, `/scratch/santimn/s1_worktrees/807a08e...`.
