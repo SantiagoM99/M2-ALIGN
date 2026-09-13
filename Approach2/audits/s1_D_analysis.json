@@ -1,0 +1,73 @@
+{
+ "schema_version": 2,
+ "donors": [
+  "bn",
+  "de",
+  "id",
+  "ko",
+  "pt",
+  "ru",
+  "zh"
+ ],
+ "targets": [
+  "ga",
+  "jv",
+  "mn",
+  "si"
+ ],
+ "damage": {
+  "bn": 0.0023999999999999855,
+  "de": -0.010049999999999976,
+  "id": -0.00520000000000001,
+  "ko": -0.0026500000000000135,
+  "pt": -0.009100000000000025,
+  "ru": -0.004899999999999988,
+  "zh": -0.011900000000000022
+ },
+ "items": 1160,
+ "images": 547,
+ "strata": 4,
+ "alpha": {
+  "bn": -0.1526236487892927,
+  "de": -0.4791607411750549,
+  "id": 0.8578324273620801,
+  "ko": 0.18933263207291962,
+  "pt": 0.30391488954883705,
+  "ru": -1.4125186239194427,
+  "zh": 0.6932230648999553
+ },
+ "alpha_utility": {
+  "bn": -0.22949377934040172,
+  "de": -0.4170373763932105,
+  "id": 0.7061496217937986,
+  "ko": 0.242682363081137,
+  "pt": -0.535394933401065,
+  "ru": -0.9785537116825509,
+  "zh": 1.2116478159422925
+ },
+ "spearman": -0.3214285714285714,
+ "exact_one_sided_p": 0.2488095238095238,
+ "correlation_defined": true,
+ "selected_donor": "zh",
+ "regret": 0.16460936246212476,
+ "regret_UB95": 1.9811247829258187,
+ "utility_regret": 0.0,
+ "utility_regret_UB95": 1.2616760469843769,
+ "delta_u": 1.0,
+ "selected_pooled_endpoint": 7.701149425287356,
+ "selected_pooled_LB95": 5.8539357772094345,
+ "bootstrap": {
+  "B": 2000,
+  "seed": 0,
+  "paired": true,
+  "strata": "target x subset",
+  "cluster": "image"
+ },
+ "verdict": {
+  "spearman_p_lt_0.10": false,
+  "regret_UB95_le_1.0": false,
+  "selected_LB95_gt_0": true,
+  "utility_regret_UB95_le_delta_U": false
+ },
+ "g3": "fail"
+}
