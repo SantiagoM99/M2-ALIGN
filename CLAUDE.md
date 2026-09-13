@@ -146,10 +146,10 @@ data at `DT=/scratch/santimn/datatransfer`.
   `analysis/block_d.py` exists and the freeze commit is in `HEAD`.
 - Every reported number comes from a versioned script in `analysis/`. Current:
   `_boot.py`, `e3_noninferiority.py`, `x1_did.py`, `block_a.py`, `block_b.py`,
-  `block_d.py`, `block_d_input.py`, `power_sim.py`, plus the tests
+  `block_d.py`, `block_d_input.py`, `power_sim.py`, `pooling_d12.py`, plus the tests
   `test_invariance.py`, `test_fail_closed.py`, `test_block_a.py`, `test_block_b.py`,
   `test_block_d.py`,
-  `test_block_d_input.py`, `test_cvqa_s1_builder.py`. The legacy report scripts
+  `test_block_d_input.py`, `test_cvqa_s1_builder.py`, `test_pooling_d12.py`. The legacy report scripts
   run from `Approach2/results/`; the S1 ones take a submission path and run from
   anywhere. Operational commands for the S1 blocks: `Approach2/S1_IMPLEMENTATION.md`.
 

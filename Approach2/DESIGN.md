@@ -2954,3 +2954,20 @@ and `power_sim.py` gave it power of 0.54 to 1.00 across the simulated noise
 levels, so this is weak evidence against the predictor, not strong evidence.
 Four of the seven donors shaped the hypothesis, which is why this panel was
 exploratory from the start.
+
+### D12 reading: endpoint made explicit, and the analysis written before the data — 2026-09-13
+
+The reading fixed on 09-12 named its thresholds ("lift: CVQA pooled jv/mn/ga,
+LB5 > 0"; "flat: xGQA pooled de/ru/zh within ±1.0") but not the endpoint.
+Fixed now, while `v4r_tf5` does not yet exist and `vj_tf5` has not been read:
+**the primary endpoint is utility U, accuracy with the correct image**, which
+is what D12 registered through `gap_report.py`. `evaluate_all.sh` scores the
+correct image and the gray canvas only, so Δ_gray is reported descriptively
+and Δ_ground does not exist for these runs. Nothing else changes: joint minus
+independent, item-micro, paired on identical items, image-cluster bootstrap
+with CVQA stratified by target and xGQA's three translations resampled as one
+stratum of shared images; supported only if lift and flat both hold; refuted
+if the lift fails or de/ru/zh lift by at least as much as jv/mn/ga; otherwise
+inconclusive. `analysis/pooling_d12.py` implements exactly this, with
+`analysis/test_pooling_d12.py` covering all four outcomes and the pairing
+aborts.
