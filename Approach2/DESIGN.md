@@ -2899,3 +2899,44 @@ One operational caveat: the old `common.py` calls `torch.load` without
 `weights_only`, which defaults to `True` in the current torch. Mapping
 checkpoints load under that default; a resumed `training_state.pt` may not.
 The job requests 12 h for a training of about 4 h, so a resume is not expected.
+
+### Block D exploratory result: not promising, confirmatory panel not launched — 2026-09-13
+
+Job 21009129 (112 cells, 3 h 08), analysis `4430465`: `audits/s1_D_input.json`
+and `audits/s1_D_analysis.json`. P_current, seven donors on jv/mn/ga/si, 1,160
+items on 547 images, paired image-cluster bootstrap over target × subset
+strata, 2,000 resamples. Damage ranking as committed in `5befc65` before the
+run.
+
+| donor | damage | α on Δ_ground | α on utility |
+|---|---|---|---|
+| zh | −0.01190 | +0.69 | +1.21 |
+| de | −0.01005 | −0.48 | −0.42 |
+| pt | −0.00910 | +0.30 | −0.54 |
+| id | −0.00520 | +0.86 | +0.71 |
+| ru | −0.00490 | −1.41 | −0.98 |
+| ko | −0.00265 | +0.19 | +0.24 |
+| bn | +0.00240 | −0.15 | −0.23 |
+
+- Spearman(damage, α) **−0.32**, in the predicted direction; exact one-sided
+  permutation **p = 0.249**.
+- Selected donor **zh**. Grounding regret **+0.17**, UB95 +1.98. Utility
+  regret **0.00**, UB95 +1.26. Selected donor's pooled Δ_ground **+7.70**,
+  LB95 +5.85.
+- G3's four conditions, applied here only as the exploratory readout: p < 0.10
+  fails; UB95 regret ≤ 1.0 fails; LB95 pooled grounding > 0 passes; UB95
+  utility regret ≤ δ_U fails. `g3: fail` on P_current.
+
+**Under the rule pre-declared on 09-08, the result is not promising**: that
+rule required a defined p < 0.10 and a selected-donor regret point estimate of
+at most 1.0. The regret point estimate passes (0.17) and p does not (0.249).
+Under Option 1 the confirmatory twelve-unit panel is therefore **not
+launched**, and G3 is reported as **not tested**, not as refuted: the
+confirmatory test never ran. What the exploratory panel says is recorded as
+measured: the least-damaged donor was a good choice here, its regret interval
+is too wide to certify it, and damage does not rank the seven donors well
+enough to reach p < 0.10. With seven donors the permutation test is coarse,
+and `power_sim.py` gave it power of 0.54 to 1.00 across the simulated noise
+levels, so this is weak evidence against the predictor, not strong evidence.
+Four of the seven donors shaped the hypothesis, which is why this panel was
+exploratory from the start.
