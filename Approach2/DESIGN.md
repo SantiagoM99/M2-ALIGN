@@ -2744,3 +2744,78 @@ Two properties of this predictor, recorded before any outcome exists:
   997 FLORES sentences, with no repeated scoring and one training seed. The
   ranking is used exactly as frozen; its reliability is a stated limitation,
   not a reason to revise it.
+
+### D13 control result: most of the drop is not the pool, and it is not yet a trainer effect — 2026-09-13
+
+Job 20991975, `stage3_bn_gsm8k`, results `d2fc6ef`. Identical items, exact
+McNemar; "gained / lost" counts items the later arm got right and wrong
+relative to the earlier one.
+
+| benchmark | dcl | gsm8k | mm30000 | gsm8k − dcl | mm30000 − gsm8k |
+|---|---|---|---|---|---|
+| MGSM (n=250) | 62.00 | 39.20 | 35.20 | −22.80, 8 / 65, p = 3.2e-12 | −4.00, 19 / 29, p = 0.19 |
+| MSVAMP (n=1000) | 64.50 | 54.40 | 50.70 | −10.10, 65 / 166, p = 2.3e-11 | −3.70, 78 / 115, p = 0.009 |
+| xGQA full (n=12,578) | 47.66 | 47.62 | 47.54 | −0.04, 858 / 863, p = 0.92 | −0.09, 242 / 253, p = 0.65 |
+| xGQA blind | 30.83 | 30.55 | 30.10 | −0.28, p = 0.36 | −0.45, p = 0.016 |
+
+Under the rule fixed on 09-12, both differences are significant on MSVAMP and
+both are reported with their sizes; on MGSM only gsm8k − dcl is. **Most of
+D13's MGSM drop (−26.8) is the gsm8k − dcl term (−22.8).** The MetaMathQA
+sample adds −3.7 on MSVAMP, significant, and −4.0 on MGSM, not significant, and
+it changes the output style: the median answer doubles in length and 27% of
+its MGSM outputs run on for more than 40 characters after the stated answer,
+against 2 to 4% for dcl and gsm8k.
+
+**The gsm8k − dcl term is not yet a trainer effect.** The 09-12 rule attributed
+it to "the trainer rewrite or transformers 5.x", and the 09-12 correction
+entry stated that MGSM and MSVAMP carry no evaluation confound because they
+have no images. That statement went further than the evidence and is withdrawn
+in that form. The gray parity cells show that choice scoring reproduces, and
+xGQA that greedy answers of one to three tokens reproduce; neither tests long
+chain-of-thought generation, and `model.generate` changed on 09-09. It used to
+slice `ids[:, prefix_len:]` whenever the returned sequence was longer than the
+prefix, and now decodes the whole returned sequence. `evaluate_text.py` itself
+is unchanged since the freeze.
+
+What the static evidence says, before the deciding run:
+- Since dcl's pilot (`b45552a`, 08-27) the stage-3 trainer changed on 09-05
+  (`--no-vision`, offline flags) and was rewritten on 09-09. Replay dataset,
+  collate, label construction (`replay_max_gen_len` 512 with EOS), loss scaling
+  and every relevant default (replay every 3, 10,000-row cap, `max_gen_len` 64,
+  `max_seq_len` 512) are the same. What differs: a deterministic replay
+  schedule instead of a shuffled, cycled loader; gradient accumulation per
+  epoch with a normalised partial final step, where the old counter ran across
+  epochs; deterministic CUDA algorithms with TF32 off; and the stage-2 warm
+  start, which now loads only `mapping_vis`, whereas the dcl-era trainer loaded
+  every branch present in each checkpoint, stage 2 after stage 1.
+- The gsm8k outputs read like a weaker model rather than a decoding artifact:
+  coherent, about as long as dcl's (median 280 against 228 characters), stating
+  an answer about as often (67% against 72%), rarely running on after it (3.6%
+  against 2.4%), and a tolerant extractor keeps the gap (27.6% against 48.4%
+  exact numeric match). The lost items contain reasoning errors.
+- The two generation paths are demonstrably not equivalent for long outputs.
+  The historical dcl outputs start mid-sentence in 6.8% of MGSM and 5.7% of
+  MSVAMP items ("18 a day.\nThe goose earns $18 a day...", "= $0.23328..."),
+  against 0.4% for gsm8k and under 1% for mm30000 under the current code: the
+  old `ids[:, prefix_len:]` slice was cutting the start of long generations.
+  That removes text before the answer rather than the answer itself, so it
+  does not by itself explain a lower accuracy, but it shows evaluation code is
+  a live candidate and not a formality.
+
+**Deciding run, recorded before it is submitted.** `job-scripts/reeval_text.sh`
+re-evaluates `stage3_bn_dcl` on MGSM and MSVAMP with the current code and
+environment, as `dcl_tf5`. Two paired exact McNemar tests on each benchmark:
+dcl_tf5 against the historical dcl run, and dcl_tf5 against gsm8k.
+- **Training**: dcl_tf5 is significantly above gsm8k and not significantly
+  below historical dcl, on both benchmarks. Then every checkpoint trained with
+  the rewritten trainer carries the loss on reasoning, including `vj`, `v4r`
+  and every Block C arm; the pooling verdict is unaffected because it is read
+  on VQA with both arms on the same trainer; and **no Block C arm is launched
+  until the cause is found**, starting with the stage-2 warm start and the
+  replay schedule.
+- **Evaluation**: dcl_tf5 is significantly below historical dcl and not
+  significantly above gsm8k, on both benchmarks. Then no checkpoint is
+  implicated, every MGSM and MSVAMP number produced since 09-09 is re-read, and
+  `model.generate` is fixed before any further text evaluation.
+- Anything else, including a split between benchmarks, is reported as a split
+  with both sizes.
