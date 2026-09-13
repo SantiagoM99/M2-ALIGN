@@ -2706,3 +2706,41 @@ connector co-adaptation. P4 does not support co-adaptation in its registered
 sense, and localisation is undetermined. The question is not restated here;
 restating it is Santiago's decision, and if made it will be dated and recorded
 in both files.
+
+### Block D damage ranking, fixed before any Block D evaluation — 2026-09-13
+
+Pair alignment for the seven donors' own checkpoints was scored in job
+20993899 and committed as `1a74d1c` (the six `stage1_<L>`) and `9e43428` (the
+five `stage3_<L>_v4`), before the Block D plan was built; `stage1`,
+`stage3_bn_dcl` and `stage3_id_v4` were already in the repository. All
+fourteen files carry a centered margin for every donor-to-target pair.
+Damage, as frozen, is the mean over jv/mn/ga/si of the centered margin at
+stage 1 minus the same margin at stage 3, each read from the donor's own files
+by `analysis/block_d_input.py`; positive means deterioration. The same ranking
+serves the exploratory panel and the confirmatory panel, because damage is
+defined on these four targets in both.
+
+| donor | damage | jv | mn | ga | si |
+|---|---|---|---|---|---|
+| zh | −0.01190 | −0.0129 | −0.0118 | −0.0105 | −0.0124 |
+| de | −0.01005 | −0.0122 | −0.0097 | −0.0087 | −0.0096 |
+| pt | −0.00910 | −0.0111 | −0.0090 | −0.0070 | −0.0093 |
+| id | −0.00520 | −0.0052 | −0.0051 | −0.0055 | −0.0050 |
+| ru | −0.00490 | −0.0060 | −0.0055 | −0.0028 | −0.0053 |
+| ko | −0.00265 | −0.0029 | −0.0031 | −0.0012 | −0.0034 |
+| bn | +0.00240 | +0.0030 | +0.0004 | +0.0054 | +0.0008 |
+
+**Selected donor by the frozen rule, least damage: zh.** No two donors tie,
+so the NLLB-code tie-break is not used.
+
+Two properties of this predictor, recorded before any outcome exists:
+- **Only Bengali's stage 3 lowered its centered margin to the four targets;
+  the other six raised it.** On this panel "damage" is therefore mostly an
+  improvement axis, and G3 reads as "donors whose stage 3 raised pair
+  alignment more transfer better". The sign of the effect G3 tests is
+  unchanged: more damage, lower α.
+- **The spread is small**, 0.0143 in centered margin from zh to bn, and pair
+  alignment has no measured noise floor: each checkpoint was scored once on
+  997 FLORES sentences, with no repeated scoring and one training seed. The
+  ranking is used exactly as frozen; its reliability is a stated limitation,
+  not a reason to revise it.
