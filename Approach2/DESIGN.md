@@ -2900,6 +2900,20 @@ One operational caveat: the old `common.py` calls `torch.load` without
 checkpoints load under that default; a resumed `training_state.pt` may not.
 The job requests 12 h for a training of about 4 h, so a resume is not expected.
 
+**Training logs, read before the bisect returns.** dcl's pilot (job 19754253,
+old trainer) loaded 7,473 GSM8K and 10,000 translation replay rows, one replay
+batch per three VQA batches, VQA validation loss 0.693 then 0.617, epoch 1
+kept, and a final running replay loss of 1.750. The GSM8K control (job
+20991975, rewritten trainer) reached VQA validation loss 0.681 then 0.639,
+comparable, as xGQA's reproduction implies. It took **1 h 50 per epoch against
+1 h 17**, 43% slower, which fits deterministic CUDA algorithms with TF32 off
+and a replay schedule that reshuffles all 17,473 rows at every replay step;
+that is a lead, not a cause. The rewritten trainer logs neither its replay row
+counts nor its replay loss, so the most direct diagnostic is unavailable for
+the runs already made. It is not added now: `v4r` is training from the main
+clone, and editing the trainer would change the implementation fingerprint its
+resume checks. It is added before any bisection inside the rewrite.
+
 ### Block D exploratory result: not promising, confirmatory panel not launched — 2026-09-13
 
 Job 21009129 (112 cells, 3 h 08), analysis `4430465`: `audits/s1_D_input.json`
