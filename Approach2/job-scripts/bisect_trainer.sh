@@ -25,7 +25,8 @@
 #   near dcl   (62.0 MGSM / 64.5 MSVAMP): the rewrite causes the loss
 #   near gsm8k (39.2 MGSM / 54.4 MSVAMP): the training environment causes it
 #
-# Env: DT (required), TRAINER_SHA (287bae9).
+# Env: DT (required), TRAINER_SHA (287bae9), SEED (42, the seed dcl and the
+#      first bisect run used; any other seed gets its own tag and output).
 
 set -uo pipefail
 
@@ -34,7 +35,9 @@ A2="$PROJECT_ROOT/Approach2"
 DT="${DT:?set DT}"
 TRAINER_SHA="${TRAINER_SHA:-287bae9}"
 FULL_SHA=$(git -C "$PROJECT_ROOT" rev-parse --verify "$TRAINER_SHA^{commit}") || { echo "ERROR: unknown commit $TRAINER_SHA"; exit 1; }
+SEED="${SEED:-42}"
 TAG="gsm8k_old${FULL_SHA:0:7}"
+[ "$SEED" = 42 ] || TAG="${TAG}_s${SEED}"
 S3_OUT="$A2/outputs/stage3_bn_$TAG"
 WT_ROOT="${S1_WORKTREE_ROOT:-$SCRATCH/s1_worktrees}"
 WT="$WT_ROOT/trainer_$FULL_SHA"
@@ -51,7 +54,7 @@ DATA="$DT/Stage3/data/stage3b/bengali.jsonl"
 [ -f "$DATA" ] || DATA="$DT/Stage3/data/bn.jsonl"
 
 echo "=== Job info ==="; date; hostname
-echo "TRAINER_SHA=$FULL_SHA TAG=$TAG"
+echo "TRAINER_SHA=$FULL_SHA SEED=$SEED TAG=$TAG"
 module --force purge
 module load StdEnv/2023 python/3.11.5 cudacore/.12.2.2 arrow/21.0.0
 source "$SCRATCH/venvs/m2-align/bin/activate"
@@ -84,7 +87,7 @@ else
       --mt-path "$MT_PATH" --vis-path "$VIS_PATH" --llm-path "$LLM_PATH" \
       --vis-layers 9,18,-1 \
       --replay-data "$MATH_REPLAY,$TRANS_REPLAY" --replay-every 3 \
-      --epochs 2 --lr 2e-5 \
+      --epochs 2 --lr 2e-5 --seed "$SEED" \
       --train-batch-size 2 --eval-batch-size 2 --grad-accum 16 \
       --max-gen-len 64 --save-steps 200 \
       --use-wandb --wandb-mode offline --wandb-project m2-align \
