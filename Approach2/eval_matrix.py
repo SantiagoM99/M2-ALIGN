@@ -20,8 +20,8 @@ from s1_contract import (
 
 def read_plan(path):
     plan = read_json(path)
-    if plan.get("spec_sha") != SPEC_SHA or plan.get("block") not in ("A", "B", "D"):
-        raise ValueError("plan requires exact S1 spec SHA and block A, B or D")
+    if plan.get("spec_sha") != SPEC_SHA or plan.get("block") not in ("A", "B", "C", "D"):
+        raise ValueError("plan requires exact S1 spec SHA and block A, B, C or D")
     cells = plan.get("cells", [])
     if not cells or len({c["id"] for c in cells}) != len(cells):
         raise ValueError("empty matrix or duplicate cell id")
@@ -50,6 +50,12 @@ def read_plan(path):
     known = {c["id"]: a for c, a in result}
     if any(p["cell_id"] not in known for p in parity):
         raise ValueError("parity references unknown cell")
+    if plan["block"] == "C":
+        if not plan.get("block_a_report"):
+            raise ValueError("Block C requires a Block A G0 report")
+        gate = read_json(plan["block_a_report"])
+        if gate.get("spec_sha") != SPEC_SHA or gate.get("gates", {}).get("G0") is not True:
+            raise ValueError("Block C requires G0 to pass under the frozen S1 spec")
     if plan["block"] == "B":
         if not plan.get("block_a_report"):
             raise ValueError("Block B requires a Block A G0 report")

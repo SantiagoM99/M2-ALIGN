@@ -70,7 +70,7 @@ def build(a):
             "--arm",
             arm,
             "--source",
-            {"A": "bn", "D": arm.removeprefix("D_")}.get(a.block, arm),
+            {"A": "bn", "C": "bn", "D": arm.removeprefix("D_")}.get(a.block, arm),
             "--target",
             t,
             "--data-path",
@@ -92,16 +92,18 @@ def build(a):
             {
                 "A": "S1 P1/P2: input necessity and grounding",
                 "B": "S1 P3/P4: functional branch localisation and co-adaptation",
+                "C": "S1 P5-P8: freeze-factorial pilot, stage-3 text drift and training necessity",
                 "D": "S1 Block D-donor: stage 1 -> stage 3 alignment damage predicts donor effect",
             }[a.block],
             "--prediction",
             {
                 "A": "A1 grounding > 0 on each panel; A2 necessity classified by frozen NI regions",
                 "B": "D_T > 0 and D_T-D_V > 0; P4 two-sided",
+                "C": "P5 > 0 on grounding; P6, P7 two-sided; D8 read as a single-seed pilot",
                 "D": "Spearman(damage, alpha) < 0 one-sided; exploratory on the current targets",
             }[a.block],
             "--seed",
-            "42",
+            "13" if a.block == "C" else "42",
         ]  # historical source checkpoint seed, not a new training run
         if no_text:
             argv += ["--no-text-branch"]
@@ -138,6 +140,26 @@ def build(a):
             for donor, name in sorted(donors.items()):
                 for c in conditions[:-1]:
                     add("cvqa", t, "D_" + donor, c, ck(name), ck(name))
+    elif a.block == "C":
+        # Every arm on CVQA jv/mn/ga/si/bn and xGQA-bn, correct, three shuffles
+        # and gray, as frozen. C4 is the untrained stage-1 + stage-2 composition;
+        # C5 has no text branch. A checkpoint is evaluated only once its trainer
+        # wrote complete.json: the best checkpoint appears after epoch 1, so its
+        # mere existence does not mean the two-epoch run finished.
+        if not a.block_a_report:
+            raise ValueError("Block C requires --block-a-report with G0 passing")
+        trained = {"C1": "s1_C1_seed13", "C2": "s1_C2_seed13", "C3": "s1_C3_seed13", "C5": "s1_C5_seed13"}
+        for arm, name in sorted(trained.items()):
+            marker = Path(a.checkpoints) / name / "complete.json"
+            if not marker.is_file():
+                raise ValueError(f"{arm} has not finished training: {marker} is missing")
+        arms = {arm: (ck(name), ck(name)) for arm, name in trained.items()}
+        arms["C4"] = (ck("stage1"), ck("stage2_dc_llava"))
+        for b, targets in [("cvqa", ["jv", "mn", "ga", "si", "bn"]), ("xgqa", ["bn"])]:
+            for t in targets:
+                for arm, (tc, vc) in sorted(arms.items()):
+                    for c in conditions:
+                        add(b, t, arm, c, tc, vc, arm == "C5")
     elif a.block == "A":
         for b, targets in [
             ("xgqa", ["bn", "de", "ko"]),
@@ -249,7 +271,7 @@ def falsifier_first(cells):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--panels", required=True)
-    p.add_argument("--block", choices=["A", "B", "D"], required=True)
+    p.add_argument("--block", choices=["A", "B", "C", "D"], required=True)
     p.add_argument("--checkpoints", required=True)
     p.add_argument("--results", required=True)
     p.add_argument("--maps-dir", default=str(ROOT / "evaluation"))
