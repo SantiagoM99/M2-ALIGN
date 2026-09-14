@@ -3041,3 +3041,35 @@ caveats stated at registration apply: one seed per language, and a joint stage
 1 with about a tenth of each language's own exposure. Closed with evidence: do
 not retry the joint stage-1 mapping as a low-resource lever without a new
 reason.
+
+### Decisions on 2026-09-14: Block C unblocked, and a seed replicate for the reasoning loss
+
+Taken by Santiago after the bisect split and the D12 refutation.
+
+**1. Block C is unblocked, as a decision.** The condition recorded on 09-13,
+"until the cause is found and fixed", is not met: the bisect located only part
+of the reasoning loss. The block is lifted anyway, for reasons that belong to
+Block C's own design: its arms train without replay, it is read on VQA
+transfer (P5–P8, G4, G5), VQA reproduced dcl within 0.1 point in every
+rewritten-trainer run compared with it, and all four arms share one trainer
+and one environment, so their contrasts are internally paired. What the
+decision does not license: **no MGSM or MSVAMP number from a Block C arm is
+compared with any earlier checkpoint, or read as a reasoning result**, until
+the reasoning loss is explained. Arms: C1, C2, C3 and, because G1-I was
+inconclusive, C5 as a single-seed pilot arm, seed 13, through
+`s1_train_submit.py`; C4 needs no training and is Block B's `T1_bn__V2` cell.
+
+**2. Seed replicate of the old-trainer run, reading fixed before launch.**
+`bisect_trainer.sh` gained `SEED`; the replicate is the same trainer at
+`287bae9`, same environment and arguments, seed 13 instead of 42, tag
+`gsm8k_old287bae9_s13`. Two paired exact McNemar tests per benchmark: the
+replicate against historical dcl, and against the seed-42 old-trainer run.
+- **Environment**: on both benchmarks, significantly below dcl and not
+  significantly different from the seed-42 run. Two runs of identical code in
+  today's environment agree with each other and not with dcl.
+- **Variance**: on both benchmarks, significantly different from the seed-42
+  run. Two runs of identical code and environment disagree, so a single
+  training run does not certify a reasoning number here, dcl's included.
+- Anything else is mixed and reported with both sizes. One extra seed is a
+  coarse probe: "not significantly different" is weak evidence of agreement,
+  and the reading says so.
