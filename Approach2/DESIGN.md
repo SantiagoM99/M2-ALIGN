@@ -2971,3 +2971,73 @@ if the lift fails or de/ru/zh lift by at least as much as jv/mn/ga; otherwise
 inconclusive. `analysis/pooling_d12.py` implements exactly this, with
 `analysis/test_pooling_d12.py` covering all four outcomes and the pairing
 aborts.
+
+### Bisect result: most of the reasoning loss is not the trainer rewrite — 2026-09-14
+
+Job 21023176 (3 h 25), `stage3_bn_gsm8k_old287bae9`, results `d4dab51`: the
+trainer at `287bae9` with its own `model.py` and `common.py`, trained in the
+current environment with the arguments of the GSM8K control, evaluated with the
+current code. Identical items, exact McNemar, "gained / lost" relative to the
+reference named second.
+
+| benchmark | dcl historical | dcl_tf5 | old trainer today | new trainer (gsm8k) | old − dcl | old − new |
+|---|---|---|---|---|---|---|
+| MGSM (n=250) | 62.00 | 60.80 | 43.60 | 39.20 | −18.40, 16 / 62, p = 1.5e-07 | +4.40, 27 / 16, p = 0.13 |
+| MSVAMP (n=1000) | 64.50 | 65.00 | 58.00 | 54.40 | −6.50, 78 / 143, p = 1.5e-05 | +3.60, 95 / 59, p = 0.005 |
+
+**Under the rule fixed before launch, this is a split.** MGSM meets "near
+gsm8k": significantly below dcl and not significantly above the new trainer.
+MSVAMP is significantly below dcl but significantly above the new trainer.
+Both sizes are reported and no single cause is named:
+- **The pre-rewrite code, trained today, already loses 18.4 of the 22.8 MGSM
+  points and 6.5 of the 10.1 MSVAMP points.** The rewrite adds the rest,
+  +4.4 on MGSM (not significant) and +3.6 on MSVAMP (significant), for which
+  the 43% slowdown and the missing replay logging stay as leads.
+- **The larger part appears whenever the dcl recipe is trained today, with
+  either code.** Two explanations remain and this run cannot separate them:
+  the training environment (torch 2.13 and transformers 5.13.1 during
+  training, where inference was shown to reproduce exactly), or training
+  variance. dcl is a single training run, no stage-3 recipe in this project has
+  seed replicates, and reasoning scores have moved by more than 20 points with
+  recipe changes before (D6, D11). Even the variance explanation would be a
+  finding: it would mean a single training run cannot certify a reasoning
+  number for this system.
+- **Separating them costs one more training of about 3.5 h**: the same old
+  trainer in the current environment with a second seed. Not launched here.
+
+**Block C.** The block recorded on 09-13 was "until the cause is found and
+fixed". That condition is not met: the cause is only partly located. Lifting
+the block is a decision, recorded as a decision, not a consequence of this run.
+What bears on it: Block C has no replay, is read on VQA transfer, and VQA
+reproduced dcl within 0.1 point in every rewritten-trainer run compared with it.
+
+### D12 pooling result: refuted — 2026-09-14
+
+`analysis/pooling_d12.py` on `vj_tf5` (joint stage-1 mapping) minus `v4r_tf5`
+(each language's own stage-1 mapping); both rounds trained by the same
+rewritten trainer and scored by one launcher, one tag, one image copy. Report
+`audits/d12_pooling_analysis.json`. Primary endpoint utility, as fixed on
+09-13; bounds one-sided, image-cluster bootstrap, 4,000 resamples.
+
+| panel | U, joint − independent | LB5 / UB95 |
+|---|---|---|
+| **lift**: CVQA jv/mn/ga pooled, 935 items | −1.18 | −2.99 / +0.65 |
+| **flat**: xGQA de/ru/zh pooled, 37,734 items | −0.19 | −0.48 / +0.10 |
+
+**Verdict: refuted.** The lift fails, so the registered differential prediction
+fails; the flat half holds. Descriptive, not part of the verdict: Javanese is
+significantly *worse* under the joint mapping, −4.04 [LB5 −7.09, UB95 −1.01];
+Mongolian −0.64 and Irish +0.92 cross zero; CVQA ru/zh *gain* +2.54 [LB5 +0.39];
+Δ_gray on jv/mn/ga pooled −2.35 [UB95 −0.10]; on the text benchmarks the joint
+round scores higher for de/ru/zh by +1.2 to +5.6 points (n = 250 and 1,000, both
+rounds carrying the rewritten trainer's reasoning loss). The `uniform_lift`
+flag is also true on point estimates, but the verdict follows from the failed
+lift alone.
+
+Reading: sharing one text mapping across eleven languages does not help the
+low-resource targets here, costs Javanese, and if anything helps the
+higher-resource languages on CVQA, the opposite of what D12 registered. The
+caveats stated at registration apply: one seed per language, and a joint stage
+1 with about a tenth of each language's own exposure. Closed with evidence: do
+not retry the joint stage-1 mapping as a low-resource lever without a new
+reason.
