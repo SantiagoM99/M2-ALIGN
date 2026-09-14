@@ -244,6 +244,31 @@ the twelve-unit confirmatory panel, and under Option 1 it runs only if this
 exploratory result is promising, which DESIGN pre-declares as a defined
 p < 0.10 together with a selected-donor regret point estimate of at most 1.0.
 
+## Block C: evaluating the freeze-factorial pilot
+
+Only after all four trained arms (C1, C2, C3, C5) have written
+`outputs/s1_<arm>_seed13/complete.json`; the builder refuses otherwise.
+
+```bash
+O=$PWD/Approach2/outputs
+python Approach2/s1_plan.py --block C \
+  --panels evaluation/s1_panels.json \
+  --checkpoints $O --results $O/s1_C \
+  --block-a-report Approach2/audits/s1_A_analysis.json \
+  --output evaluation/s1_C.plan.json
+python Approach2/s1_submit.py --plan evaluation/s1_C.plan.json \
+  --submission $O/s1_C.submission.json
+sbatch --time=48:00:00 Approach2/job-scripts/s1_eval.sh $O/s1_C.submission.json
+```
+
+150 cells, about 21 GPU hours, most of them the 25 xGQA-bn cells. Then:
+
+```bash
+python Approach2/analysis/block_c.py \
+  --submission Approach2/outputs/s1_C.submission.json \
+  --output Approach2/audits/s1_C_analysis.json
+```
+
 ## Exact stage-3 continuation
 
 `training_resume.py` and the stage-3 loop save explicit deterministic batch

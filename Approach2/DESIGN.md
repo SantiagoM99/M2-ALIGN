@@ -3073,3 +3073,34 @@ replicate against historical dcl, and against the seed-42 old-trainer run.
 - Anything else is mixed and reported with both sizes. One extra seed is a
   coarse probe: "not significantly different" is weak evidence of agreement,
   and the reading says so.
+
+### Block C evaluation and analysis, written before any Block C checkpoint exists — 2026-09-14
+
+The four trained arms were submitted today (C1 job 21060938, C2 21060942, C3
+21060943, C5 21060946, seed 13) with no evaluation grid or analysis in place.
+Both now exist, implemented from the frozen Block C text, before any arm has
+finished training.
+
+- **Grid** (`s1_plan.py --block C`): C1, C2, C3, C5 and the untrained C4
+  (`stage1` text with `stage2_dc_llava` vision) on CVQA jv/mn/ga/si/bn and
+  xGQA-bn, correct, three shuffles and gray: **150 cells**. C5 is evaluated
+  with its text branch absent. The builder refuses to plan until every trained
+  arm has written `complete.json`, because the best checkpoint appears after
+  epoch 1 and does not mean the two-epoch run finished. The runner requires a
+  passing G0, as for Block B.
+- **Analysis** (`analysis/block_c.py`, tests in `analysis/test_block_c.py`):
+  primary panel jv/mn/ga pooled micro, both endpoints, paired image-cluster
+  bootstrap. P5 = G(C2) − G(C1), P6 = G(C3) − G(C1),
+  P7 = (C4 − C3) − (C2 − C1), D8 = G(C1) − G(C5), each reported as written.
+  **G4**: LB95(P5 on Δ_ground) > 0 and UB95(U(C1) − U(C2)) < 1.0. **G5**:
+  xGQA-bn U(C2) non-inferior to U(C1) at 1.0. **G1-T readout** from D8:
+  dispensable if UB95 < 1.0 on both endpoints, needed if LB95 on Δ_ground
+  > 1.0, otherwise unresolved, always labelled a single-seed pilot and not
+  decidable under Option 1.
+- **Sign.** P5 to P7 are candidate minus reference; D8 and G4's utility half
+  are reference minus candidate. The code reads each bound from the statistic
+  as written. Where it derives a reference-minus-candidate bound from a
+  candidate-minus-reference contrast, the equivalence is exact on the same
+  resamples: the 95th percentile of X is minus the 5th percentile of −X.
+- **As decided this morning**, no MGSM or MSVAMP number from a C arm is read as
+  a reasoning result; Block C's frozen evaluation contains none.
