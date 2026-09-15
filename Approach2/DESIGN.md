@@ -3104,3 +3104,45 @@ finished training.
   resamples: the 95th percentile of X is minus the 5th percentile of −X.
 - **As decided this morning**, no MGSM or MSVAMP number from a C arm is read as
   a reasoning result; Block C's frozen evaluation contains none.
+
+### Seed replicate: the reasoning loss is the training environment — 2026-09-15
+
+Job 21060746 (3 h 31), `stage3_bn_gsm8k_old287bae9_s13`, results `01d1479`:
+the trainer at `287bae9`, current environment, seed 13, evaluated with the
+current code. Identical items, exact McNemar, "gained / lost" relative to the
+reference named second.
+
+| benchmark | dcl | old trainer s42 | old trainer s13 | new trainer | s13 − dcl | s13 − s42 | s13 − new |
+|---|---|---|---|---|---|---|---|
+| MGSM (n=250) | 62.00 | 43.60 | 45.60 | 39.20 | −16.40, 16 / 57, p = 1.5e-06 | +2.00, 19 / 14, p = 0.49 | +6.40, 32 / 16, p = 0.029 |
+| MSVAMP (n=1000) | 64.50 | 58.00 | 59.80 | 54.40 | −4.70, 84 / 131, p = 0.0016 | +1.80, 73 / 55, p = 0.13 | +5.40, 102 / 48, p = 1.2e-05 |
+
+**Verdict under the rule fixed before launch: environment.** On both
+benchmarks the replicate is significantly below dcl and not significantly
+different from the seed-42 run. Two runs of identical code in today's
+environment agree with each other and not with dcl. As the rule said, one extra
+seed is a coarse probe, and "not significantly different" is weak evidence of
+agreement; the verdict is the rule's, with that limit.
+
+What this establishes:
+- **Most of the reasoning loss comes from training in the current
+  environment**, about 17 MGSM and 6 MSVAMP points averaged over the two old
+  seeds, whichever code is used. "Environment" means everything that differs
+  between the August training and today with the code held fixed: torch 2.13
+  and transformers 5.13.1 at training time above all, since inference was shown
+  to reproduce. It is not yet traced to a single component.
+- **The 09-09 rewrite adds a smaller loss of its own**, now significant on both
+  benchmarks against the replicate: about 5 MGSM and 5 MSVAMP points.
+- **VQA is untouched by either**: xGQA reproduced dcl within 0.1 point in every
+  run trained in the current environment. Block C, read on VQA, is unaffected,
+  and the decision of 09-14 stands.
+- **Consequence for the paper's reasoning results.** H1, D6, D9b and D11 rest on
+  MGSM and MSVAMP numbers from single training runs in the August environment,
+  which today's environment does not reproduce. They stay valid as measured,
+  as a set, and cannot be compared with any reasoning number trained since. If
+  they enter the paper, the environment is stated with them, and a claim that
+  depends on their absolute level needs re-running its comparison inside one
+  environment.
+- **dcl as a draw.** A high draw under the old environment is not excluded,
+  since that environment can no longer be sampled; what is excluded is that
+  today's environment produces dcl-level reasoning by seed variation alone.
