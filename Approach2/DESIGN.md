@@ -3271,14 +3271,21 @@ of Maryam's `Baseline/evaluate.py`, reproducing her numbers to 0.04pp):
 
 | | xGQA | CVQA |
 |---|---|---|
-| Qwen3-VL-8B zero-shot | 53.00 | 40.75 |
+| Qwen3-VL-8B zero-shot | 53.00 | 40.71 |
 | M2RB (Approach 1) | 55.59 | 38.81 |
-| v4 (Approach 2, frozen stack + 58M) | 47.73 | 44.02 |
+| v4 (Approach 2, frozen stack + 58M) | 49.66 | 43.22 |
 
-So as last measured, Approach 1 adds **+2.59 on xGQA and −1.94 on CVQA over
-its own zero-shot backbone**, while Approach 2 wins CVQA by 3.27 over that
-backbone and 5.21 over Approach 1. These are arm-level averages over different
-language sets and are not a paired test. **The blocking deliverable is the
+*(Corrected the same day: this table first carried 47.73 / 44.02 for v4. Those
+are **v3's** numbers, from the D9b round table. Recomputed from the files:
+xGQA 49.66 over the 7 languages, each 12,578 items; CVQA 43.22 pooled over
+2,943 items. The conclusions below are unchanged in sign and slightly smaller
+in size.)*
+
+So as last measured, Approach 1 adds **+2.59 on xGQA and −1.90 on CVQA over
+its own zero-shot backbone**, while Approach 2 is +2.51 on CVQA over that
+backbone and +4.41 over Approach 1, and −5.93 against Approach 1 on xGQA.
+These are arm-level averages over different language sets; only the Approach 2
+versus Qwen rows below are a paired test. **The blocking deliverable is the
 paired, per-language, per-item comparison of the three arms with their blind
 controls**, which needs Maryam's per-item outputs; ours exist
 (`Approach2/results/qwen_{xgqa,cvqa}_<L>[_BLIND].jsonl`, 34 files, full 2×2,
@@ -3328,9 +3335,41 @@ clustering and without the dV contrast, and it understated the effect.
 paper needs is the same table with Approach 1 as a third arm, which requires
 Maryam's per-item outputs. As last measured (D8, arm-level averages) Approach 1
 scores CVQA 38.81, below the 40.71 its own backbone gets zero-shot here, while
-it leads xGQA at 55.59 against our 47.73. If that survives the paired
+it leads xGQA at 55.59 against our 49.66. If that survives the paired
 comparison, the pre-declared branch applies: the paper becomes the controlled
 comparison of the two routes, each winning a different benchmark, and the
 architecture claim is stated per benchmark rather than in general. xGQA needs
 `--image-map` (its ids carry no image) and the script refuses without it, so
 the xGQA half waits for a result file carrying `image_id`.
+
+### Cross-architecture comparison, xGQA: the off-the-shelf VLM wins, and the gap is vision extraction — 2026-09-20
+
+Same script and protocol as the CVQA table above; report
+`audits/arch_compare_xgqa_qwen_v4.json`. 7 languages x 12,578 items =
+88,046 items over 2786 image clusters, which is why the
+interval is narrow. xGQA item ids are shared across languages and carry no
+image, so the image map is read from a result file that does carry `image_id`;
+only the id-to-image metadata is taken from it, no scores, so no environment
+boundary is crossed.
+
+| language | Qwen3-VL-8B zero-shot | v4 | Δ full | Qwen dV | v4 dV |
+|---|---|---|---|---|---|
+| bn | 50.62 | 47.66 | -2.96 | +27.45 | +16.83 |
+| de | 55.02 | 51.52 | -3.51 | +31.25 | +18.57 |
+| ru | 51.58 | 49.68 | -1.90 | +28.33 | +17.47 |
+| zh | 53.16 | 48.75 | -4.40 | +30.96 | +16.04 |
+| pt | 55.21 | 51.15 | -4.05 | +30.67 | +18.87 |
+| id | 52.81 | 50.17 | -2.63 | +28.82 | +17.94 |
+| ko | 52.62 | 48.66 | -3.95 | +31.10 | +15.98 |
+| **pooled** | 53.00 | 49.66 | **-3.34 [-3.76, -2.92]** | +29.80 | +17.39 |
+
+Exact McNemar p = 8.27e-83. The visual endpoint is where
+the arms separate: **dV -12.41 [-12.91, -11.91]**, four times the full-accuracy
+gap, which reproduces D8's diagnosis (−18.8 vision extraction partly offset by
+a +9.2 trained format prior) with clustering and on identical items.
+
+**The two benchmarks disagree, and that is the paper's central fact.** A frozen
+58M connector on a text-only LLM beats a native VLM on culture-specific,
+locally-sourced CVQA by +2.51 [+0.47, +4.51] and loses Western-sourced xGQA by
+−3.34 [−3.76, −2.92]. Whichever architecture leads the paper, the claim is
+stated per benchmark: no arm here is better in general.
