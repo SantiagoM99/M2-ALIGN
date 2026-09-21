@@ -3373,3 +3373,32 @@ a +9.2 trained format prior) with clustering and on identical items.
 locally-sourced CVQA by +2.51 [+0.47, +4.51] and loses Western-sourced xGQA by
 −3.34 [−3.76, −2.92]. Whichever architecture leads the paper, the claim is
 stated per benchmark: no arm here is better in general.
+
+### Merge proposal and the CVQA protocol split — 2026-09-20
+
+Santiago asked for the two lines to be merged. The proposal, the stock-take and
+the CVQA levers are in `JOINT_ARCHITECTURE.md` at the repo root, written in
+English because Maryam reads it. Three findings from reading Approach 1's code
+in this tree (current to 2026-08-11, so its September changes are not visible
+here and the proposal says so):
+
+- **Neither line trains its backbone.** `Stage3/model.py` freezes the NLLB
+  encoder, Qwen3-VL's LLM *and* its native vision tower; there is no LoRA and
+  no unfreezing anywhere in `Stage1–3`. Only the `Mapping` is trainable. The
+  premise that Approach 2 is handicapped by a frozen backbone relative to
+  Approach 1 does not hold; what differs is which backbone the mapping writes
+  into, and therefore whether the visual pathway is inherited or built.
+- **CVQA is scored two different ways in this repository.** `Baseline/` and
+  `Stage3/` use a letter multiple-choice prompt with the generated letter
+  parsed back (`classify_mc`); `Approach2/evaluate_cvqa.py` and our ported
+  baseline score answer-choice log-likelihood. Approach 1's 38.81 is letter-MC,
+  Approach 2's 43.22 is log-likelihood, so **the cross-approach CVQA comparison
+  is not protocol-matched and no such claim may be made yet**. Approach 1's own
+  −1.90 against its zero-shot backbone stays valid, both arms being letter-MC.
+  Today's `arch_compare` tables are unaffected: each row's two arms come from
+  the same scoring code.
+- **Her August work was about the visual path, not the text bridge**
+  (`42c5405` 2D positional encodings for visual tokens, `350afd9` visual tokens
+  inside the chat template, `8b4ceb9` raw pixels so DeepStack fires). That is
+  the same lever family as our D9 dense connector, which is an argument for
+  keeping Qwen's native pathway in the merge rather than replacing it.
