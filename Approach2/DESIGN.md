@@ -3146,3 +3146,95 @@ What this establishes:
 - **dcl as a draw.** A high draw under the old environment is not excluded,
   since that environment can no longer be sampled; what is excluded is that
   today's environment produces dcl-level reasoning by seed variation alone.
+
+### S1 Block C: freezing the text mapping does not improve transfer. G4 fails, and the loss gate cannot pass — 2026-09-20
+
+Job 21145732, `s1_eval`, 15 h 10, COMPLETED 2026-09-16; 150 of 150 cells; spec
+SHA `3b4faff`; report `Approach2/audits/s1_C_analysis.json`. Primary panel CVQA
+jv/mn/ga pooled micro, 935 items over 401 image clusters; xGQA-bn 12,578 items
+over 398 clusters; 4,000 paired image-cluster resamples stratified by target
+and subset. **One training seed per arm (13)**, so every bound is conditional
+on those four trajectories and excludes training variance, as the frozen text
+requires.
+
+| arm | stage-3 text | stage-3 vision | CVQA U | CVQA Δ_ground [CI95] | xGQA-bn U | xGQA-bn Δ_ground |
+|---|---|---|---|---|---|---|
+| C1 | trainable | trainable | 37.86 | +5.10 [+2.94, +7.23] | 46.84 | +18.44 |
+| C2 | frozen | trainable | 37.33 | +4.85 [+2.64, +7.05] | 46.96 | +18.10 |
+| C3 | trainable | frozen | 40.11 | +6.45 [+4.14, +8.71] | 42.35 | +14.13 |
+| C4 | frozen | frozen (no stage 3) | 40.43 | +6.42 [+4.36, +8.55] | 12.29 | +6.05 |
+| C5 | absent | trainable | 37.01 | +5.38 [+3.20, +7.61] | 48.15 | +19.48 |
+
+| contrast | endpoint | CVQA jv/mn/ga [CI95] | xGQA-bn U [CI95] |
+|---|---|---|---|
+| P5 = C2 − C1 | Δ_ground | **−0.25 [−2.04, +1.49]**, LB5 −1.74, UB95 +1.23 | — |
+| P5 = C2 − C1 | U | −0.53 [−2.13, +0.99] | **+0.13 [−0.40, +0.64]** |
+| P6 = C3 − C1 | Δ_ground | +1.35 [−1.03, +3.81] | — |
+| P6 = C3 − C1 | U | +2.25 [−0.21, +4.69] | **−4.48 [−5.36, −3.55]** |
+| P7 = (C4−C3) − (C2−C1) | Δ_ground | +0.21 [−2.73, +3.13] | — |
+| P7 | U | +0.86 [−2.13, +3.86] | −30.19 [−31.68, −28.69] |
+| D8 = C1 − C5 | Δ_ground | −0.29 [−2.70, +2.01] | — |
+| D8 | U | +0.86 [−1.63, +3.28], UB95 +2.95 | −1.31 [−2.04, −0.62] |
+
+**G4 fails, on both halves.** The rule was LB95(Δ_ground(C2) − Δ_ground(C1)) > 0
+**and** UB95(U(C1) − U(C2)) < 1.0. Measured: LB95 = **−1.74** with the point
+estimate at **−0.25**, and UB95 on utility = **1.85**.
+
+**G5 passes.** UB95(xGQA-bn U(C1) − U(C2)) = **0.31** < 1.0; the source task is
+retained by the freeze, as C2's construction predicts.
+
+**G1-T: unresolved**, and undecidable under Option 1, which defers the three
+paired C5 seeds P8 requires. D8's utility UB95 (+2.95) exceeds δ = 1.0, so
+"dispensable" cannot be declared; Δ_ground's LB95 (−2.32) is far below δ, so
+"needed" cannot either.
+
+What this establishes:
+
+- **Refuted: stage-3 drift of the text mapping is not what limits transfer.**
+  The prediction recorded before the run was P5 > 0 on Δ_ground *if that drift
+  is causal*. The point estimate is zero (−0.25) and UB95 is +1.23, so a
+  benefit larger than 1.23 points is excluded at 95% — a bounded null, not an
+  underpowered one, sitting 0.23 above the substantive margin. Freezing
+  `mapping_txt` through stage 3 buys jv/mn/ga nothing.
+- **Utility retention is not claimed.** The frozen text anticipated that under
+  equality the utility half can fail on CVQA power alone, and it did:
+  U(C1) − U(C2) = +0.53 with UB95 = 1.85. The paper says "no utility loss above
+  1.85 points was detected" and claims no retention. "Not materially inferior"
+  is not accepted for G4.
+- **C2 is free and useless.** It costs nothing on the source task (G5) and
+  gains nothing on the targets (P5). It stays a discussed candidate, never a
+  claimed method, exactly as Option 1 pre-declared.
+- **The loss gate cannot pass.** G0 pass, G1-I inconclusive, **G2 fail**
+  (09-12), **G4 fail**, G5 pass; the gate is the conjunction of all five. R0/R1
+  and the confirmatory intervention evals are therefore not authorised. They
+  were already future work under Option 1, so the plan does not change: the
+  method section is Block B's functional decomposition, with Block C reported
+  as an exploratory single-seed pilot.
+- **Exploratory, not predicted: the factor that moves is vision, and it trades
+  against the source task.** C3, with vision frozen and text trained, sits
+  above C1 on CVQA by +2.25 utility [−0.21, +4.69] and +1.35 Δ_ground
+  [−1.03, +3.81] — neither excludes zero two-sided, and P6 was registered
+  two-sided with no prediction, so no claim is made — while losing **−4.48
+  [−5.36, −3.55]** utility on xGQA-bn, which is unambiguous. Freezing the
+  vision mapping in stage 3 costs the source task about 4.5 points.
+- **Exploratory: the untrained composition is the best arm on the targets.**
+  C4 (no stage-3 VQA training at all) scores CVQA U 40.43 and Δ_ground +6.42
+  [+4.36, +8.55], above every trained arm, and collapses on the source task
+  (xGQA U 12.29 against C1's 46.84). Stage-3 VQA supervision in Bengali buys
+  the source task and does not buy target grounding. Two limits on reading it:
+  CVQA is multiple-choice, so an untrained arm can still answer while xGQA's
+  open-ended format defeats it; and it is one seed, a Block B cell re-read
+  here. No trainer boundary is crossed — all five arms share the same August
+  `stage1` and `stage2_dc_llava` ancestors, the difference is whether stage 3
+  ran today, and VQA was shown unaffected by the environment on 09-15.
+- **Exploratory: removing the text branch during training does not hurt, and
+  helps the source task.** C5 is indistinguishable from C1 on the primary panel
+  and **above** it on xGQA-bn utility (D8 U −1.31 [−2.04, −0.62]); on CVQA-bn
+  and si its grounding is higher (D8 Δ_ground −6.99 [−11.95, −2.23] and −4.59
+  [−9.68, +0.42]). This echoes Block B, where removing the text branch from the
+  id checkpoint raised grounding by +2.85. The point estimates are consistent
+  with a branch that is dispensable in training too; the rule's verdict stays
+  **unresolved** and neither this nor Block A rewrites G1-I.
+- **Not run, and reported as not run**: the three paired C5 seeds of P8, the
+  three-seed replication of C1/C2, and matched R0/R1.
+
