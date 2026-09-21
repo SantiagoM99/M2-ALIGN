@@ -60,6 +60,17 @@ over xGQA's −38; that the visual pathway is language-blind; that the
 NLLB bridge is necessary (Block A tests it); that donor quality is
 predictable "before building anything".
 
+### Paper framing, 2026-09-20
+
+The research question above is unchanged and its answer stands. What changed is
+what the **paper** proposes: Santiago decided on 2026-09-20 that Approach 1
+(NLLB → Qwen3-VL) leads as the architecture and that S1's blocks become the
+analysis section, with Approach 2 supplying protocol-parity baselines and the
+controlled comparison. The frame is recorded in DESIGN.md 2026-09-20, including
+the number that decision now rests on (Approach 1's paired gain over its own
+zero-shot backbone, not yet measured on identical items) and the pre-declared
+branch back to a two-route comparison paper if that gain is not there.
+
 ## 3. How we work
 
 The method and statistics rules live in `CLAUDE.md`; the experimental

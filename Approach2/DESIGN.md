@@ -3238,3 +3238,99 @@ What this establishes:
 - **Not run, and reported as not run**: the three paired C5 seeds of P8, the
   three-seed replication of C1/C2, and matched R0/R1.
 
+
+### Paper framing changed by Santiago: Approach 1 is the method, S1 becomes the analysis — 2026-09-20
+
+Recorded explicitly because CLAUDE.md forbids moving the frame silently. This
+changes **what the paper proposes**, not the S1 question and not any S1 result.
+
+**The decision.** With 22 days to ARR 10-12, the paper leads with Approach 1
+(Maryam's NLLB → Qwen3-VL) as the proposed architecture. Approach 2
+contributes the protocol-parity baselines, the controlled cross-architecture
+comparison, and the analysis. Santiago's reason: he wants to present an
+architecture, and Approach 1 is the line showing improvements.
+
+**What S1 becomes.** Its answer stands as recorded — source-conditioned
+connector co-adaptation is refuted on every arm tested (G2 fail 09-12, G3 not
+promising 09-13, G4 fail 09-20, loss gate does not pass) — and moves from the
+paper's spine to its analysis section. Nothing in SCIENCE.md is rewritten: a
+question that was answered in the negative stays answered in the negative, and
+the blocks are cited as pre-registered controls, which is what they are. They
+are ablations and controls, not mechanistic interpretability.
+
+**What cannot be claimed, whichever architecture leads.** Block A's A4 arm —
+the English question straight into Gemma's prompt, no NLLB bridge — beats the
+full Approach 2 pipeline (CVQA 36.90 vs 35.72, xGQA 50.20 vs 47.66), and A2
+without the text branch is non-inferior. No paper of ours claims the NLLB text
+bridge does work at inference.
+
+**The number the paper now rests on, and it is not measured yet.** For an
+Approach-1-led architecture paper the first question a reviewer asks is the
+gain over its own backbone. What the record has, from D8 (2026-08-26, our port
+of Maryam's `Baseline/evaluate.py`, reproducing her numbers to 0.04pp):
+
+| | xGQA | CVQA |
+|---|---|---|
+| Qwen3-VL-8B zero-shot | 53.00 | 40.75 |
+| M2RB (Approach 1) | 55.59 | 38.81 |
+| v4 (Approach 2, frozen stack + 58M) | 47.73 | 44.02 |
+
+So as last measured, Approach 1 adds **+2.59 on xGQA and −1.94 on CVQA over
+its own zero-shot backbone**, while Approach 2 wins CVQA by 3.27 over that
+backbone and 5.21 over Approach 1. These are arm-level averages over different
+language sets and are not a paired test. **The blocking deliverable is the
+paired, per-language, per-item comparison of the three arms with their blind
+controls**, which needs Maryam's per-item outputs; ours exist
+(`Approach2/results/qwen_{xgqa,cvqa}_<L>[_BLIND].jsonl`, 34 files, full 2×2,
+same schema as our evaluator).
+
+**The condition that sends the framing back.** If Approach 1's paired gain over
+zero-shot Qwen3-VL is small on xGQA and negative on CVQA once measured on
+identical items, "we propose this architecture" is not supportable and the
+paper becomes the controlled comparison of the two routes, with each winning a
+different benchmark. Recorded now so that outcome is a pre-declared branch and
+not a late rescue. The same table decides either way, so no work is lost.
+
+### Cross-architecture comparison, CVQA: the frozen stack beats its own reference VLM on identical items — 2026-09-20
+
+First output of the framing above. `analysis/arch_compare.py` (+9 tests) takes
+each arm as a filename template, so an arm from another approach plugs in
+without editing it; report `audits/arch_compare_cvqa_qwen_v4.json`. Both arms
+here were scored in August on the legacy CVQA image copy under transformers
+4.x, so the pair is internally consistent and crosses neither boundary. 10
+languages, **2,943 items over 1,370 image clusters**, blind control for every
+cell, paired image-cluster bootstrap stratified by language, exact McNemar on
+the discordant items.
+
+| language | n | Qwen3-VL-8B zero-shot | v4 (frozen stack + 58M) | Δ full | Qwen dV | v4 dV |
+|---|---|---|---|---|---|---|
+| bn | 286 | 38.46 | 39.16 | +0.70 | +5.59 | +8.74 |
+| ru | 200 | 41.00 | 42.00 | +1.00 | +6.00 | +5.50 |
+| zh | 311 | 47.59 | 55.31 | +7.72 | +11.25 | +16.08 |
+| pt | 284 | 46.83 | 45.77 | −1.06 | +10.92 | +11.97 |
+| id | 412 | 41.50 | 40.29 | −1.21 | +7.04 | +8.74 |
+| ko | 290 | 44.14 | 47.59 | +3.45 | +8.28 | +11.03 |
+| jv | 297 | 38.72 | 40.07 | +1.35 | +5.39 | +10.10 |
+| mn | 312 | 36.86 | 41.35 | +4.49 | +2.24 | +7.69 |
+| si | 225 | 39.56 | 47.11 | +7.56 | +6.22 | +15.56 |
+| ga | 326 | 32.82 | 35.58 | +2.76 | +6.75 | +7.36 |
+| **pooled** | 2,943 | 40.71 | **43.22** | **+2.51 [+0.47, +4.51]** | +7.00 | **+10.23** |
+
+Exact McNemar on full accuracy: 509 items only v4 gets, 435 only Qwen,
+**p = 0.0175**. On the visual endpoint the gap is larger than on full accuracy,
+**dV +3.23 [+1.23, +5.28]**, so it is not a trained answer-format prior: the
+frozen stack extracts more from the image than the VLM it is measured against.
+v4 wins 8 of 10 languages. This supersedes D8's "+1.8, pooled p = 0.135,
+consistent trend, not significant": that was 10 languages without image
+clustering and without the dV contrast, and it understated the effect.
+
+**Consequence for the framing decided today.** The number an Approach-1-led
+paper needs is the same table with Approach 1 as a third arm, which requires
+Maryam's per-item outputs. As last measured (D8, arm-level averages) Approach 1
+scores CVQA 38.81, below the 40.71 its own backbone gets zero-shot here, while
+it leads xGQA at 55.59 against our 47.73. If that survives the paired
+comparison, the pre-declared branch applies: the paper becomes the controlled
+comparison of the two routes, each winning a different benchmark, and the
+architecture claim is stated per benchmark rather than in general. xGQA needs
+`--image-map` (its ids carry no image) and the script refuses without it, so
+the xGQA half waits for a result file carrying `image_id`.
