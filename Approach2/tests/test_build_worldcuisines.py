@@ -22,7 +22,7 @@ def raw(n, dishes=10):
 class BuildWorldCuisinesTests(unittest.TestCase):
     def setUp(self):
         self._cached = bw.cache_image
-        bw.cache_image = lambda url, name, images_dir: True
+        bw.cache_image = lambda url, name, images_dir, throttle=0.0: True
         self.addCleanup(lambda: setattr(bw, "cache_image", self._cached))
 
     def test_a_transfer_target_is_refused(self):
