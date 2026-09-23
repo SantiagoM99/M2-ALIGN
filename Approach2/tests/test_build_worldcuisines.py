@@ -37,6 +37,17 @@ class BuildWorldCuisinesTests(unittest.TestCase):
     def test_donors_carry_their_nllb_tag(self):
         self.assertEqual(bw.donor_tag("bn"), ("Bengali", "ben_Beng"))
 
+    def test_thumbnail_urls_collapse_to_the_original_file(self):
+        thumb = ("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/"
+                 "Street.jpg/1279px-Street.jpg?download")
+        self.assertEqual(bw.original_upload_url(thumb),
+                         "https://upload.wikimedia.org/wikipedia/commons/a/ab/Street.jpg")
+
+    def test_a_plain_upload_url_only_loses_its_query(self):
+        plain = "https://upload.wikimedia.org/wikipedia/commons/2/23/Roll.jpg?download"
+        self.assertEqual(bw.original_upload_url(plain),
+                         "https://upload.wikimedia.org/wikipedia/commons/2/23/Roll.jpg")
+
     def test_questions_per_dish_are_capped(self):
         taken = bw.select(raw(200, dishes=10), sample=200, per_image=3, seed=13)
         per_dish = {}

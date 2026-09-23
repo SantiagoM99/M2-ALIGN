@@ -41,6 +41,7 @@ import io
 import json
 import random
 import sys
+import time
 from pathlib import Path
 
 NLLB = {
@@ -55,6 +56,14 @@ NLLB = {
 FORBIDDEN = ("jv", "mn", "ga", "si", "su")
 REPO = "worldcuisines/vqa"
 SOURCE_DATASET = "worldcuisines_train_task1"
+# Wikimedia's User-Agent policy wants a descriptive agent that identifies the
+# client and where to read about it. A repository URL says both without sending
+# anyone's personal contact details to a third party.
+USER_AGENT = "M2-ALIGN/1.0 (academic research; +https://github.com/SantiagoM99/M2-ALIGN)"
+# Training images only, and the vision tower resizes to 384 anyway, so the
+# originals are downscaled on the way into the cache: full-resolution Commons
+# files would cost several GB of scratch for no signal.
+MAX_SIDE = 768
 
 
 def fail(message: str):
@@ -111,34 +120,67 @@ def select(rows, sample: int, per_image: int, seed: int):
     return taken
 
 
-def cache_image(url: str, name: str, images_dir: Path) -> bool:
+def original_upload_url(url: str) -> str:
+    """Rewrite a Wikimedia thumbnail URL to the original file.
+
+    WorldCuisines stores thumbnails at arbitrary widths (`1279px-`), and
+    Wikimedia now answers those with HTTP 400 and a pointer to its list of
+    allowed sizes. The original file is always served, so `/thumb/<a>/<ab>/
+    <name>/NNNpx-<name>` collapses to `/<a>/<ab>/<name>`.
+    """
+    url = url.split("?", 1)[0]
+    if "/thumb/" not in url:
+        return url
+    head, _, _tail = url.rpartition("/")
+    return head.replace("/thumb/", "/", 1)
+
+
+def fetch(url: str, throttle: float, attempts: int = 4):
+    """GET with a descriptive agent, a pause between calls and backoff on 429.
+
+    Without both, Wikimedia rate-limits the run within a few hundred images.
+    """
     import requests
+
+    for attempt in range(attempts):
+        time.sleep(throttle)
+        response = requests.get(url, timeout=30, headers={"User-Agent": USER_AGENT})
+        if response.status_code == 429:
+            time.sleep(throttle + 2 ** attempt)
+            continue
+        response.raise_for_status()
+        return response.content
+    raise RuntimeError(f"rate-limited after {attempts} attempts")
+
+
+def cache_image(url: str, name: str, images_dir: Path, throttle: float = 0.2) -> bool:
     from PIL import Image
 
     path = images_dir / f"{name}.jpg"
     if path.exists():
         return True
     try:
-        response = requests.get(url, timeout=20, headers={"User-Agent": "M2-ALIGN/1.0"})
-        response.raise_for_status()
-        image = Image.open(io.BytesIO(response.content)).convert("RGB")
+        body = fetch(original_upload_url(url), throttle)
+        image = Image.open(io.BytesIO(body)).convert("RGB")
     except Exception as exc:  # a dead URL is a skipped row, never a failed build
         print(f"  skip {name}: {exc}", file=sys.stderr)
         return False
+    image.thumbnail((MAX_SIDE, MAX_SIDE))
     image.save(path, format="JPEG", quality=95)
     return True
 
 
-def build_rows(selected, lang: str, images_dir: Path) -> list[dict]:
+def build_rows(selected, lang: str, images_dir: Path, throttle: float = 0.2) -> list[dict]:
     language, tag = donor_tag(lang)
-    out = []
+    out, skipped = [], 0
     for row in selected:
         question = (row.get("open_ended_prompt") or "").strip()
         answer = str(row.get("answer") or "").strip()
         if not question or not answer:
             continue
         name = f"wc_{row['food_id']}"
-        if not cache_image(row["image_url"], name, images_dir):
+        if not cache_image(row["image_url"], name, images_dir, throttle):
+            skipped += 1
             continue
         out.append({
             "id": stable_id(SOURCE_DATASET, lang, row["qa_id"]),
@@ -149,6 +191,8 @@ def build_rows(selected, lang: str, images_dir: Path) -> list[dict]:
             "nllb_lang_tag": tag,
             "source_dataset": SOURCE_DATASET,
         })
+    if skipped:
+        print(f"{skipped} rows skipped for an unusable image", file=sys.stderr)
     return out
 
 
@@ -179,6 +223,8 @@ def main() -> None:
     p.add_argument("--mix-with", help="GQA-style stage-3 jsonl whose row count is preserved")
     p.add_argument("--fraction", type=float, default=0.5,
                    help="share of --mix-with's rows replaced by cultural rows")
+    p.add_argument("--throttle", type=float, default=0.2,
+                   help="seconds between image requests; Wikimedia rate-limits without it")
     p.add_argument("--seed", type=int, default=13)
     a = p.parse_args()
 
@@ -191,7 +237,7 @@ def main() -> None:
     split = download_split(a.lang)
     selected = select(list(read_jsonl(split)), a.sample, a.per_image, a.seed)
     print(f"{split.name}: {len(selected)} rows selected; caching images into {images_dir}")
-    cultural = build_rows(selected, a.lang, images_dir)
+    cultural = build_rows(selected, a.lang, images_dir, a.throttle)
     print(f"{len(cultural)} rows with a usable image")
 
     rows = mix(cultural, Path(a.mix_with), a.fraction, a.seed) if a.mix_with else cultural
