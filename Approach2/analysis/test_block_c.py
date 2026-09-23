@@ -6,7 +6,7 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from block_c import ARMS, analyse, required_cells, validate_grid  # noqa: E402
+from block_c import ARMS, POSTHOC_CONTRASTS, analyse, required_cells, validate_grid  # noqa: E402
 
 N = 40
 
@@ -103,6 +103,21 @@ class BlockCTests(unittest.TestCase):
         d8 = r["panels"]["primary"]["contrasts"]["D8"]["grounding"]
         self.assertAlmostEqual(d8["estimate"], 100 * 16 / N)
         self.assertEqual(r["gates"]["G1T_pilot_readout"], "needed in training (single-seed pilot)")
+
+    def test_posthoc_contrasts_are_absent_unless_asked_for(self):
+        cells = fixture(cvqa_n={"C4": 32})
+        frozen = analyse(cells, B=120)
+        self.assertNotIn("posthoc_contrasts", frozen)
+        for panel in frozen["panels"].values():
+            self.assertEqual(set(panel["contrasts"]) & set(POSTHOC_CONTRASTS), set())
+        with_posthoc = analyse(cells, B=120, posthoc=True)
+        self.assertEqual(with_posthoc["posthoc_contrasts"], ["X_C4_minus_C1"])
+        # the frozen contrasts must be unchanged by asking for the extra one
+        for name in ("P5", "P6", "P7", "D8"):
+            self.assertEqual(with_posthoc["panels"]["primary"]["contrasts"][name],
+                             frozen["panels"]["primary"]["contrasts"][name])
+        x = with_posthoc["panels"]["primary"]["contrasts"]["X_C4_minus_C1"]["grounding"]
+        self.assertAlmostEqual(x["estimate"], 100 * 12 / N)
 
     def test_insertion_order_does_not_change_the_report(self):
         cells = fixture(cvqa_n={"C2": 26, "C5": 14})

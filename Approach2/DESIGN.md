@@ -3402,3 +3402,41 @@ here and the proposal says so):
   inside the chat template, `8b4ceb9` raw pixels so DeepStack fires). That is
   the same lever family as our D9 dense connector, which is an argument for
   keeping Qwen's native pathway in the merge rather than replacing it.
+
+### Post-hoc contrast declared before it is computed: C4 − C1 on the CVQA targets — 2026-09-23
+
+**Why this entry exists.** Block C's reading (09-20) quoted the arm table —
+C4, the composition with no stage-3 training, at CVQA utility 40.43 and
+Δ_ground +6.42 against C1's 37.86 and +5.10 — and that comparison was then used
+in `JOINT_ARCHITECTURE.md` and in the discussion of Maryam's CVQA results as if
+it were a result. It is not one yet. C4 − C1 is **not** among the frozen
+contrasts (P5, P6, P7, D8), so it has no interval, and comparing two
+separately-bounded levels is exactly what CLAUDE.md forbids: "A is significant,
+B is not" is not "A > B". The difference has to be tested.
+
+**What was added.** `POSTHOC_CONTRASTS = {"X_C4_minus_C1": {"C4": +1, "C1": −1}}`
+in `analysis/block_c.py`, kept in a separate dictionary and reported only under
+`--posthoc`, so the pre-registered report stays byte-identical; a test pins
+that the frozen contrasts do not move when the extra one is requested. The
+`X_` prefix marks it as exploratory so no reader mistakes it for a gate input.
+It is written to `audits/s1_C_posthoc.json`, not over `audits/s1_C_analysis.json`.
+
+**Reading fixed now, before the number is seen.**
+- Exploratory and post-hoc. It passes and fails nothing, and it enters no gate.
+  G4 has already failed and that does not change.
+- One training seed per arm, so the bound is conditional on those trajectories
+  and excludes training variance.
+- If **LB5(C4 − C1) > 0 on Δ_ground**, the untrained composition grounds the
+  CVQA targets better than the stage-3-trained one, and the claim "stage-3 VQA
+  supervision in one language does not buy culture-specific grounding" is
+  supported on our side, as exploratory evidence conditional on one seed.
+- If the interval **covers zero**, no difference was detected: the "best arm"
+  phrasing is removed from `JOINT_ARCHITECTURE.md` and from anything sent to
+  Maryam, and what remains is only that stage-3 training is not *necessary* for
+  the targets' grounding, which the levels alone do support.
+- If **UB95 < 0**, the trained arm is better and the reading is a refutation of
+  the claim we were about to make. It gets recorded as one.
+- The xGQA-bn side is reported next to it in every case, because C4 collapses
+  there (12.29 against C1's 46.84) and the trade is the whole point. C1 and C4
+  share the same August `stage1` and `stage2_dc_llava` ancestors, so the only
+  difference is whether stage 3 ran.

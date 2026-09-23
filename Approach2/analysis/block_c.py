@@ -54,6 +54,15 @@ CONTRASTS = {
     "D8": {"C1": 1.0, "C5": -1.0},
 }
 
+# Declared post-hoc on 2026-09-23, after the frozen contrasts were read, because
+# the arm table was being quoted as "C4 beats C1 on the targets" and a
+# difference of two separately-bounded levels is not a tested difference. Kept
+# apart from CONTRASTS so the pre-registered report stays byte-identical, and
+# carried under keys prefixed X_ so no reader mistakes it for a gate input.
+POSTHOC_CONTRASTS = {
+    "X_C4_minus_C1": {"C4": 1.0, "C1": -1.0},
+}
+
 
 def required_cells():
     req = set()
@@ -144,7 +153,7 @@ def interval(cells, b, values, B, seed, label):
     }
 
 
-def panel(cells, b, targets, B, seed, name, with_arms):
+def panel(cells, b, targets, B, seed, name, with_arms, contrasts=CONTRASTS):
     eps = {arm: {t: endpoints(cells, b, t, arm) for t in targets} for arm in ARMS}
     out = {"benchmark": b, "targets": list(targets), "arms": {}, "contrasts": {}}
     if with_arms:
@@ -153,7 +162,7 @@ def panel(cells, b, targets, B, seed, name, with_arms):
                 ep: interval(cells, b, {t: eps[arm][t][ep] for t in targets}, B, seed, f"C:{name}:{arm}:{ep}")
                 for ep in ("U", "grounding", "gray")
             }
-    for cname, weights in CONTRASTS.items():
+    for cname, weights in contrasts.items():
         out["contrasts"][cname] = {}
         for ep in ("U", "grounding"):
             values = {
@@ -164,7 +173,7 @@ def panel(cells, b, targets, B, seed, name, with_arms):
     return out
 
 
-def analyse(cells, B=4000, seed=0):
+def analyse(cells, B=4000, seed=0, posthoc=False):
     if B <= 0:
         raise ValueError("bootstrap count must be positive")
     validate_grid(cells)
@@ -176,12 +185,15 @@ def analyse(cells, B=4000, seed=0):
         "inference": "single training seed per arm: conditional on these trajectories, no training variance",
         "panels": {},
     }
-    report["panels"]["primary"] = panel(cells, "cvqa", PRIMARY, B, seed, "primary", with_arms=True)
+    contrasts = {**CONTRASTS, **POSTHOC_CONTRASTS} if posthoc else CONTRASTS
+    if posthoc:
+        report["posthoc_contrasts"] = sorted(POSTHOC_CONTRASTS)
+    report["panels"]["primary"] = panel(cells, "cvqa", PRIMARY, B, seed, "primary", True, contrasts)
     for t in PRIMARY:
-        report["panels"][f"cvqa-{t}"] = panel(cells, "cvqa", (t,), B, seed, f"cvqa-{t}", with_arms=False)
-    report["panels"]["si-secondary"] = panel(cells, "cvqa", ("si",), B, seed, "si", with_arms=False)
-    report["panels"]["bn-control"] = panel(cells, "cvqa", ("bn",), B, seed, "bn-control", with_arms=True)
-    report["panels"]["xgqa-bn"] = panel(cells, "xgqa", ("bn",), B, seed, "xgqa-bn", with_arms=True)
+        report["panels"][f"cvqa-{t}"] = panel(cells, "cvqa", (t,), B, seed, f"cvqa-{t}", False, contrasts)
+    report["panels"]["si-secondary"] = panel(cells, "cvqa", ("si",), B, seed, "si", False, contrasts)
+    report["panels"]["bn-control"] = panel(cells, "cvqa", ("bn",), B, seed, "bn-control", True, contrasts)
+    report["panels"]["xgqa-bn"] = panel(cells, "xgqa", ("bn",), B, seed, "xgqa-bn", True, contrasts)
 
     p = report["panels"]["primary"]["contrasts"]
     x = report["panels"]["xgqa-bn"]["contrasts"]
@@ -218,8 +230,10 @@ def main():
     ap.add_argument("--output", required=True)
     ap.add_argument("--boot", type=int, default=4000)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--posthoc", action="store_true",
+                    help="also report POSTHOC_CONTRASTS; write to a separate output file")
     a = ap.parse_args()
-    report = analyse(load_cells(a.submission, a.results_dir, block="C"), a.boot, a.seed)
+    report = analyse(load_cells(a.submission, a.results_dir, block="C"), a.boot, a.seed, a.posthoc)
     report["submission_sha256"] = file_sha(a.submission)
     atomic_json(a.output, report)
     print(json.dumps(report["gates"], indent=2))

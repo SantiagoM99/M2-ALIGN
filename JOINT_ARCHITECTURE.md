@@ -94,9 +94,12 @@ thing to do because every other lever is read against it.
 
 **1. Select the checkpoint on CVQA, not on xGQA (cost: zero if per-epoch
 checkpoints were kept).** Block C, 2026-09-20: C4 — the composition with *no*
-stage-3 VQA training at all — is the best arm on the CVQA targets (Δ_ground
-+6.42 [+4.36, +8.55], utility 40.43) and collapses on the source task (xGQA
-12.29 against 46.84). Stage-3 VQA supervision buys the source-style benchmark
+stage-3 VQA training at all — reaches Δ_ground +6.42 [+4.36, +8.55] and utility
+40.43 on the CVQA targets, against the stage-3-trained C1's +5.10 and 37.86,
+while collapsing on the source task (xGQA 12.29 against 46.84). **The paired
+C4 − C1 contrast was not among Block C's frozen contrasts and is being computed
+post-hoc (DESIGN 2026-09-23); until it lands, the two levels are reported as
+levels and no ordering is claimed.** Stage-3 VQA supervision buys the source-style benchmark
 and does not buy culture-specific grounding. D9b separately found epochs 1 → 2
 worth +2.11 on xGQA. Together they predict that the xGQA-selected checkpoint is
 close to the CVQA-worst one: evaluate epoch 1.
