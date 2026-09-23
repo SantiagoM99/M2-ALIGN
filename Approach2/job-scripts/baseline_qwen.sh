@@ -25,6 +25,9 @@
 #          question. Writes *_QBLIND.jsonl, the text-side twin of the gray arm
 #   MIN_PIXELS / MAX_PIXELS  processor resolution; set MAX_PIXELS to a
 #          collaborator's value to compare at one resolution. Writes *_mp<N>
+#   RUN_TAG  appended to every output name, so re-running a cell that already
+#          has results writes beside them instead of being skipped. Use it to
+#          re-measure a reference arm when the environment may have moved
 #   QWEN_VENV  venv with recent transformers (default $SCRATCH/venvs/qwen)
 #
 # One-time setup on a login node (tmux):
