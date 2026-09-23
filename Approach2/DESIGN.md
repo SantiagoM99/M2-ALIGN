@@ -3692,3 +3692,21 @@ utility detects, since a format collapse costs the source task too.
 paired image-cluster bootstrap. WC50 is not an S1 arm: the frozen Block C
 contract is untouched, and the arm is trained through the legacy stage-3 launcher
 with `DATA_PATH`, mirroring C1's flags exactly so the data is the only variable.
+
+**WC50's launcher, and the one compromise in it.** `job-scripts/train_wc50.sh`
+copies every flag `s1_train_submit.py` passes for arm C1 — `--s1`, the same two
+warm-start checkpoints, `--vis-layers 9,18,-1`, two epochs, seed 13, batch 2,
+grad-accum 16, lr 2e-5, `--save-steps 200` — so `--data-path` is the only
+difference. The three frozen models are left at the trainer's defaults, which are
+the same ids C1 records (`google/gemma-2-9b-it`,
+`facebook/nllb-200-distilled-600M`, `google/siglip2-so400m-patch14-384`),
+verified in the trainer's argument defaults rather than assumed. Like the S1
+launcher it runs from a detached worktree of HEAD, so a pull cannot change a
+queued job, and it prints the row counts per source before training and refuses a
+file that carries only one source.
+
+The compromise: the trainer takes **one** `--images-dir`, and WC50's rows draw on
+two image sets. The WorldCuisines images are therefore cached into the GQA image
+directory under a `wc_` prefix, which cannot collide with GQA's numeric ids and is
+undone with `rm wc_*.jpg`. The alternative, a directory of symlinks to both sets,
+would add ~700k inodes against a ~1M scratch quota.
