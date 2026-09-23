@@ -3646,3 +3646,49 @@ four now live inside the script and fail with a one-line message instead of a
 traceback. The dirty-tree stop is a consequence of removing the launchers'
 auto-commit and works as intended: harvested files are committed by hand from a
 login node.
+
+### Intervention WC50, registered before the data exists — 2026-09-23
+
+The first experiment of the joint line that could turn a diagnosis into a fix.
+Block C located stage-3 supervision's grounding benefit entirely on the
+benchmark that shares its shape (+12.39 on xGQA-bn, a null of +1.32
+[−1.13, +3.93] on the CVQA targets), and Maryam's a1 reproduces the split on a
+frozen VLM (+6.28 xGQA, flat CVQA). If the supervision's **distribution** is what
+confines the gain, culturally grounded supervision should move CVQA.
+
+**Arm WC50.** The C1 recipe with one thing changed: half the NLLB-translated GQA
+rows are replaced by WorldCuisines task-1 rows in **Bengali**, the donor stage 3
+already uses, with the total row count held fixed. `build_worldcuisines.py`
+(+9 tests) builds them into the stage-3 schema, caching one image per dish and
+capping questions per dish so a few foods cannot carry the sample.
+
+**Zero-shot integrity, the reason that file has a guard.** WorldCuisines ships
+native Javanese and Sinhala. jv/mn/ga/si are this project's zero-shot targets, so
+one Javanese training row would end the zero-shot claim for Javanese and make
+every transfer number incomparable with the record. `--lang` refuses those
+languages outright; only donors with a recorded NLLB tag are accepted.
+
+**Control.** C1 itself, seeds 13/14/15, already trained. WC50 and C1 share
+stage 1, stage 2, the trainer, the environment and the item count.
+
+**Prediction, and what refutes it.** Pass: LB5(Δ_ground(WC50) − Δ_ground(C1)) > 0
+on CVQA jv/mn/ga pooled, **and** the source task retained, UB95(U(C1) − U(WC50))
+on xGQA-bn < δ = 1.0. Refuted if the grounding interval covers zero. **A
+refutation will not separate two causes**, and this is stated before the run:
+either the supervision's distribution is not what confines the gain, or the food
+domain is too narrow to reach CVQA's other categories. Distinguishing them needs
+a second, non-food culturally grounded source, which does not exist with a
+training split today.
+
+**How the instrument could fail, at both ends.** It can bottom out: CVQA is
+substantially answerable without the image (Qwen zero-shot ΔV +7.00 against
++29.80 on xGQA), so a prior-dominated benchmark can mask a real grounding gain —
+the gray arm is what shows this. And it can saturate downwards: halving the GQA
+rows may degrade the short-answer format enough to hide any gain, which xGQA-bn
+utility detects, since a format collapse costs the source task too.
+
+**Reading.** Exploratory, one seed, no gate. Same 30-cell grid as a C1 replicate
+(CVQA jv/mn/ga/si/bn and xGQA-bn × correct, three shuffles, gray) and the same
+paired image-cluster bootstrap. WC50 is not an S1 arm: the frozen Block C
+contract is untouched, and the arm is trained through the legacy stage-3 launcher
+with `DATA_PATH`, mirroring C1's flags exactly so the data is the only variable.

@@ -144,6 +144,10 @@ data at `DT=/scratch/santimn/datatransfer`.
 - `donor_matrix.py` auto-discovers every `eval_cvqa_*_zs*.jsonl`. After
   pulling `1aafc1a` (job 20398782's results) do **not** run it until
   `analysis/block_d.py` exists and the freeze commit is in `HEAD`.
+- Stage-3 training data for the culturally grounded intervention comes from
+  `build_worldcuisines.py`, which **refuses the zero-shot targets** (jv/mn/ga/si
+  and Sundanese): training on a target language ends the zero-shot claim for it.
+  Donor languages only, and it holds the row count fixed when mixing.
 - Every reported number comes from a versioned script in `analysis/`. Current:
   `_boot.py`, `arch_compare.py`, `c1_seed_spread.py`, `e3_noninferiority.py`, `x1_did.py`, `block_a.py`, `block_b.py`, `block_c.py`,
   `block_d.py`, `block_d_input.py`, `power_sim.py`, `pooling_d12.py`, plus the tests
