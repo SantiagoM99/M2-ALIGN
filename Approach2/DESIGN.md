@@ -3594,3 +3594,17 @@ package that is genuinely absent still reads None because the import fails too.
 Preparation and the allocation resolve it identically, so the manifest
 comparison that the guard exists to protect (job 20659537, 09-09) is unaffected.
 Test: `tests/test_environment_record.py`.
+
+**Environment drift found the same day, and it is not only metadata.** The C1
+seed-13 submission froze **pillow 12.1.0+computecanada**; the venv today has
+**9.5.0.post2**, installed without discoverable dist-info. So pillow was
+downgraded at some point after 2026-09-14, and the missing metadata was only the
+symptom that exposed it. Pillow decodes every image, which is the boundary this
+project already pays attention to: re-encoding CVQA moved pixels by 11–28/255,
+flipped near-tied items and moved one cell about a point (09-12). Training C1
+seeds 14 and 15 under 9.5.0 would therefore vary the seed **and** the decoding
+path, and no contrast may pair numbers across that boundary. Pillow is restored
+to 12.1.0 before the seeds are prepared, so all three share one decoding path.
+The same question applies to the separate `$SCRATCH/venvs/qwen` environment,
+whose August runs are the reference for the new question-blind arm; its pillow
+is checked before that arm's numbers are paired with them.
