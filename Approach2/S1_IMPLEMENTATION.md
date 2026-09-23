@@ -295,7 +295,7 @@ S1 C pilot preparation also defaults to CPU-only:
 python Approach2/s1_train_submit.py --arm C1 --seed 13 \
   --data-root "$DT" --checkpoints "$PWD/Approach2/outputs" \
   --output-dir "$PWD/Approach2/outputs/s1_C1_seed13" \
-  --block-a-report Approach2/outputs/s1_A.analysis.json \
+  --block-a-report Approach2/audits/s1_A_analysis.json \
   --submission "$PWD/Approach2/outputs/s1_C1.submission.json"
 ```
 

@@ -25,6 +25,11 @@ A2="Approach2"
 OUT="$PWD/$A2/outputs"
 REFERENCE="${REFERENCE:-$A2/outputs/s1_C1.submission.json}"
 SUB="$OUT/s1_C1_seed${SEED}.submission.json"
+# The committed Block A report, not the run-time copy under outputs/: outputs is
+# gitignored, so a fresh clone has only the audit, and that is the artifact whose
+# G0 pass and spec SHA the submission authenticates against.
+GATE="${GATE:-$A2/audits/s1_A_analysis.json}"
+[ -f "$GATE" ] || { echo "no Block A report at $GATE; set GATE=<path>"; exit 1; }
 
 [ -d "$A2" ] || { echo "run this from the repo root"; exit 1; }
 [ -n "${VIRTUAL_ENV:-}" ] || {
@@ -72,7 +77,7 @@ python "$A2/s1_train_submit.py" --arm C1 --seed "$SEED" \
   --data-root "$DT" \
   --checkpoints "$OUT" \
   --output-dir "$OUT/s1_C1_seed${SEED}" \
-  --block-a-report "$A2/outputs/s1_A.analysis.json" \
+  --block-a-report "$GATE" \
   --submission "$SUB" || exit 1
 
 echo "=== submitting seed $SEED ==="
