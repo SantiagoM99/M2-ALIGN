@@ -168,11 +168,29 @@ def model_records(a):
     }
 
 
+# Distributions recorded under a name their import does not share.
+_IMPORT_NAME = {"pillow": "PIL"}
+
+
 def _package_version(name):
+    """Version from installed metadata, falling back to the imported module.
+
+    The cluster venv's pillow 9.5.0.post2 has no discoverable dist-info, so
+    metadata alone reports it absent while the library imports and works
+    (2026-09-23, blocking a C1 seed replication). Preparation and the allocation
+    resolve it the same way, so the manifest comparison still compares like with
+    like; a package that is really absent still reads None because the import
+    fails too.
+    """
     try:
         return importlib.metadata.version(name)
     except importlib.metadata.PackageNotFoundError:
+        pass
+    try:
+        module = importlib.import_module(_IMPORT_NAME.get(name, name))
+    except ImportError:
         return None
+    return getattr(module, "__version__", None)
 
 
 def environment_record():

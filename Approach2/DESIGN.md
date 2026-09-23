@@ -3580,3 +3580,17 @@ whether the baseline was handicapped. We hold the baseline at the higher
 resolution already (xGQA 53.00, CVQA 40.75); a1 still wins xGQA by +4.67 there,
 which makes that claim robust, while CVQA becomes −2.22 instead of −0.63.
 Reporting both resolutions is strictly better for the paper than reporting one.
+
+### Environment guard: a library that imports but has no dist-info — 2026-09-23
+
+Preparing the C1 seed-14 submission aborted with "no version recorded for
+pillow" although the venv was active and the other four packages resolved. The
+cause is metadata, not a missing library: the cluster venv's pillow
+**9.5.0.post2** imports and works, and its dist-info is not discoverable, so
+`importlib.metadata.version` reports it absent. Nothing was installed.
+`_package_version` now falls back to the imported module's `__version__`, with
+`pillow → PIL` as the one name whose import differs from the recorded name; a
+package that is genuinely absent still reads None because the import fails too.
+Preparation and the allocation resolve it identically, so the manifest
+comparison that the guard exists to protect (job 20659537, 09-09) is unaffected.
+Test: `tests/test_environment_record.py`.
