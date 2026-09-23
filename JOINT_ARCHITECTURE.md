@@ -99,8 +99,10 @@ stage-3 VQA training at all — reaches Δ_ground +6.42 [+4.36, +8.55] and utili
 while collapsing on the source task (xGQA 12.29 against 46.84). **The paired
 C4 − C1 contrast was not among Block C's frozen contrasts and is being computed
 post-hoc (DESIGN 2026-09-23); until it lands, the two levels are reported as
-levels and no ordering is claimed.** Stage-3 VQA supervision buys the source-style benchmark
-and does not buy culture-specific grounding. D9b separately found epochs 1 → 2
+levels and no ordering is claimed.** What the levels alone support is that
+stage-3 VQA supervision is not *necessary* for the targets' grounding while it
+is necessary for the source task; whether it actively costs target grounding is
+what the post-hoc contrast decides. D9b separately found epochs 1 → 2
 worth +2.11 on xGQA. Together they predict that the xGQA-selected checkpoint is
 close to the CVQA-worst one: evaluate epoch 1.
 
