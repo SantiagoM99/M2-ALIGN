@@ -3612,8 +3612,8 @@ is checked before that arm's numbers are paired with them.
 ### Seed replication of the C4 − C1 contrast: grid and reader — 2026-09-23
 
 The post-hoc contrast above rests on one C1 trajectory, which CLAUDE.md does not
-accept for a recipe claim, so C1 is retrained at seeds 14 and 15 (jobs to be
-recorded) and read as a spread.
+accept for a recipe claim, so C1 is retrained at seeds 14 and 15 (jobs
+**21652015** and **21652017**, submitted 2026-09-23) and read as a spread.
 
 - **Grid**: `s1_plan.py --block C` gained `--arm-seed` and `--arms`, so one arm
   at one training seed can be planned on its own. C1 alone is 30 cells (CVQA
@@ -3633,3 +3633,16 @@ recorded) and read as a spread.
   experiment.
 - The artifact carries `status: post-hoc and exploratory ... no gate input`, so
   the seeds cannot quietly promote the contrast to a confirmatory result.
+
+**Four launcher gaps found while submitting the replicates, all of one kind.**
+`c1_seed.sh` failed four times before it worked, each time because the new
+launcher did not carry context the older ones did: no active venv; the Block A
+gate read from the gitignored `outputs/` copy instead of the committed audit (the
+example in `S1_IMPLEMENTATION.md` carried that wrong path since 09-14 and is now
+corrected); an uncommitted audit file making the tree dirty; and a login shell
+without `HF_HOME`, `HF_HUB_OFFLINE` and `TRANSFORMERS_OFFLINE`, which preparation
+needs because it reads each frozen model's config to record its revision. All
+four now live inside the script and fail with a one-line message instead of a
+traceback. The dirty-tree stop is a consequence of removing the launchers'
+auto-commit and works as intended: harvested files are committed by hand from a
+login node.
