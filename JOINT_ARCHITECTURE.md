@@ -53,9 +53,47 @@ matched.
 | xGQA, 7 languages, 88,046 items, 2,786 clusters | **53.00** | 49.66 | **−3.34 [−3.76, −2.92]**, p = 8e-83 |
 | xGQA ΔV | **+29.80** | +17.39 | −12.41 [−12.91, −11.91] |
 
-Approach 1, as last recorded (D8, 2026-08-26, arm-level averages, **not** a
-paired test): xGQA 55.59, CVQA 38.81. Against its own zero-shot backbone that
-is **+2.59 on xGQA and −1.90 on CVQA**.
+Approach 1, reported 2026-09-23 with baseline and a1 at matched resolution,
+CVQA scored open-ended, plus two new references (macro averages, not paired
+tests):
+
+| | xGQA, 7 langs | CVQA open, 10 langs |
+|---|---|---|
+| direct baseline | 51.39 | 39.16 |
+| translate-then-test | 51.26 | **42.73** |
+| **a1** | **57.67** | 38.53 |
+| English (ceiling) | 58.70 | 44.48 |
+
+a1 is **+6.28 over its baseline on xGQA**, +6.41 over translate-then-test, and
+1.03 from gold English: 86% of the language gap recovered. On CVQA it is −0.63
+against the same baseline and −4.20 against translate-then-test, flat on
+jv/si/mn/ga (35.51 against 35.55) with the damage in bn (−3.14) and id (−5.58).
+Under the letter protocol a1 is −11.63 below its baseline, which is a capability
+of the frozen backbone that the mapping removes.
+
+Putting the two lines side by side, same scoring convention on the open-ended
+CVQA rows:
+
+| CVQA open, macro | | xGQA, macro | |
+|---|---|---|---|
+| **Approach 2 (v4)** | **43.42** | **Approach 1 (a1)** | **57.67** |
+| Qwen3-VL zero-shot (our port / hers) | 40.75 / 39.16 | Qwen3-VL zero-shot (our port / hers) | 53.00 / 51.39 |
+| Approach 1 (a1) | 38.53 | Approach 2 (v4) | 49.66 |
+
+**a1 owns xGQA, Approach 2 owns CVQA, and both facts have one explanation**
+(section 4.1). A fairness point to settle: the baseline was matched *down* to
+a1's resolution, and a reviewer will ask whether it was handicapped. We hold the
+baseline at the higher resolution (xGQA 53.00, CVQA 40.75); a1 still wins xGQA
+by +4.67 there, while CVQA becomes −2.22 instead of −0.63. Reporting both
+resolutions is strictly better than reporting one.
+
+**Why translate-then-test is competitive on CVQA and useless on xGQA.** xGQA's
+non-English questions are machine translations of English, so TTT is a
+translation of a translation and loses 7.44 against gold English; CVQA's
+questions are natively authored and its English field is human, so TTT
+translates once and lands 1.75 from the ceiling. **xGQA structurally flatters
+mapping methods and CVQA does not**, which is why CVQA is this paper's honest
+benchmark.
 
 **The two benchmarks disagree.** On locally sourced, culture-specific images a
 frozen 58M connector on a text-only LLM beats a native VLM; on GQA's Western
@@ -63,34 +101,47 @@ images with translated questions it loses, and the whole gap there is vision
 extraction (ΔV), not answer format. No arm in this table is better in general,
 so the paper states its claim per benchmark.
 
-## 3. A measurement question that has to be settled before any CVQA conclusion
+## 3. Protocol status
 
-There are two CVQA protocols in this repository:
+There are two CVQA protocols in this repository, and they do not measure the
+same thing:
 
 - **letter multiple choice** — `Baseline/evaluate_vqa.py` and
-  `Stage3/evaluate_vqa.py` build `Choices: A. … B. …` and ask the model to
-  "answer with the letter", then parse the generated letter (`classify_mc`);
+  `Stage3/evaluate_vqa.py` build `Choices: A. … B. …`, ask for the letter, and
+  parse what is generated (`classify_mc`);
 - **answer-choice log-likelihood** — `Approach2/evaluate_cvqa.py` and
-  `Approach2/baseline_qwen/evaluate.py` score each choice's likelihood and take
-  the argmax; nothing is generated and nothing is parsed.
+  `Approach2/baseline_qwen/evaluate.py` score each choice by its
+  length-normalized mean per-token log-probability and take the argmax; nothing
+  is generated and nothing is parsed.
 
-The letter protocol is strictly harder: it requires letter-to-content binding,
-it punishes a model that knows the answer but not the convention, and any
-refusal or verbosity is scored wrong. The log-likelihood protocol cannot fail
-to produce an answer. **Approach 1's 38.81 was produced by the letter
-protocol.** Its comparison against its own backbone is internally matched
-(40.75 is letter-MC too), so the −1.90 drop is real. But Approach 1's CVQA
-number cannot be compared with Approach 2's 43.22, which is log-likelihood, and
-no cross-approach CVQA claim should be made until both are scored the same way.
-Re-scoring is inference only.
+As of 2026-09-23 Maryam reports both, and her open-ended variant — average
+log-probability per option — **is** the log-likelihood convention above. So the
+open-ended CVQA rows of the two approaches are directly comparable, and the
+concern raised on 09-20 is settled by her change. The letter rows are not
+comparable with anything on the Approach 2 side.
+
+Two things about the protocols are worth reporting as findings rather than
+footnotes. The baseline scores **+27.73 higher under letters than open-ended**
+(66.89 against 39.16), so much of CVQA's apparent difficulty is the protocol,
+not the task. And, as Maryam observes, four options plus an image may be
+answerable without reading the native question at all — which is precisely the
+pathway the method exists to improve. That is measurable: run CVQA with the
+question removed and the options kept. Next to the gray-canvas arm this bounds
+what the benchmark measures from both sides, one blind arm for the image and one
+for the question.
+
+What still differs between the two lines and must be stated with every
+cross-approach number: the CVQA image copy, and, for the Qwen arms only, the
+resolution.
 
 ## 4. How to raise Approach 1's CVQA, cheapest first
 
 Each lever names the measurement that predicts it.
 
-**0. Score CVQA by answer-choice log-likelihood (cost: one inference pass).**
-Section 3. This is a measurement fix, not a method change, and it is the first
-thing to do because every other lever is read against it.
+**0. Done, 2026-09-23.** CVQA is now scored open-ended on her side too, so the
+measurement question no longer blocks the rest. Its replacement as the cheapest
+next measurement is the **question-blind arm** of section 3: image and options
+kept, native question removed.
 
 **1. Select the checkpoint on CVQA, not on xGQA (cost: zero if per-epoch
 checkpoints were kept).** Block C, with the paired C4 − C1 contrast computed
