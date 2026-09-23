@@ -93,18 +93,19 @@ Section 3. This is a measurement fix, not a method change, and it is the first
 thing to do because every other lever is read against it.
 
 **1. Select the checkpoint on CVQA, not on xGQA (cost: zero if per-epoch
-checkpoints were kept).** Block C, 2026-09-20: C4 — the composition with *no*
-stage-3 VQA training at all — reaches Δ_ground +6.42 [+4.36, +8.55] and utility
-40.43 on the CVQA targets, against the stage-3-trained C1's +5.10 and 37.86,
-while collapsing on the source task (xGQA 12.29 against 46.84). **The paired
-C4 − C1 contrast was not among Block C's frozen contrasts and is being computed
-post-hoc (DESIGN 2026-09-23); until it lands, the two levels are reported as
-levels and no ordering is claimed.** What the levels alone support is that
-stage-3 VQA supervision is not *necessary* for the targets' grounding while it
-is necessary for the source task; whether it actively costs target grounding is
-what the post-hoc contrast decides. D9b separately found epochs 1 → 2
-worth +2.11 on xGQA. Together they predict that the xGQA-selected checkpoint is
-close to the CVQA-worst one: evaluate epoch 1.
+checkpoints were kept).** Block C, with the paired C4 − C1 contrast computed
+post-hoc on 2026-09-23: an arm that received **no stage-3 VQA supervision at
+all** is statistically indistinguishable from the trained arm on the CVQA
+targets (Δ_ground **+1.32 [−1.13, +3.93]**, five per-unit panels all covering
+zero) while being **12.39 [11.10, 13.61]** of grounding and **34.54 [33.00,
+36.09]** of utility worse on the source benchmark. The supervision's entire
+grounding benefit is confined to the benchmark it resembles; on culturally
+sourced targets its effect is a null bounded within about ±4 points. It is not
+a measured loss — an earlier draft of this document said the untrained arm
+grounds the targets *better*, and the paired test does not support that. D9b
+separately found epochs 1 → 2 worth +2.11 on xGQA, so more supervision keeps
+buying the source-shaped benchmark. Predicted: the xGQA-selected checkpoint is
+no better than epoch 1 on CVQA, and possibly worse; checking costs nothing.
 
 **2. Sweep the strength of the bridge prefix at inference (cost: one inference
 pass per λ).** Block A: removing the text branch from a checkpoint trained with

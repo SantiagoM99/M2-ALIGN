@@ -3221,7 +3221,11 @@ What this establishes:
   C4 (no stage-3 VQA training at all) scores CVQA U 40.43 and Δ_ground +6.42
   [+4.36, +8.55], above every trained arm, and collapses on the source task
   (xGQA U 12.29 against C1's 46.84). Stage-3 VQA supervision in Bengali buys
-  the source task and does not buy target grounding. Two limits on reading it:
+  the source task and does not buy target grounding. *(Corrected 2026-09-23 by
+  the post-hoc paired contrast at the end of this file: the level comparison
+  stands as written, but the tested difference in target grounding covers zero,
+  +1.32 [−1.13, +3.93]. "Does not buy target grounding" is therefore a null, not
+  a measured loss; the source-side gain is +12.39 grounding and +34.54 utility.)* Two limits on reading it:
   CVQA is multiple-choice, so an untrained arm can still answer while xGQA's
   open-ended format defeats it; and it is one seed, a Block B cell re-read
   here. No trainer boundary is crossed — all five arms share the same August
@@ -3440,3 +3444,45 @@ It is written to `audits/s1_C_posthoc.json`, not over `audits/s1_C_analysis.json
   there (12.29 against C1's 46.84) and the trade is the whole point. C1 and C4
   share the same August `stage1` and `stage2_dc_llava` ancestors, so the only
   difference is whether stage 3 ran.
+
+**Result, read against the rule fixed above — 2026-09-23.** Report
+`audits/s1_C_posthoc.json`; the frozen gates printed identical to 09-20, so the
+post-hoc flag left the pre-registered report untouched.
+
+| panel | endpoint | C4 − C1 [CI95] | LB5 |
+|---|---|---|---|
+| primary jv/mn/ga | Δ_ground | **+1.32 [−1.13, +3.93]** | −0.72 |
+| primary jv/mn/ga | U | +2.57 [−0.11, +5.26] | +0.32 |
+| cvqa-jv | Δ_ground | −0.34 [−5.52, +4.99] | −4.65 |
+| cvqa-mn | Δ_ground | +1.71 [−1.65, +5.14] | −1.15 |
+| cvqa-ga | Δ_ground | +2.45 [−1.60, +6.53] | −0.99 |
+| si-secondary | Δ_ground | −2.07 [−8.12, +4.07] | −7.10 |
+| bn-control | Δ_ground | −0.47 [−5.27, +4.54] | −4.43 |
+| xgqa-bn | Δ_ground | **−12.39 [−13.61, −11.10]** | −13.41 |
+| xgqa-bn | U | **−34.54 [−36.09, −33.00]** | −35.82 |
+
+**Verdict: the middle branch. No difference was detected on the declared
+endpoint.** LB5(C4 − C1) on Δ_ground is −0.72, not above zero, and the interval
+covers zero on the primary panel and on all five per-unit panels. So the claim
+this contrast was computed to test — that the untrained composition *grounds the
+CVQA targets better* than the stage-3-trained one — **is not supported**, and by
+the rule it is removed from `JOINT_ARCHITECTURE.md`, from `SCIENCE.md` and from
+anything sent to Maryam. It was never a gate and nothing else changes.
+
+**What the contrast does establish, and it is the more useful statement.** The
+asymmetry is enormous and one-sided: stage-3 VQA supervision in Bengali buys
+**+12.39 [+11.10, +13.61]** of grounding and **+34.54 [+33.00, +36.09]** of
+utility on the source benchmark, while its effect on culture-specific target
+grounding is **indistinguishable from zero and bounded within about ±4 points**.
+An arm that received no VQA supervision at all is statistically
+indistinguishable from the trained arm on the targets while being 34.5 points
+worse on the source task. That is the in-distribution reading, now with a paired
+interval instead of a level comparison, and it is what transfers to Approach 1's
+CVQA problem.
+
+**Secondary, suggestive, not claimed.** Target utility favours C4 by +2.57 with
+a one-sided lower bound of +0.32. Utility was not the declared endpoint, the
+two-sided interval includes zero by 0.11, and an untrained arm's raw accuracy is
+exactly where a language prior would show up, which is why this project reads
+Δ_ground first. Mongolian's utility (+4.17, LB5 +0.61) is the only per-unit cell
+with a lower bound above zero, out of twelve.
