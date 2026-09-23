@@ -3486,3 +3486,97 @@ two-sided interval includes zero by 0.11, and an untrained arm's raw accuracy is
 exactly where a language prior would show up, which is why this project reads
 Δ_ground first. Mongolian's utility (+4.17, LB5 +0.61) is the only per-unit cell
 with a lower bound above zero, out of twelve.
+
+### Collaborator results: Approach 1 with matched resolution, open-ended CVQA, TTT and an English ceiling — 2026-09-23
+
+Reported by Maryam in chat on 2026-09-23 (not from a file in this repo, so the
+provenance is her message; her code is on the `parallel` branch). Every row
+below reproduces the average she printed, so the transcription is verified;
+what an average cannot verify is the per-language order, which is taken from her
+own column headers. Three changes on her side: CVQA scored two ways
+(open-ended average log-probability per option, and closed-ended logits over the
+letters A–D), baseline and a1 evaluated at the **same** resolution after she
+found `max_pixels` differed between them, and two new references —
+translate-then-test with NLLB at inference, and an English upper bound (xGQA's
+own `EN.jsonl`, CVQA's human-translated `Translated Question`).
+
+| xGQA, 7 languages, macro | avg |
+|---|---|
+| direct (baseline, matched resolution) | 51.39 |
+| translate-then-test | 51.26 |
+| **a1** | **57.67** |
+| English gold (ceiling) | 58.70 |
+
+| CVQA open-ended, 10 languages, macro | avg | jv/si/mn/ga | other 6 |
+|---|---|---|---|
+| direct | 39.16 | 35.55 | 41.57 |
+| translate-then-test | **42.73** | 37.77 | 46.04 |
+| a1 | 38.53 | 35.51 | 40.55 |
+| English (ceiling) | 44.48 | 40.44 | 47.18 |
+
+| CVQA closed-ended (letters) | avg |
+|---|---|
+| direct | 66.89 |
+| translate-then-test | 66.50 |
+| a1 | 55.26 |
+
+**Readings.**
+
+- **xGQA is a result.** a1 is +6.28 over the matched baseline and +6.41 over
+  translate-then-test, and sits 1.03 below the English ceiling: it recovers 86%
+  of the language gap. TTT adds nothing there (−0.13). The claim this supports
+  is that the encoder's continuous representation beats its own discrete
+  translation output and nearly matches gold English.
+- **CVQA is the crux.** a1 is −0.63 against its own matched baseline and −4.20
+  against TTT; it recovers −12% of the gap to the ceiling. Per group it is
+  **flat on jv/si/mn/ga** (35.51 against 35.55) and slightly negative on the
+  other six, with the damage concentrated in bn (−3.14) and id (−5.58).
+- **This is our Block C pattern on a different backbone.** The post-hoc C4 − C1
+  contrast above puts stage-3 VQA supervision's grounding benefit entirely on
+  the source benchmark (+12.39) with a null on culture-specific targets
+  (+1.32 [−1.13, +3.93]). Her stage 3 trains on NLLB-translated GQA, so its
+  supervision has xGQA's shape; it gains 6.28 there and is flat on CVQA. Two
+  frozen-backbone systems, two connector designs, same asymmetry.
+- **Closed-ended is a protocol effect, and a liability.** The baseline scores
+  +27.73 higher under letters than under open-ended scoring (66.89 against
+  39.16), so CVQA's apparent difficulty is substantially protocol. Under letters
+  a1 is **−11.63** below its own baseline: the mapping does not merely fail to
+  help, it removes a capability the frozen backbone has, which her explanation
+  (stage 3 trains an open-ended format) accounts for but does not excuse. Both
+  protocols go in the paper.
+- **Why TTT is competitive on CVQA and useless on xGQA.** xGQA's non-English
+  questions are machine translations of English, so translating them back is
+  translation of a translation and loses 7.44 against gold English; CVQA's
+  questions are natively authored and its English field is human, so TTT
+  translates once and lands 1.75 from the ceiling. xGQA structurally flatters
+  mapping methods; CVQA does not. This makes CVQA the honest benchmark of the
+  paper and is worth stating as a methodological finding.
+
+**Protocol status after her change.** Her open-ended CVQA scoring — average
+log-probability per option — is exactly this project's convention
+(`Approach2/evaluate_cvqa.py` scores length-normalized mean per-token
+log-probability), so **her open-ended CVQA numbers and ours are now comparable**
+and the concern recorded on 09-20 is resolved by her change, not by ours. The
+letter numbers remain incomparable with anything of ours. What still differs is
+the image copy and, for the Qwen arm only, the resolution.
+
+| CVQA open-ended, 10 languages, macro | avg |
+|---|---|
+| **v4 (Approach 2, frozen stack + 58M)** | **43.42** |
+| Qwen3-VL zero-shot, our port, default resolution | 40.75 |
+| Qwen3-VL zero-shot, hers, matched to a1 | 39.16 |
+| a1 | 38.53 |
+
+| xGQA, macro | avg |
+|---|---|
+| **a1** | **57.67** |
+| Qwen3-VL zero-shot (our port / hers) | 53.00 / 51.39 |
+| v4 (Approach 2) | 49.66 |
+
+**Her ask**: raise a1 on CVQA. The levers, with the measurement that predicts
+each, are in `JOINT_ARCHITECTURE.md` §4. One fairness point to settle first: she
+matched the baseline **down** to a1's resolution, and a reviewer will ask
+whether the baseline was handicapped. We hold the baseline at the higher
+resolution already (xGQA 53.00, CVQA 40.75); a1 still wins xGQA by +4.67 there,
+which makes that claim robust, while CVQA becomes −2.22 instead of −0.63.
+Reporting both resolutions is strictly better for the paper than reporting one.
