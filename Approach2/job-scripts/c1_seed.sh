@@ -31,6 +31,12 @@ SUB="$OUT/s1_C1_seed${SEED}.submission.json"
 GATE="${GATE:-$A2/audits/s1_A_analysis.json}"
 [ -f "$GATE" ] || { echo "no Block A report at $GATE; set GATE=<path>"; exit 1; }
 
+# Preparation reads each frozen model's config to record its revision, so it
+# needs the same cache and offline settings the allocation will run under
+# (train_stage3_s1.sh sets these too); a login shell usually has none of them.
+export HF_HOME="${HF_HOME:-$SCRATCH/huggingface}"
+export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+
 [ -d "$A2" ] || { echo "run this from the repo root"; exit 1; }
 [ -n "${VIRTUAL_ENV:-}" ] || {
   echo "no venv active: source \$SCRATCH/venvs/m2-align/bin/activate first (activate only, install nothing)"
