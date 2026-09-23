@@ -70,6 +70,16 @@ def build_cvqa_open_ended_prompt(question: str) -> str:
     return f"Question: {question}"
 
 
+def blind_question(question: str, enabled: bool) -> str:
+    """The text-side twin of the gray canvas: the prompt keeps its shape and
+    loses its content, so what drops is the question and not the template.
+    Maryam observed (2026-09-23) that four options plus an image may be
+    answerable without reading the native question at all; this is what
+    measures that, and it bounds what CVQA tests from the side the gray canvas
+    cannot reach."""
+    return "" if enabled else question
+
+
 # ─── Logging ────────────────────────────────────────────────────────────────
 
 def setup_logging(benchmark: str) -> logging.Logger:
@@ -93,6 +103,8 @@ def setup_logging(benchmark: str) -> logging.Logger:
 def load_model(
     model_id: str,
     local_files_only: bool,
+    min_pixels: int | None = None,
+    max_pixels: int | None = None,
 ) -> tuple[Qwen3VLForConditionalGeneration, AutoProcessor, torch.device]:
     assert torch.cuda.is_available(), "CUDA not available - request a GPU node."
     device = torch.device("cuda")
@@ -101,7 +113,10 @@ def load_model(
         model_id, torch_dtype=dtype, device_map="auto",
         low_cpu_mem_usage=True, local_files_only=local_files_only,
     )
-    processor = AutoProcessor.from_pretrained(model_id, local_files_only=local_files_only)
+    pixels = {k: v for k, v in (("min_pixels", min_pixels), ("max_pixels", max_pixels)) if v}
+    processor = AutoProcessor.from_pretrained(
+        model_id, local_files_only=local_files_only, **pixels,
+    )
     model.eval()
     return model, processor, device
 
@@ -272,7 +287,7 @@ def evaluate_open_ended(
 def evaluate_cvqa_open_ended(
     rows: list[dict], lang: str, image_resolver,
     model, processor, device, max_examples: int | None, logger: logging.Logger,
-    output_path: str | None = None,
+    output_path: str | None = None, hide_question: bool = False,
 ) -> tuple[float, int]:
     """CVQA's own open-ended protocol: no options shown in the prompt; score
     each candidate answer choice by log-likelihood and take the argmax."""
@@ -285,7 +300,7 @@ def evaluate_cvqa_open_ended(
         if image is None:
             continue
         choices = row["choices"]
-        prompt = build_cvqa_open_ended_prompt(row["query"])
+        prompt = build_cvqa_open_ended_prompt(blind_question(row["query"], hide_question))
         scores = [
             score_choice_loglikelihood(image, prompt, choice, _VQA_SYSTEM, model, processor, device)
             for choice in choices
@@ -345,6 +360,12 @@ def main() -> None:
     parser.add_argument("--blind", action="store_true",
                         help="Replace every image with a neutral gray canvas — the same "
                              "language-prior control as Approach2/evaluate_vqa.py --blind.")
+    parser.add_argument("--blind-question", action="store_true",
+                        help="CVQA only: keep image and answer choices, remove the native question.")
+    parser.add_argument("--min-pixels", type=int, default=None,
+                        help="Processor min_pixels; leave unset for the model default.")
+    parser.add_argument("--max-pixels", type=int, default=None,
+                        help="Processor max_pixels; set it to match a collaborator's resolution.")
     parser.add_argument("--output-path", default=None,
                         help="Write per-example predictions here (+ .summary.json).")
     args = parser.parse_args()
@@ -359,7 +380,10 @@ def main() -> None:
     logger.info("Loaded %d rows from %s", len(rows), args.eval_data)
     logger.info("Model: %s | Benchmark: %s | Lang: %s", args.model_id, args.benchmark, args.lang)
 
-    model, processor, device = load_model(args.model_id, local_files_only=args.local_files_only)
+    model, processor, device = load_model(
+        args.model_id, local_files_only=args.local_files_only,
+        min_pixels=args.min_pixels, max_pixels=args.max_pixels,
+    )
 
     if args.blind:
         resolver = lambda row: Image.new("RGB", (384, 384), (128, 128, 128))
@@ -376,7 +400,7 @@ def main() -> None:
     if args.benchmark == "cvqa":
         acc, correct = evaluate_cvqa_open_ended(
             rows, args.lang, resolver, model, processor, device, max_examples, logger,
-            output_path=args.output_path,
+            output_path=args.output_path, hide_question=args.blind_question,
         )
     else:
         acc, correct = evaluate_open_ended(
@@ -389,7 +413,8 @@ def main() -> None:
             "benchmark": args.benchmark, "lang": args.lang,
             "scored": len(rows), "correct": correct, "accuracy": acc / 100.0,
             "data_path": args.eval_data, "model_id": args.model_id,
-            "blind": args.blind,
+            "blind": args.blind, "blind_question": args.blind_question,
+            "min_pixels": args.min_pixels, "max_pixels": args.max_pixels,
             "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
         }
         with open(args.output_path + ".summary.json", "w", encoding="utf-8") as f:

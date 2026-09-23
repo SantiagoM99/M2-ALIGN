@@ -21,6 +21,10 @@
 #   BENCH  xgqa | cvqa | all   (default all; xGQA is the long half — split
 #          into BENCH=xgqa and BENCH=cvqa jobs if queue times matter)
 #   LANGS  override language list for the chosen benchmark
+#   BLIND_QUESTION=1  CVQA only: keep image and choices, drop the native
+#          question. Writes *_QBLIND.jsonl, the text-side twin of the gray arm
+#   MIN_PIXELS / MAX_PIXELS  processor resolution; set MAX_PIXELS to a
+#          collaborator's value to compare at one resolution. Writes *_mp<N>
 #   QWEN_VENV  venv with recent transformers (default $SCRATCH/venvs/qwen)
 #
 # One-time setup on a login node (tmux):
@@ -40,6 +44,12 @@ OUT_DIR="$A2/outputs/baseline_qwen"
 
 GQA_IMAGES="${GQA_IMAGES:-$DT/Stage3/data/gqa/images}"
 [ -d "$GQA_IMAGES" ] || GQA_IMAGES="$PROJECT_ROOT/Stage3/data/gqa/images"
+
+BLIND_QUESTION="${BLIND_QUESTION:-0}"
+RES_ARGS=()
+RES_TAG=""
+[ -n "${MIN_PIXELS:-}" ] && RES_ARGS+=(--min-pixels "$MIN_PIXELS")
+[ -n "${MAX_PIXELS:-}" ] && { RES_ARGS+=(--max-pixels "$MAX_PIXELS"); RES_TAG="_mp${MAX_PIXELS}"; }
 
 XGQA_LANGS="${LANGS:-bn de ru zh pt id ko}"
 CVQA_LANGS="${LANGS:-bn ru zh pt id ko jv mn si ga}"
@@ -111,9 +121,7 @@ mkdir -p "$RESULTS_DIR"
 cp "$OUT_DIR"/qwen_*.jsonl "$RESULTS_DIR/" 2>/dev/null || true
 cp "$OUT_DIR"/qwen_*.summary.json "$RESULTS_DIR/" 2>/dev/null || true
 cd "$PROJECT_ROOT"
-git add Approach2/results 2>/dev/null || true
-git commit -m "results: qwen baseline $BENCH (job ${SLURM_JOB_ID:-manual})" Approach2/results \
-  || echo "No new results to commit."
+echo "Harvested into $RESULTS_DIR; commit by hand from a login node."
 
 echo "=== Done === $(date)"
 if [ ${#FAILED[@]} -gt 0 ]; then
