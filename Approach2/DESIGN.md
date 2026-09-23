@@ -3608,3 +3608,28 @@ to 12.1.0 before the seeds are prepared, so all three share one decoding path.
 The same question applies to the separate `$SCRATCH/venvs/qwen` environment,
 whose August runs are the reference for the new question-blind arm; its pillow
 is checked before that arm's numbers are paired with them.
+
+### Seed replication of the C4 − C1 contrast: grid and reader — 2026-09-23
+
+The post-hoc contrast above rests on one C1 trajectory, which CLAUDE.md does not
+accept for a recipe claim, so C1 is retrained at seeds 14 and 15 (jobs to be
+recorded) and read as a spread.
+
+- **Grid**: `s1_plan.py --block C` gained `--arm-seed` and `--arms`, so one arm
+  at one training seed can be planned on its own. C1 alone is 30 cells (CVQA
+  jv/mn/ga/si/bn and xGQA-bn × correct, three shuffles, gray) against the
+  block's 150, about 3 h instead of 15. The evaluator's own `--seed` stays 13
+  whatever the arm seed is, because it generates the shuffled-image maps and a
+  replicate must reuse the maps its reference cells were scored with; otherwise
+  the contrast stops being paired. C4 needs no replication: it is untrained, so
+  it contributes the same cells to every seed's contrast.
+- **Reader**: `analysis/c1_seed_spread.py` (+7 tests) reports C4 − C1 per seed on
+  both endpoints with its own image-cluster interval, then the mean, SD and
+  range across seeds, and states in the artifact that each interval excludes
+  training variance and that the across-seed spread with three fixed seeds is a
+  range and not a population SD. It refuses a replicate whose item universe,
+  assigned images or regenerated shuffle-map hashes differ from the reference's,
+  which is the failure that would silently turn a replicate into a different
+  experiment.
+- The artifact carries `status: post-hoc and exploratory ... no gate input`, so
+  the seeds cannot quietly promote the contrast to a confirmatory result.

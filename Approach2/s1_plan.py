@@ -148,13 +148,19 @@ def build(a):
         # mere existence does not mean the two-epoch run finished.
         if not a.block_a_report:
             raise ValueError("Block C requires --block-a-report with G0 passing")
-        trained = {"C1": "s1_C1_seed13", "C2": "s1_C2_seed13", "C3": "s1_C3_seed13", "C5": "s1_C5_seed13"}
+        # --arm-seed selects which training seed's checkpoints to read; the
+        # evaluator's own --seed stays 13 above, because it generates the
+        # shuffled-image maps and a replicate must reuse the maps its reference
+        # cells were scored with or the contrast stops being paired.
+        wanted = a.arms or ["C1", "C2", "C3", "C4", "C5"]
+        trained = {arm: f"s1_{arm}_seed{a.arm_seed}" for arm in ("C1", "C2", "C3", "C5") if arm in wanted}
         for arm, name in sorted(trained.items()):
             marker = Path(a.checkpoints) / name / "complete.json"
             if not marker.is_file():
                 raise ValueError(f"{arm} has not finished training: {marker} is missing")
         arms = {arm: (ck(name), ck(name)) for arm, name in trained.items()}
-        arms["C4"] = (ck("stage1"), ck("stage2_dc_llava"))
+        if "C4" in wanted:
+            arms["C4"] = (ck("stage1"), ck("stage2_dc_llava"))
         for b, targets in [("cvqa", ["jv", "mn", "ga", "si", "bn"]), ("xgqa", ["bn"])]:
             for t in targets:
                 for arm, (tc, vc) in sorted(arms.items()):
@@ -277,5 +283,9 @@ if __name__ == "__main__":
     p.add_argument("--maps-dir", default=str(ROOT / "evaluation"))
     p.add_argument("--legacy-results", default=str(ROOT / "Approach2/results"))
     p.add_argument("--block-a-report")
+    p.add_argument("--arm-seed", type=int, default=13,
+                   help="Block C: training seed of the arm checkpoints to evaluate")
+    p.add_argument("--arms", nargs="+",
+                   help="Block C: evaluate only these arms (default all five)")
     p.add_argument("--output", required=True)
     build(p.parse_args())
