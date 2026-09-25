@@ -77,11 +77,21 @@ export TRANSFORMERS_OFFLINE=1
 mkdir -p "$OUT_DIR"
 cd "$A2/baseline_qwen"
 FAILED=()
+RAN=0
+SKIPPED=0
 
 run_one () {  # <bench> <lang> <blind:0|1>
-  local bench="$1" L="$2" blind="$3" suffix="" args=() data
+  local bench="$1" L="$2" blind="$3" suffix="" data
+  # bash 3.2 (macOS, where these get dry-run) treats "${EMPTY[@]}" as unbound
+  # under `set -u`, so the array is only expanded when it has elements.
+  local args=()
+  [ ${#RES_ARGS[@]} -gt 0 ] && args=("${RES_ARGS[@]}")
   [ "$blind" = 1 ] && { suffix="_BLIND"; args+=(--blind); }
-  local out="$OUT_DIR/qwen_${bench}_${L}${suffix}.jsonl"
+  if [ "$BLIND_QUESTION" = 1 ]; then
+    if [ "$bench" != cvqa ]; then echo "--- skip $bench (BLIND_QUESTION is CVQA only)"; return; fi
+    suffix="${suffix}_QBLIND"; args+=(--blind-question)
+  fi
+  local out="$OUT_DIR/qwen_${bench}_${L}${suffix}${RES_TAG}${RUN_TAG:-}.jsonl"
   if [ "$bench" = xgqa ]; then
     data="$DT/Stage3/data/xgqa/$L.jsonl"
     args+=(--images-dir "$GQA_IMAGES")
@@ -90,8 +100,12 @@ run_one () {  # <bench> <lang> <blind:0|1>
     args+=(--image-cache-dir "$DT/Stage3/data/cvqa/images")
   fi
   if [ ! -f "$data" ]; then echo "--- skip $bench $L blind=$blind (no data)"; return; fi
-  if [ -f "$out.summary.json" ]; then echo "--- skip $bench $L blind=$blind (summary exists)"; return; fi
-  echo "=== qwen $bench $L blind=$blind === $(date)"
+  if [ -f "$out.summary.json" ]; then
+    echo "--- skip $bench $L blind=$blind (summary exists: $(basename "$out"))"
+    SKIPPED=$((SKIPPED + 1)); return
+  fi
+  RAN=$((RAN + 1))
+  echo "=== qwen $bench $L blind=$blind -> $(basename "$out") === $(date)"
   if ! python -u evaluate.py \
       --benchmark   "$bench" \
       --lang        "$L" \
@@ -126,7 +140,13 @@ cp "$OUT_DIR"/qwen_*.summary.json "$RESULTS_DIR/" 2>/dev/null || true
 cd "$PROJECT_ROOT"
 echo "Harvested into $RESULTS_DIR; commit by hand from a login node."
 
-echo "=== Done === $(date)"
+echo "=== Done === $(date): $RAN cells evaluated, $SKIPPED skipped as already present"
+if [ "$RAN" -eq 0 ]; then
+  echo "ERROR: nothing was evaluated. Every cell already had a summary under the"
+  echo "name this run would write. Check BLIND_QUESTION / RUN_TAG / MAX_PIXELS"
+  echo "actually reached the output name before resubmitting."
+  exit 1
+fi
 if [ ${#FAILED[@]} -gt 0 ]; then
   echo "FAILED: ${FAILED[*]}"
   exit 1

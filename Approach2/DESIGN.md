@@ -3710,3 +3710,30 @@ two image sets. The WorldCuisines images are therefore cached into the GQA image
 directory under a `wc_` prefix, which cannot collide with GQA's numeric ids and is
 undone with `rm wc_*.jpg`. The alternative, a directory of symlinks to both sets,
 would add ~700k inodes against a ~1M scratch quota.
+
+### A job that evaluated nothing reported success — 2026-09-25
+
+Jobs **21651431** (CVQA question-blind) and **21651721** (the 09-23 parity
+re-measurement) both finished `COMPLETED 0:0`, in six seconds and one second,
+having evaluated nothing. The cause was an edit that never landed: the
+`BLIND_QUESTION` and `RUN_TAG` logic was added to `baseline_qwen.sh`'s header but
+the matching change inside `run_one` silently failed to apply, so the suffix never
+reached the output name, every cell found August's summary at the name it was
+about to write, and the launcher's idempotence — which exists so a re-run only
+fills gaps — skipped all twenty. Two days of queue time bought nothing.
+
+Three changes, so this class of failure cannot repeat quietly:
+
+- **A no-op run is now a failure.** The launcher counts cells evaluated and
+  skipped, prints both, and exits non-zero when nothing ran, naming the knobs
+  (`BLIND_QUESTION`, `RUN_TAG`, `MAX_PIXELS`) that may not have reached the output
+  name. Success in `sacct` now means work happened.
+- **Each skip prints the filename it matched**, so a wrong name is visible in the
+  log instead of looking like completed work.
+- **The launcher is dry-run before submission**, with a stubbed `python` and a
+  temporary `DT`, checking the names it would write. Both paths were verified
+  this way before resubmitting, and the exercise also found that
+  `"${EMPTY[@]}"` under `set -u` aborts on bash 3.2, where these dry runs happen.
+
+The two C1 seed replicates from the same evening are unaffected: 21652015 and
+21652017 trained for 3 h 28 and 3 h 27 and wrote their completion markers.
