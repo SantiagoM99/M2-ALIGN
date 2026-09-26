@@ -1,0 +1,14 @@
+{
+  "benchmark": "cvqa",
+  "lang": "ga",
+  "scored": 326,
+  "correct": 125,
+  "accuracy": 0.3834355828220859,
+  "data_path": "/scratch/santimn/datatransfer/Stage3/data/cvqa/ga.jsonl",
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "blind": false,
+  "blind_question": true,
+  "min_pixels": null,
+  "max_pixels": null,
+  "slurm_job_id": "21809906"
+}
