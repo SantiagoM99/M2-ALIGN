@@ -3839,3 +3839,40 @@ rather than pairing against the August with-question numbers, because CVQA's
 real-image cells drift across that boundary and pairing today against today
 avoids the question. Dry-run locally with a stubbed `python` before submission,
 which is also how the bash 3.2 empty-array trap was caught again.
+
+### Literature check before the framing hardens — 2026-09-26
+
+Three of the things this line was about to present as findings are wholly or
+partly published. Checked by reading abstracts and, where it mattered, the paper
+itself, per the rule against asking a summarizer a leading question.
+
+- **CVQA's own paper already warns about the option shortcut.** It states that
+  annotators were instructed to make questions answerable *without* the multiple
+  choices, and that its open-ended evaluation exposes models using the options as
+  a shortcut instead of grounding the image and question. So the question-blind
+  result of 2026-09-26 is not the discovery that the shortcut exists. **It is a
+  quantification of it**: per language, with a gray-canvas control that separates
+  image-driven from prior-driven answering, and with the finding that the
+  shortcut score **exceeds** the with-question score (+1.50, and ΔV +4.01 in all
+  ten languages). That reframing is strictly better for the paper, because it
+  connects the measurement to the benchmark authors' own stated caveat rather
+  than picking a fight with the benchmark.
+- **Translation artifacts in cross-lingual VQA are established work** (Ahn et
+  al., arXiv 2406.02331), including their effect on translate-test and an
+  augmentation remedy. Cited, not claimed. Our contribution next to it is the
+  comparison it does not make: a mapping into a frozen backbone versus
+  translate-then-test versus the backbone itself, on identical items with two
+  blind arms.
+- **MERLIN** (arXiv 2509.08105) is the nearest architectural relative — a frozen
+  multilingual encoder and a light connector into a frozen LLM, trained as a
+  multi-stage curriculum — and it is already a checked-out baseline in this
+  project. A 2025 survey of multilingual vision-language models (arXiv
+  2509.22123) is the positioning source to mine before the related-work section
+  is written.
+
+What survives as ours, stated plainly so it can be attacked: the controlled
+cross-architecture comparison on identical items; the benchmark-shape result that
+stage-3 supervision buys the source-shaped benchmark and produces a null on
+culture-specific targets, replicated on two different frozen backbones with a
+paired interval; and the question-blind measurement on a *trained* system, which
+is still running.
