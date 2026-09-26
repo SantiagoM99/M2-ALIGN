@@ -133,7 +133,9 @@ if [ "$BENCH" = xgqa ] || [ "$BENCH" = all ]; then
 fi
 
 echo "=== Harvest results into git ==="
-RESULTS_DIR="$A2/results"
+# Overridable so a local dry run cannot copy stub files into the tracked results
+# directory, which is how twelve 2-byte files once collided with a real harvest.
+RESULTS_DIR="${RESULTS_DIR:-$A2/results}"
 mkdir -p "$RESULTS_DIR"
 cp "$OUT_DIR"/qwen_*.jsonl "$RESULTS_DIR/" 2>/dev/null || true
 cp "$OUT_DIR"/qwen_*.summary.json "$RESULTS_DIR/" 2>/dev/null || true
