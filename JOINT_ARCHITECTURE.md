@@ -88,12 +88,16 @@ by +4.67 there, while CVQA becomes −2.22 instead of −0.63. Reporting both
 resolutions is strictly better than reporting one.
 
 **Why translate-then-test is competitive on CVQA and useless on xGQA.** xGQA's
-non-English questions are machine translations of English, so TTT is a
-translation of a translation and loses 7.44 against gold English; CVQA's
-questions are natively authored and its English field is human, so TTT
-translates once and lands 1.75 from the ceiling. **xGQA structurally flatters
-mapping methods and CVQA does not**, which is why CVQA is this paper's honest
-benchmark.
+target-language questions are **human** translations from English (fluent
+students, spot-check verified; Pfeiffer et al. 2022), so they carry
+English-derived structure, while CVQA's are natively authored. TTT on xGQA is one
+NLLB pass over translationese and still loses 7.44 against the original English;
+on CVQA it translates natural source text and lands 1.75 from a human ceiling.
+**xGQA is friendlier to a method that recovers English-like structure and CVQA is
+not**, which is why CVQA is this paper's honest benchmark. Translation artifacts
+and their effect on translate-test are established work (Ahn et al., arXiv
+2406.02331), cited rather than claimed; what is ours is the comparison on
+identical items between a mapping, translate-then-test and the backbone itself.
 
 **The two benchmarks disagree.** On locally sourced, culture-specific images a
 frozen 58M connector on a text-only LLM beats a native VLM; on GQA's Western

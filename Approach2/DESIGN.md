@@ -3544,13 +3544,26 @@ own `EN.jsonl`, CVQA's human-translated `Translated Question`).
   help, it removes a capability the frozen backbone has, which her explanation
   (stage 3 trains an open-ended format) accounts for but does not excuse. Both
   protocols go in the paper.
-- **Why TTT is competitive on CVQA and useless on xGQA.** xGQA's non-English
-  questions are machine translations of English, so translating them back is
-  translation of a translation and loses 7.44 against gold English; CVQA's
-  questions are natively authored and its English field is human, so TTT
-  translates once and lands 1.75 from the ceiling. xGQA structurally flatters
-  mapping methods; CVQA does not. This makes CVQA the honest benchmark of the
-  paper and is worth stating as a methodological finding.
+- **Why TTT is competitive on CVQA and useless on xGQA.** *(Corrected
+  2026-09-26 — the original claim, kept visible: "xGQA's non-English questions
+  are machine translations of English, so translating them back is translation of
+  a translation". That is wrong. xGQA's questions were **manually** translated by
+  fluent university students with independent spot-check verification, on GQA's
+  balanced test-dev split, 12,578 questions over 398 images — verified in the
+  paper, Pfeiffer et al., Findings ACL 2022.)* The corrected mechanism is
+  translationese, not MT noise: xGQA's target questions are human translations
+  **from English**, so they carry English-derived structure, while CVQA's are
+  natively authored. TTT on xGQA is therefore a single NLLB pass over
+  translationese and still loses 7.44 against the original English, whereas on
+  CVQA it translates natural source text once and lands 1.75 from a
+  human-translated ceiling. The substantive point survives — xGQA is friendlier
+  to a method that recovers English-like structure, CVQA is not — but it is **not
+  ours to claim as a finding**: translation artifacts in cross-lingual VQA and
+  their effect on translate-test are the subject of Ahn et al., "Translation
+  Deserves Better: Analyzing Translation Artifacts in Cross-lingual Visual
+  Question Answering" (arXiv 2406.02331), which also proposes a data-augmentation
+  remedy. We cite it and contribute the comparison it does not make: mapping
+  versus translate-test versus the backbone itself, on identical items.
 
 **Protocol status after her change.** Her open-ended CVQA scoring — average
 log-probability per option — is exactly this project's convention
