@@ -3748,3 +3748,64 @@ submission then freezes. The message is built from the `slurm_job_id` each
 summary carries, so the record names the runs rather than a date. Tested on a
 scratch repository in four cases: results only, nothing new, a code file also
 dirty, and an explicit message.
+
+### CVQA's native question is a net distractor for the zero-shot VLM — 2026-09-26
+
+Two runs, jobs **21809906** (question-blind) and **21809907** (a re-measurement
+of the with-question arm on the same day and machine). Reports
+`audits/arch_compare_cvqa_question_blind.json`; 10 languages, 2,943 items over
+1,370 image clusters, blind control on every cell.
+
+**First, the parity check passed exactly.** The with-question re-measurement
+reproduces the August run in all 20 cells: **0 of 3,143 predictions differ,
+score drift 0.000, identical accuracy per language**. The `$SCRATCH/venvs/qwen`
+pillow question raised on 09-23 is therefore closed for this path, and the
+question-blind arm is comparable with the August baseline as well as with today's.
+
+| language | n | with question | question removed | Δ | ΔV with | ΔV without |
+|---|---|---|---|---|---|---|
+| bn | 286 | 38.46 | 41.26 | +2.80 | +5.59 | +11.89 |
+| ru | 200 | 41.00 | 47.50 | +6.50 | +6.00 | +16.50 |
+| zh | 311 | 47.59 | 49.20 | +1.61 | +11.25 | +12.54 |
+| pt | 284 | 46.83 | 47.18 | +0.35 | +10.92 | +12.32 |
+| id | 412 | 41.50 | 37.62 | −3.88 | +7.04 | +8.74 |
+| ko | 290 | 44.14 | 45.86 | +1.72 | +8.28 | +11.38 |
+| jv | 297 | 38.72 | 38.38 | −0.34 | +5.39 | +6.06 |
+| mn | 312 | 36.86 | 38.46 | +1.60 | +2.24 | +5.77 |
+| si | 225 | 39.56 | 42.22 | +2.67 | +6.22 | +12.44 |
+| ga | 326 | 32.82 | 38.34 | +5.52 | +6.75 | +15.34 |
+| **pooled** | 2,943 | 40.71 | **42.20** | **+1.50 [−0.03, +3.07]** | +7.00 | **+11.01** |
+
+Exact McNemar on full accuracy: 300 items only the question-blind arm gets, 256
+only the with-question arm, **p = 0.068**. On the visual endpoint the difference
+is unambiguous: **ΔV +4.01 [+2.11, +5.90]**, and ΔV rises in **all ten**
+languages. Removing the question helps full accuracy in 8 of 10; Indonesian
+(−3.88) and Javanese (−0.34) are the exceptions.
+
+**Reading.** Maryam predicted on 09-23 that four options plus an image might be
+answerable without the native question. Measured, it is stronger than that: under
+CVQA's open-ended protocol the question is a **net distractor** for the zero-shot
+VLM, and the model uses the image *more* when the question is gone. The
+mechanism this is consistent with is that without a question the model becomes a
+plausibility ranker over the four choices given the image, and that strategy
+beats reading a question it must also ground.
+
+**What it does not say.** Our protocol never shows the choices in the prompt —
+they are scored as continuations — so the question-blind prompt is a degenerate
+`Question: ` with the content removed, the text-side twin of the gray canvas.
+This is a statement about this protocol on this backbone, not about CVQA as a
+dataset, and the letter protocol may behave differently; Maryam has those
+numbers. It says nothing yet about a system *trained* to use the question.
+
+**Consequence for the paper, and it is a large one.** A method whose selling
+point is better multilingual question understanding has very little headroom to
+demonstrate it on this benchmark, because the benchmark rewards ignoring the
+question. That is a candidate explanation for a1 being flat on CVQA while gaining
++6.28 on xGQA, independent of anything about its architecture. Every CVQA number
+in the paper is therefore reported with **two** blind arms, gray canvas and
+question removed, which bound what the benchmark measures from both sides.
+
+**The cheap follow-up that decides it:** run the same question-blind arm on a
+trained system — v4 on our side, a1 on Maryam's. If a trained system also
+improves without the question, the benchmark is not exercising the pathway either
+method is built to improve, and the paper says so with numbers.

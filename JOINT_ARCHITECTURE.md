@@ -138,10 +138,16 @@ resolution.
 
 Each lever names the measurement that predicts it.
 
-**0. Done, 2026-09-23.** CVQA is now scored open-ended on her side too, so the
-measurement question no longer blocks the rest. Its replacement as the cheapest
-next measurement is the **question-blind arm** of section 3: image and options
-kept, native question removed.
+**0. Done, and it changed the picture.** CVQA is scored open-ended on both sides
+now, and the **question-blind arm** has been measured on the zero-shot backbone
+(DESIGN 2026-09-26): removing the native question *raises* CVQA by +1.50
+[−0.03, +3.07] and raises ΔV by **+4.01 [+2.11, +5.90]**, in all ten languages.
+Under this protocol the question is a net distractor and the benchmark rewards
+ranking the four choices by image plausibility. A method built to improve
+multilingual question understanding therefore has little headroom to show here,
+which is a candidate explanation for a1's flat CVQA that has nothing to do with
+its architecture. The follow-up that settles it is the same arm on a *trained*
+system: v4 on this side, a1 on Maryam's.
 
 **1. Select the checkpoint on CVQA, not on xGQA (cost: zero if per-epoch
 checkpoints were kept).** Block C, with the paired C4 − C1 contrast computed
