@@ -3809,3 +3809,20 @@ question removed, which bound what the benchmark measures from both sides.
 trained system — v4 on our side, a1 on Maryam's. If a trained system also
 improves without the question, the benchmark is not exercising the pathway either
 method is built to improve, and the paper says so with numbers.
+
+**The follow-up is implemented — 2026-09-26.** `eval_runtime.py` gained
+`--blind-question`, which empties the question on **both** paths it takes in this
+architecture, Gemma's prompt and the NLLB branch; blinding only one would
+reproduce Block A's A2 or A3 rather than the control. The written row records the
+empty question too, so a question-blind file cannot pass a parity check against a
+real cell by claiming a question it never showed. The manifest records the flag
+automatically (`arguments` is the full argument namespace), and the image
+condition label is untouched, because what changed is the text, not the image.
+
+`job-scripts/qblind_v4.sh` runs the arm: the Bengali donor checkpoint evaluated
+zero-shot on jv/mn/ga/si, both question conditions and both image conditions, 16
+cells in one allocation, about 1.5 h. Both question conditions run **today**
+rather than pairing against the August with-question numbers, because CVQA's
+real-image cells drift across that boundary and pairing today against today
+avoids the question. Dry-run locally with a stubbed `python` before submission,
+which is also how the bash 3.2 empty-array trap was caught again.

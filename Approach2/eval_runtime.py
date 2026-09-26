@@ -46,6 +46,14 @@ def parser(benchmark):
     p.add_argument("--no-chat-template", action="store_true")
     p.add_argument("--no-text-branch", action="store_true")
     p.add_argument(
+        "--blind-question",
+        action="store_true",
+        help="remove the question from BOTH paths it takes (Gemma's prompt and the "
+        "NLLB branch). The text-side twin of the gray canvas: on the zero-shot VLM "
+        "this raised CVQA accuracy and dV (DESIGN 2026-09-26), so a trained system "
+        "has to be measured the same way before any CVQA claim rests on the question.",
+    )
+    p.add_argument(
         "--prompt-mode", choices=["question", "instruction"], default="question"
     )
     p.add_argument(
@@ -124,6 +132,16 @@ def validate_args(a):
             raise ValueError(
                 "S1 requires vis-layers 9,18,-1, all visual tokens and chat template"
             )
+
+
+def asked(a, row, field):
+    """The question as the model actually received it.
+
+    Under --blind-question it is empty on every path, and the written row records
+    the empty question too: a file that claims a question it never showed the
+    model would silently pass a parity check against a real cell.
+    """
+    return "" if a.blind_question else row[field]
 
 
 def condition(a):
@@ -444,7 +462,7 @@ class Runtime:
             inputs = {}
             if not a.no_text_branch:
                 ids, mask = mt_input_features(
-                    [row["query"]],
+                    [asked(a, row, "query")],
                     [row_nllb_tag(row)],
                     self.tokenizer_mt,
                     a.max_mt_seq_len,
@@ -483,7 +501,8 @@ class Runtime:
                     format_cvqa_chat if a.benchmark == "cvqa" else format_chat_prompt
                 )
                 prompt = formatter(
-                    self.tokenizer_llm, row[a.question_field], not a.no_chat_template
+                    self.tokenizer_llm, asked(a, row, a.question_field),
+                    not a.no_chat_template,
                 )
             ids, mask = llm_input_features(
                 [prompt],
@@ -496,7 +515,7 @@ class Runtime:
             inputs.update(input_ids_prompt=ids, mask_prompt=mask)
             result = {
                 **ident,
-                "query": row["query"],
+                "query": asked(a, row, "query"),
                 "condition": cell_condition,
                 "assigned_image_id": assigned
                 if not a.no_image and not a.blind

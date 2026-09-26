@@ -34,6 +34,11 @@ it again without saying so explicitly and recording it in both files.
   are still to be implemented). A null is then a result, not an embarrassment.
 - **Name how the instrument could fail, at both ends.** A metric can saturate
   or bottom out; say what each would look like.
+- **Two blind arms, not one.** The gray canvas bounds what the image
+  contributes; `--blind-question` bounds what the question contributes. On
+  zero-shot Qwen, removing CVQA's question *raised* accuracy and ΔV in all ten
+  languages (DESIGN 2026-09-26), so no CVQA claim about question understanding
+  stands without the question-blind arm beside it.
 - **Every VQA eval feeding a primary contrast runs with the correct image,
   three seeded shuffled images on every panel (the unit is the image, and
   xGQA has only 398) and a grey 384×384 canvas**; secondary controls may be correct + grey, labelled
