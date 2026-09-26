@@ -116,6 +116,12 @@ data at `DT=/scratch/santimn/datatransfer`.
   a re-run only fills gaps.
 - SLURM **freezes the batch script at submit time** — a queued job will not
   pick up later edits.
+- After a job finishes, commit its harvest with
+  `bash Approach2/job-scripts/harvest.sh` (one line; it stages only
+  `Approach2/results` and `Approach2/audits`, refuses when anything else is
+  uncommitted, names the job ids from the summaries, and pushes). Launchers no
+  longer commit by themselves, and S1 refuses to prepare a submission from a
+  dirty tree, so this is the step between a finished job and the next one.
 - Harvest **both** `eval_*.summary.json` **and** `eval_*.jsonl`. Without the
   per-item files no paired test can be run; five launchers once shipped with
   only the former.

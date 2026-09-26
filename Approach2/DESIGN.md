@@ -3737,3 +3737,14 @@ Three changes, so this class of failure cannot repeat quietly:
 
 The two C1 seed replicates from the same evening are unaffected: 21652015 and
 21652017 trained for 3 h 28 and 3 h 27 and wrote their completion markers.
+
+**Harvest is one line now — 2026-09-26.** Removing the launchers' auto-commit
+left a manual step after every job, and a dirty tree blocks the next S1
+preparation, which cost two failed submissions on 09-23.
+`job-scripts/harvest.sh` commits and pushes `Approach2/results` and
+`Approach2/audits`, and only those: it refuses when anything else is
+uncommitted, so an unfinished code change can never be swept into the commit a
+submission then freezes. The message is built from the `slurm_job_id` each
+summary carries, so the record names the runs rather than a date. Tested on a
+scratch repository in four cases: results only, nothing new, a code file also
+dirty, and an explicit message.
