@@ -3936,3 +3936,53 @@ fixed small dose and re-registered before it runs; WorldCuisines stays as a
 fallback and as an evaluation set Maryam already wired. Nothing about the
 question-blind arms changes, and they remain the part of this work nobody has
 measured.
+
+### Intervention CG50, re-registered on CulturalGround before the data exists — 2026-09-26
+
+Supersedes the WC50 registration of 2026-09-23, which stays in the record. Same
+experiment, better data: WorldCuisines was food-only and its registration named
+that as an unresolvable confound; CulturalGround is broad-domain over 42
+countries, ships per-country image archives, and is Apache-2.0.
+
+**Arm CG50.** The C1 recipe with one thing changed: half the NLLB-translated GQA
+rows replaced by CulturalGround refined open-ended rows **in Bengali**, the donor
+stage 3 already uses, with the total row count held fixed.
+`build_culturalground.py` (+11 tests) selects them, extracts only the images it
+needs with `extractfile()` — never `extractall()`, and a test pins that a
+`../../` member does not escape — and emits the stage-3 schema with a `cg_`
+prefix that cannot collide with GQA's numeric ids.
+
+**Control.** C1 itself, seeds 13/14/15, already trained; CG50 and C1 share
+stage 1, stage 2, the trainer, the environment and the item count.
+
+**What this may claim, given CulturalPangea exists.** That culturally grounded
+supervision helps culture-specific VQA is Nyandwi et al.'s result at 22M pairs
+with full instruction tuning, and this arm cannot and does not restate it. The
+question here is the one their scale leaves open: **whether a small fixed dose,
+replacing rather than adding, moves culture-specific transfer when the only
+trainable part is a 58M connector between three frozen models.** That is an
+efficiency and mechanism claim about a frozen architecture.
+
+**Prediction and refutation.** Pass: LB5(Δ_ground(CG50) − Δ_ground(C1)) > 0 on
+CVQA jv/mn/ga pooled, **and** the source task retained, UB95(U(C1) − U(CG50)) on
+xGQA-bn < δ = 1.0. Refuted if the grounding interval covers zero. Unlike WC50,
+a refutation is now interpretable: with broad-domain supervision there is no
+"the domain was too narrow" escape, so a null says the supervision's distribution
+is not what confines the gain in this architecture.
+
+**How the instrument could fail, at both ends.** It can bottom out, because CVQA
+is substantially answerable without the image and, as of 2026-09-26, better
+answered without the question; the gray and question-blind arms are what show
+this. It can also saturate downwards if halving the GQA rows degrades the
+short-answer format enough to hide a gain, which xGQA-bn utility detects.
+
+**Leakage to check before the run, not after.** CulturalGround's images come from
+Wikimedia Commons and CVQA's are contributed by its annotators, so file-level
+overlap is unlikely but must be verified by hash over the built images against
+the CVQA panel. Entity-level overlap — the same dish or landmark, a different
+photograph — is not leakage but is a distribution match, and the paper states it.
+
+**Reading.** Exploratory, one seed, no gate. Same 30-cell grid as a C1 replicate
+and the same paired image-cluster bootstrap. CG50 is not an S1 arm; the frozen
+Block C contract is untouched and it trains through `train_wc50.sh` with
+`DATA_PATH` pointed at the mixed file.
