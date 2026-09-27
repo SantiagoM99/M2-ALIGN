@@ -60,6 +60,21 @@ over xGQA's −38; that the visual pathway is language-blind; that the
 NLLB bridge is necessary (Block A tests it); that donor quality is
 predictable "before building anything".
 
+### Paper framing, sharpened 2026-09-26
+
+The paper proposes an architecture, and after the literature check of 2026-09-26
+the architecture is the **merged** one: two frozen visual experts, Qwen3-VL's
+native tower and SigLIP2's dense layers, plus the frozen NLLB text bridge, each
+learned mapping trainable and nothing else. The motivation is measured — each
+tower wins ΔV on a different image distribution (Qwen +29.80 xGQA against our
++17.39; ours +10.23 CVQA against its +7.00) — and no prior work combines them.
+Approach 1 as it stands is not the proposal: it is MERLIN's design, and its xGQA
+result stands as a result rather than a method. The three measured findings
+(supervision buys the source-shaped benchmark; the two benchmarks disagree; both
+blind arms) become the motivation and the ablation. Recorded in DESIGN.md
+2026-09-26 with its cost, its blocker and the fallback if the merged system shows
+a null.
+
 ### Paper framing, 2026-09-20
 
 The research question above is unchanged and its answer stands. What changed is

@@ -3986,3 +3986,49 @@ photograph — is not leakage but is a distribution match, and the paper states 
 and the same paired image-cluster bootstrap. CG50 is not an S1 arm; the frozen
 Block C contract is untouched and it trains through `train_wc50.sh` with
 `DATA_PATH` pointed at the mixed file.
+
+### The proposal is the merged architecture, and the findings become its ablation — 2026-09-26
+
+Santiago's decision, reaffirmed after the literature check. The paper proposes an
+architecture. What changes from the 09-20 framing is **which** architecture: not
+Approach 1 as it stands, because a frozen multilingual encoder with a light
+connector into a frozen LLM is MERLIN (arXiv 2509.08105), and with Pangea and
+CulturalPangea also on the table that claim does not survive review. Approach 1's
++6.28 on xGQA stays as a strong *result* whose method is not new.
+
+**The proposal: two visual experts, complementary by image distribution, in a
+fully frozen stack.** Frozen NLLB text bridge and frozen SigLIP2-so400m dense
+layers 9/18/−1, each through its own trainable mapping, into a frozen Qwen3-VL
+whose native tower and DeepStack are kept. The motivation is measured, not
+argued:
+
+| stream | ΔV on xGQA | ΔV on CVQA |
+|---|---|---|
+| Qwen3-VL native tower | **+29.80** | +7.00 |
+| SigLIP2 dense 9/18/−1 (ours) | +17.39 | **+10.23** |
+
+Each tower wins on a different image distribution — Qwen's on GQA's Western
+imagery, ours on locally sourced culture-specific imagery — and the literature
+check found no work combining them. The claim is therefore about **complementary
+frozen visual experts for culturally grounded multilingual VQA**, and its
+ablation is obvious: remove each stream and watch which benchmark falls.
+
+**The three measured findings move from thesis to supporting role.** Supervision
+buying the source-shaped benchmark with a null on culture-specific targets is the
+*why* an architectural change is needed rather than more data of the same shape.
+The two benchmarks disagreeing, each tower winning one, is the *why this*
+architecture. The two blind arms, image and question, are *how* each stream is
+shown to carry signal rather than a prior.
+
+**Cost and the blocker.** Two new trainings, not four: `MLP_txt` warm-starts from
+Maryam's Stage 2 checkpoint, so only the SigLIP2 vision mapping into Qwen's
+embedding space has to be aligned from scratch, followed by the joint stage 3.
+About 20–25 GPU-h plus evaluation, which fits the remaining 16 days **if her
+checkpoints arrive this week**. They are already the first item of the message to
+her.
+
+**The risk, stated before the run.** If the merged system does not beat both
+baselines on at least CVQA, the paper holds an architecture proposal with a null.
+The fallback is then the controlled-comparison paper — the three findings as the
+thesis rather than the ablation, plus the measurement protocol — which is weaker
+but publishable, and COLING accepts evaluation and analysis work explicitly.
