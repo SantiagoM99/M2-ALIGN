@@ -4032,3 +4032,40 @@ baselines on at least CVQA, the paper holds an architecture proposal with a null
 The fallback is then the controlled-comparison paper — the three findings as the
 thesis rather than the ablation, plus the measurement protocol — which is weaker
 but publishable, and COLING accepts evaluation and analysis work explicitly.
+
+### The merged architecture's trainable half, both injection modes — 2026-09-26
+
+`Approach2/merged/model.py`, with `tests/test_merged_model.py` (18 CPU tests, no
+downloads) and `merged/verify_qwen_api.py`. Both modes Santiago asked for are
+implemented, because where the second expert enters is then a measured variable
+rather than a guess, and ANCHOR predicts the answer: if text is mapped into an
+English semantic space before visual representations mature, early injection
+should beat a prefix.
+
+- **prefix**: the three SigLIP2 layers are concatenated, projected once to the
+  decoder's hidden size, average-pooled from 27×27 to 12×12 and emitted as 144
+  soft tokens plus a boundary. Qwen's forward is untouched, and removing the
+  stream leaves **exactly** Approach 1, so that ablation is a single variable by
+  construction. Pooling is parameter-free deliberately: a learned pooler would be
+  a second thing to train and a second explanation for any gain.
+- **early**: each SigLIP2 layer gets its own projection and is added into one of
+  decoder layers 0/1/2 at the positions of Qwen's native visual tokens, after
+  bilinear resampling from SigLIP2's fixed 27×27 onto Qwen's resolution-dependent
+  merged grid. Shallow-to-early is the correspondence DenseConnector and DeepStack
+  already use, so the pairing has a precedent rather than being arbitrary. The
+  hooks live in a context manager: a pre-hook that outlived its forward pass would
+  apply stale features to the next batch and still train to a plausible loss.
+- **No gate on either path.** A trained zero-initialised prefix gate was measured
+  and rejected here (D7, xGQA 19.41), so the streams are combined by plain
+  addition and whether the LLM ignores a redundant stream is answered by the
+  ablation instead of hidden behind a learned scalar.
+
+**What is tested and what is not.** The tests cover pooling, resampling, that an
+injection touches only the masked positions and adds rather than replaces, that a
+mask disagreeing with the grid aborts, that hooks are removed, that only the
+expert carries gradients, and every refusal. They run on CPU against a stub
+decoder, so they validate the mechanics and **not** the two Qwen-specific
+assumptions, which `verify_qwen_api.py` checks against the installed transformers
+by counting image-pad ids against the merged grid the config predicts. Nothing
+here has run on a GPU yet; the assistant has no torch locally, so the suite is
+run on the cluster before any training.
