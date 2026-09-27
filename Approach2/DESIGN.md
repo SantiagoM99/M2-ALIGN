@@ -3876,3 +3876,63 @@ stage-3 supervision buys the source-shaped benchmark and produces a null on
 culture-specific targets, replicated on two different frozen backbones with a
 paired interval; and the question-blind measurement on a *trained* system, which
 is still running.
+
+### Three papers Santiago brought, and what each does to the plan — 2026-09-26
+
+- **Pangea** (arXiv 2410.16153): a fully open multilingual MLLM over 39
+  languages, trained on a 6M instruction set mixing English, machine-translated
+  and culturally relevant multimodal tasks, evaluated on its own 14-dataset
+  PangeaBench across 47 languages. This is the well-resourced route, and it is
+  the baseline that shows what scale buys. Cite as the contrast to a frozen stack
+  with 58M trainable parameters and no target-language multimodal supervision;
+  check whether PangeaBench already contains xGQA and CVQA, because if it does,
+  aligning to it costs nothing and buys comparability.
+
+- **CulturalGround / CulturalPangea** (arXiv 2508.07414, EMNLP 2025), and this
+  one changes an experiment. They build **22M open-ended plus 8M multiple-choice
+  culturally grounded VQA pairs over 42 countries and 39 languages**, from
+  Wikidata entities with Wikimedia Commons images, and train CulturalPangea on
+  it. Two consequences.
+
+  **It supersedes WorldCuisines as the intervention's data.** The WC50
+  registration of 2026-09-23 named its own weakness: WorldCuisines is food-only,
+  so a null could mean either that the supervision's distribution is not the
+  cause or that one domain is too narrow, and the two could not be separated.
+  CulturalGround is broad-domain across 42 countries, which removes that
+  ambiguity; it ships **per-country image archives**, so the Wikimedia
+  thumbnail-width and rate-limit problems disappear along with the scraping; and
+  it is public at `neulab/CulturalGround`. The intervention is rebuilt on it.
+
+  **It also narrows what we may claim.** "Culturally grounded supervision helps
+  culture-specific VQA" is their result, at 22M pairs with full instruction
+  tuning. Ours cannot be that. What is still unasked is the dose-and-mechanism
+  question our compute can actually answer: **does a small, fixed budget of
+  culturally grounded supervision — on the order of 15k pairs, replacing an equal
+  number of translated-GQA rows — move culture-specific transfer in a frozen
+  stack whose only trainable part is a 58M connector?** That is an efficiency
+  claim about a frozen architecture, not a scale claim, and it is the honest
+  version of the experiment.
+
+- **ANCHOR** (arXiv 2608.15085, August 2026, after the assistant's knowledge
+  cutoff): argues that non-English visual reasoning degrades because of a
+  **temporal misalignment** inside the model — text is mapped into an English
+  semantic space in early layers while visual representations have not yet
+  matured, leaving vision functionally invisible exactly when the translation
+  happens — and proposes Proactive Visual Anchoring, with mechanistic
+  interventions, evaluated on XMMMU, MaXM and **CVQA**.
+
+  This is the closest thing to a mechanism for our largest result. If a text
+  representation is injected early and vision is not yet available to constrain
+  it, then removing the question should let vision dominate, which is what the
+  question-blind arm measured (+1.50 accuracy, ΔV +4.01 in all ten languages).
+  Our measurement corroborates an independently proposed mechanism, which is
+  worth more than either alone — and it raises the bar: the paper must cite
+  ANCHOR and say plainly which part is measurement and which part is mechanism
+  borrowed from them. It also shares CVQA with us, so it is a direct comparison
+  point.
+
+**Net effect on the plan.** The intervention is rebuilt on CulturalGround with a
+fixed small dose and re-registered before it runs; WorldCuisines stays as a
+fallback and as an evaluation set Maryam already wired. Nothing about the
+question-blind arms changes, and they remain the part of this work nobody has
+measured.
