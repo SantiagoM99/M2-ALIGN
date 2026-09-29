@@ -1,0 +1,136 @@
+{
+  "across_seeds": {
+    "U": {
+      "estimates": [
+        2.5668449197860963,
+        2.1390374331550803,
+        4.278074866310161
+      ],
+      "mean": 2.9946524064171123,
+      "range": [
+        2.1390374331550803,
+        4.278074866310161
+      ],
+      "sd": 1.131872218637258,
+      "seeds": [
+        "13",
+        "14",
+        "15"
+      ]
+    },
+    "grounding": {
+      "estimates": [
+        1.3190730837789657,
+        1.1408199643493766,
+        2.1746880570409983
+      ],
+      "mean": 1.5448603683897801,
+      "range": [
+        1.1408199643493766,
+        2.1746880570409983
+      ],
+      "sd": 0.5526804969332613,
+      "seeds": [
+        "13",
+        "14",
+        "15"
+      ]
+    }
+  },
+  "boot": 4000,
+  "difference": "C4 (untrained composition) minus C1 (stage-3 trained), percentage points",
+  "inference": "each per-seed interval resamples image clusters and excludes training variance; the spread across seeds is the only training-variance evidence here, and with 3 fixed seeds it is a range, not a population SD",
+  "per_seed": {
+    "13": {
+      "U": {
+        "ci95": [
+          -0.10660980810234541,
+          5.274043433298862
+        ],
+        "estimate": 2.5668449197860963,
+        "image_clusters": 401,
+        "items": 935,
+        "lb5": 0.32017075773745995,
+        "macro_estimate": 2.6034888764950117,
+        "ub95": 4.819277108433735
+      },
+      "grounding": {
+        "ci95": [
+          -1.2558306422676722,
+          3.8817663817663797
+        ],
+        "estimate": 1.3190730837789657,
+        "image_clusters": 401,
+        "items": 935,
+        "lb5": -0.7936507936507942,
+        "macro_estimate": 1.2755630342542403,
+        "ub95": 3.3977110157367676
+      }
+    },
+    "14": {
+      "U": {
+        "ci95": [
+          -0.5370569280343717,
+          4.904051172707889
+        ],
+        "estimate": 2.1390374331550803,
+        "image_clusters": 401,
+        "items": 935,
+        "lb5": -0.2098635886673662,
+        "macro_estimate": 2.135394901243572,
+        "ub95": 4.488517745302714
+      },
+      "grounding": {
+        "ci95": [
+          -1.4644351464435144,
+          3.803372802296376
+        ],
+        "estimate": 1.1408199643493766,
+        "image_clusters": 401,
+        "items": 935,
+        "lb5": -1.005747126436781,
+        "macro_estimate": 1.0667407651047738,
+        "ub95": 3.3440056919245817
+      }
+    },
+    "15": {
+      "U": {
+        "ci95": [
+          1.4598540145985401,
+          7.089151450053706
+        ],
+        "estimate": 4.278074866310161,
+        "image_clusters": 401,
+        "items": 935,
+        "lb5": 1.9230769230769231,
+        "macro_estimate": 4.250272373994256,
+        "ub95": 6.593406593406593
+      },
+      "grounding": {
+        "ci95": [
+          -0.43290043290043323,
+          4.777655273796399
+        ],
+        "estimate": 2.1746880570409983,
+        "image_clusters": 401,
+        "items": 935,
+        "lb5": -0.0361925443358669,
+        "macro_estimate": 2.1396122623116494,
+        "ub95": 4.382332643202205
+      }
+    }
+  },
+  "seed": 0,
+  "spec_sha": "3b4faff4d673fad94cd3115b3f14212eeca9c12e",
+  "status": "post-hoc and exploratory, as declared in DESIGN 2026-09-23; no gate input",
+  "submissions": {
+    "14": "aa67b66139d5ca1e289f973d05364d5fa7fc91c326d659510c14337f66289952",
+    "15": "8fb59fe17d3a6793de05cc71d54184c3415991adfb96cdf47e6c4bad05413206",
+    "reference": "aa4868967062a8aafb4d538f6512e7941a4b88c5cbde91c57d4cc04e1404a412"
+  },
+  "targets": [
+    "jv",
+    "mn",
+    "ga"
+  ]
+}
