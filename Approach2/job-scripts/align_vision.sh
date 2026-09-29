@@ -26,7 +26,7 @@
 #      PIXELS, PREFIX_SIDE, LLAVA_DIR, OUTPUT_DIR
 set -uo pipefail
 
-ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
+ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 DT="${DT:?set DT}"
 MODE="${MODE:-prefix}"
 LLAVA_DIR="${LLAVA_DIR:-$DT/Stage2/data/llava}"

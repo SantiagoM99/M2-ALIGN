@@ -27,7 +27,7 @@
 # Env: DT (required), LANGS, CKPT, TAG
 set -uo pipefail
 
-ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
+ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 A2="$ROOT/Approach2"
 DT="${DT:?set DT}"
 LANGS="${LANGS:-jv mn ga si}"
