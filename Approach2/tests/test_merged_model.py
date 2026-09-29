@@ -18,7 +18,7 @@ from torch import nn
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "merged"))
 from model import (  # noqa: E402
-    EARLY_TARGET_LAYERS, DenseVisionExpert, early_injection, freeze, native_grid,
+    EARLY_TARGET_LAYERS, DenseVisionExpert, freeze, inject, native_grid,
     native_visual_positions, pool_grid, resample_grid, trainable_parameters,
 )
 
@@ -96,7 +96,7 @@ class MergedModelTests(unittest.TestCase):
         hidden = torch.zeros(1, 6, LLM_DIM)
         mask = torch.tensor([[False, True, True, False, False, False]])
         addition = torch.ones(1, 2, LLM_DIM)
-        with early_injection(layers, {0: addition}, mask):
+        with inject(layers, {0: addition}, mask):
             layers[0](hidden)
         seen = layers[0].seen
         self.assertTrue(torch.equal(seen[0, 1:3], torch.ones(2, LLM_DIM)))
@@ -106,7 +106,7 @@ class MergedModelTests(unittest.TestCase):
         layers = nn.ModuleList([StubLayer()])
         hidden = torch.full((1, 3, LLM_DIM), 2.0)
         mask = torch.tensor([[False, True, False]])
-        with early_injection(layers, {0: torch.full((1, 1, LLM_DIM), 5.0)}, mask):
+        with inject(layers, {0: torch.full((1, 1, LLM_DIM), 5.0)}, mask):
             layers[0](hidden)
         self.assertTrue(torch.equal(layers[0].seen[0, 1], torch.full((LLM_DIM,), 7.0)))
 
@@ -114,13 +114,27 @@ class MergedModelTests(unittest.TestCase):
         layers = nn.ModuleList([StubLayer()])
         mask = torch.tensor([[True, True, True]])
         with self.assertRaisesRegex(ValueError, "the grid and the mask disagree"):
-            with early_injection(layers, {0: torch.ones(1, 2, LLM_DIM)}, mask):
+            with inject(layers, {0: torch.ones(1, 2, LLM_DIM)}, mask):
                 layers[0](torch.zeros(1, 3, LLM_DIM))
+
+    def test_replace_mode_overwrites_instead_of_adding(self):
+        layers = nn.ModuleList([StubLayer()])
+        hidden = torch.full((1, 3, LLM_DIM), 2.0)
+        mask = torch.tensor([[True, False, False]])
+        with inject(layers, {0: torch.full((1, 1, LLM_DIM), 5.0)}, mask, how="replace"):
+            layers[0](hidden)
+        self.assertTrue(torch.equal(layers[0].seen[0, 0], torch.full((LLM_DIM,), 5.0)))
+        self.assertTrue(torch.equal(layers[0].seen[0, 1], torch.full((LLM_DIM,), 2.0)))
+
+    def test_an_unknown_injection_mode_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "how must be"):
+            with inject(nn.ModuleList([StubLayer()]), {}, torch.tensor([[True]]), how="scale"):
+                pass
 
     def test_hooks_do_not_outlive_the_context(self):
         layers = nn.ModuleList([StubLayer()])
         mask = torch.tensor([[False, True, False]])
-        with early_injection(layers, {0: torch.ones(1, 1, LLM_DIM)}, mask):
+        with inject(layers, {0: torch.ones(1, 1, LLM_DIM)}, mask):
             pass
         self.assertEqual(len(layers[0]._forward_pre_hooks), 0)
         hidden = torch.zeros(1, 3, LLM_DIM)

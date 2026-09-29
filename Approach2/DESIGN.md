@@ -4069,3 +4069,49 @@ assumptions, which `verify_qwen_api.py` checks against the installed transformer
 by counting image-pad ids against the merged grid the config predicts. Nothing
 here has run on a GPU yet; the assistant has no torch locally, so the suite is
 run on the cluster before any training.
+
+### Qwen's layout verified, and three design decisions the verification forced — 2026-09-29
+
+`verify_qwen_api.py` passed in the m2-align venv, after `AutoProcessor` turned out
+to need torchvision and therefore sympy — a dependency the rest of this pipeline
+never exercised, because our evaluators use the tokenizer and PIL directly. For a
+448×448 image: `image_grid_thw = (1, 28, 28)`, `spatial_merge_size = 2`, merged
+grid **14×14 = 196 tokens**, and the image-pad id appears exactly 196 times.
+Decoder hidden size **4096**, 36 layers. Both assumptions hold, so early injection
+lands where it is meant to.
+
+Three decisions follow, all recorded before any training.
+
+- **A prefix cannot be prepended to `inputs_embeds`.** Qwen builds its visual
+  embeddings inside its own forward from `pixel_values` and scatters them at the
+  image-pad positions, so handing it ready-made embeddings turns the native expert
+  off — and the native expert is the other half of the architecture. The sequence
+  therefore reserves placeholder tokens and their layer-0 embeddings are
+  **replaced**. One mechanism now serves both modes: prefix replaces at reserved
+  positions in layer 0, early adds at the native visual positions in layers 0/1/2.
+  Positions and rope stay Qwen's own.
+- **The processor runs at a fixed resolution.** Early injection resamples onto a
+  grid that depends on the image's size, so a batch of differently sized images
+  would need a different resample per example. Pinning `min_pixels == max_pixels`
+  makes the grid constant and makes every comparison resolution-matched by
+  construction, which is the fairness point Maryam raised on 09-23.
+- **During vision alignment the native pathway gets a gray canvas.** If Qwen sees
+  the real image through its own tower it can caption from that alone and the new
+  mapping gets no gradient. Removing the image entirely is not an option for early
+  mode, because the injection needs the native visual positions to exist. A gray
+  canvas gives positions without content, so the new stream has to supply it — and
+  doing it in both modes leaves exactly one difference between the two runs.
+
+Sizes worth reporting: the prefix is 144 pooled tokens plus a boundary against
+Qwen's own 196 at this resolution, so it roughly doubles the visual budget. That
+is the cost an efficiency claim has to state. Pooling 27×27 → 12×12 is a new
+decision, not inherited: our Gemma stack passes all 729 patches, which Qwen's
+context cannot afford next to its own block. If the result is null, the obvious
+sensitivity check is a larger prefix.
+
+Code: `merged/bridge.py` composes the frozen pair with the expert and isolates the
+third Qwen assumption in `resolve_decoder_layers`, which fails naming the model's
+children rather than injecting into the wrong module. Tests:
+`tests/test_merged_bridge.py`, on stub models, check that each mode writes only
+where it should, that a reservation mismatch aborts, that only the expert is
+trainable and only the expert is saved.

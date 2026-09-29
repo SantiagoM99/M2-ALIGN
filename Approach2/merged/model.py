@@ -169,13 +169,29 @@ class DenseVisionExpert(nn.Module):
 
 
 @contextlib.contextmanager
-def early_injection(decoder_layers, additions: dict[int, torch.Tensor], mask: torch.Tensor):
-    """Add `additions[i]` into decoder layer i's input at the masked positions.
+def inject(decoder_layers, features: dict[int, torch.Tensor], mask: torch.Tensor,
+           how: str = "add"):
+    """Write `features[i]` into decoder layer i's input at the masked positions.
+
+    Both injection modes go through here, which is why `how` exists.
+
+    `add` is early injection: the features are added to Qwen's own visual tokens,
+    so the native expert keeps its content and ours is a correction on top.
+
+    `replace` is the prefix mode. The prefix cannot be prepended to
+    `inputs_embeds`, because Qwen builds its visual embeddings inside its own
+    forward from `pixel_values` and scatters them at the image-pad positions —
+    handing it ready-made embeddings turns the native expert off, and the native
+    expert is the other half of the architecture. So the sequence reserves
+    placeholder tokens, Qwen embeds everything including its scatter, and their
+    embeddings are replaced here. Positions and rope stay Qwen's own.
 
     A context manager because a hook that outlives the forward pass would apply
     stale features to the next batch, which is the kind of bug that produces a
     plausible loss curve and a meaningless model.
     """
+    if how not in ("add", "replace"):
+        raise ValueError(f"how must be 'add' or 'replace', not {how!r}")
     handles = []
 
     def make_hook(addition):
@@ -186,10 +202,13 @@ def early_injection(decoder_layers, additions: dict[int, torch.Tensor], mask: to
                 positions = mask[b].nonzero(as_tuple=True)[0]
                 if positions.numel() != addition.shape[1]:
                     raise ValueError(
-                        f"{positions.numel()} native visual tokens but {addition.shape[1]} "
-                        "resampled features: the grid and the mask disagree"
+                        f"{positions.numel()} masked positions but {addition.shape[1]} "
+                        "features: the grid and the mask disagree"
                     )
-                patched[b, positions] = hidden[b, positions] + addition[b].to(hidden.dtype)
+                incoming = addition[b].to(hidden.dtype)
+                patched[b, positions] = (
+                    hidden[b, positions] + incoming if how == "add" else incoming
+                )
             if "hidden_states" in kwargs:
                 kwargs["hidden_states"] = patched
                 return args, kwargs
@@ -198,7 +217,7 @@ def early_injection(decoder_layers, additions: dict[int, torch.Tensor], mask: to
         return hook
 
     try:
-        for index, addition in additions.items():
+        for index, addition in features.items():
             handles.append(
                 decoder_layers[index].register_forward_pre_hook(make_hook(addition), with_kwargs=True)
             )
