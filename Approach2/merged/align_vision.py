@@ -182,9 +182,11 @@ def load_models(a):
         min_pixels=a.pixels, max_pixels=a.pixels,
     )
     config = AutoConfig.from_pretrained(a.llm_path, local_files_only=a.local_files_only)
+    # No device_map: it pulls in accelerate, which this venv does not have, and
+    # an 8B model in bfloat16 fits one H100 the way train_stage3_vqa.py already
+    # loads Gemma — construct on CPU, then move the whole thing once.
     llm = Qwen3VLForConditionalGeneration.from_pretrained(
-        a.llm_path, torch_dtype=torch.bfloat16, device_map="auto",
-        low_cpu_mem_usage=True, local_files_only=a.local_files_only,
+        a.llm_path, torch_dtype=torch.bfloat16, local_files_only=a.local_files_only,
     )
     vision = SiglipVisionModel.from_pretrained(
         a.vis_path, torch_dtype=torch.bfloat16, local_files_only=a.local_files_only,
@@ -276,10 +278,8 @@ def main() -> None:
     siglip_processor = AutoImageProcessor.from_pretrained(
         a.vis_path, local_files_only=a.local_files_only
     )
-    device = next(model.expert.parameters()).device
-    if torch.cuda.is_available():
-        model.expert.to("cuda")
-        device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
 
     n_placeholders = a.prefix_side * a.prefix_side + 1 if a.mode == "prefix" else 0
     collate = make_collate(processor, a.gray_size, n_placeholders, a.placeholder,
