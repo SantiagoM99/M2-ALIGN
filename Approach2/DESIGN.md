@@ -4146,3 +4146,52 @@ a mode-specific one in a single log, so running both is also the cheaper
 diagnostic. What the first hour has to show is only that the loss falls; if the
 mapping cannot learn to speak Qwen's embedding space, neither injection mode can,
 and that is the merged architecture's one schedule risk.
+
+### Refuted before it ran: the merged architecture is redundant by construction — 2026-09-29
+
+A question passed to Santiago — doesn't Qwen-VL already have a SigLIP? — turned
+out to be right, and further-reaching than asked. Read from our own cached
+config, which is the primary evidence and cost one command:
+
+```
+Qwen3VLVisionConfig: hidden_size 1152 · depth 27 · intermediate_size 4304 ·
+num_heads 16 · patch_size 16 · spatial_merge_size 2 · out_hidden_size 4096
+deepstack_visual_indexes [8, 16, 24]
+```
+
+That geometry is **SigLIP2-so400m exactly**: same width, depth, MLP size and head
+count as the encoder this project was going to add as a "second expert". And
+`deepstack_visual_indexes [8, 16, 24]` means Qwen3-VL **already** takes three
+intermediate ViT layers and injects them into its first LLM layers. The `early`
+mode specified on 09-26 chose layers 9/18/−1 for the same destination: it is
+DeepStack, reimplemented with a worse-aligned copy of the same encoder.
+
+**The proposal of 09-26 is withdrawn as specified.** The original text stays in
+the record. Its motivation was this table, read as evidence of complementary
+towers:
+
+| | ΔV xGQA | ΔV CVQA |
+|---|---|---|
+| Qwen native | +29.80 | +7.00 |
+| ours | +17.39 | +10.23 |
+
+Those arms do not differ only in the tower — they differ in the LLM, the
+alignment data, the resolution and the answer format — so the per-benchmark
+divergence was attributed to the encoder without isolating it. That was a
+reasoning error, not a measurement error: the numbers stand, the inference from
+them does not. The two alignment jobs (22038737, 22038738) were cancelled before
+spending GPU on a duplicate of DeepStack. My prefix design would also have pooled
+729 patches down to 144, discarding the one thing that does differ.
+
+**What actually differs, and it is one thing.** At ~448² Qwen yields 196 merged
+visual tokens while our path yields 729 unmerged: about **four times the visual
+token density**, with a finer patch (14 against 16) and no spatial merge. That is
+consistent with our advantage appearing on CVQA — culture-specific objects, fine
+detail — and not on xGQA.
+
+**The replacement, which is Santiago's proposal and needs no training.** Test
+density directly by raising Qwen's `max_pixels`, and test it **across backbones**,
+because one model's improvement is tuning while a property that holds across
+frozen VLMs is a finding. Cross-backbone also decides the redundancy question
+properly: if the effect is density, it should appear wherever the tower is
+resolution-limited and be absent where it is not.

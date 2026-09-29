@@ -60,6 +60,18 @@ over xGQA's −38; that the visual pathway is language-blind; that the
 NLLB bridge is necessary (Block A tests it); that donor quality is
 predictable "before building anything".
 
+### The merged architecture withdrawn, 2026-09-29
+
+The 09-26 proposal — a second frozen visual expert alongside Qwen3-VL's native
+tower — is withdrawn before any training, on primary evidence: Qwen3-VL's vision
+encoder *is* SigLIP2-so400m (1152 wide, 27 layers, 4304 MLP, 16 heads) and its
+`deepstack_visual_indexes [8, 16, 24]` already inject three intermediate ViT
+layers into the first LLM layers. The measured ΔV difference between the two arms
+was attributed to the tower without isolating it from the LLM, the alignment data
+and the resolution. What survives as the difference is visual token density —
+196 merged tokens against 729 unmerged at the same image size — and it is testable
+by inference alone, across backbones. DESIGN.md 2026-09-29.
+
 ### Paper framing, sharpened 2026-09-26
 
 The paper proposes an architecture, and after the literature check of 2026-09-26
