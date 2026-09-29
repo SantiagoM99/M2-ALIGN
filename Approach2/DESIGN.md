@@ -4115,3 +4115,25 @@ children rather than injecting into the wrong module. Tests:
 `tests/test_merged_bridge.py`, on stub models, check that each mode writes only
 where it should, that a reservation mismatch aborts, that only the expert is
 trainable and only the expert is saved.
+
+**The vision-alignment trainer — 2026-09-29.** `merged/align_vision.py` with
+`tests/test_merged_align.py`. It trains the SigLIP2 expert alone on
+LLaVA-Pretrain captions, reusing the `{"image_url", "target_caption"}` rows and
+the `sha1(url).jpg` cache `build_llava_pretrain.py` already produces, and saves
+only the expert. Three details that decide whether it trains the right thing:
+
+- **The caption is appended to the prompt's ids** rather than passed through the
+  chat template a second time, so the label mask is exactly the appended span and
+  no template token is ever scored.
+- **The expert is cast to the mapping's dtype at entry.** The frozen encoders run
+  in bfloat16 and the mapping trains in float32 — the same split
+  `Approach2/model.py` handles with an explicit `.float()`. Without it the first
+  matmul raises, which was a real bug in the first draft of this file.
+- **The placeholder is `<|vision_pad|>`, not the pad token.** Padding fills the
+  batch, so a pad-token placeholder would make every padded position look like a
+  reserved prefix position.
+
+Tested on CPU with a stub processor: the reservation count, that only the caption
+is scored, that a long caption truncates rather than disappears, that padding
+never becomes a scored token, that each example keeps one image grid, and that the
+split is reproducible. The loop needs a GPU and has not run.

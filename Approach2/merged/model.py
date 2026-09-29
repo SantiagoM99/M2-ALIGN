@@ -141,11 +141,21 @@ class DenseVisionExpert(nn.Module):
             self.project = nn.ModuleList(MLP(vis_dim, llm_dim) for _ in range(n_layers))
         self.boundary = nn.Parameter(torch.zeros(1, 1, llm_dim))
 
+    def _as_mapping_dtype(self, dense: list[torch.Tensor]) -> list[torch.Tensor]:
+        """Cast the encoder's features to the mapping's dtype.
+
+        The frozen encoders run in bfloat16 and the mapping is trained in float32,
+        the same split `Approach2/model.py` handles with an explicit `.float()`.
+        Without this the first matmul raises on a dtype mismatch.
+        """
+        target = next(self.parameters()).dtype
+        return [d.to(target) for d in dense]
+
     def forward_prefix(self, dense: list[torch.Tensor], side: int) -> torch.Tensor:
         """Soft tokens for the prefix mode: pooled patches plus one boundary."""
         if len(dense) != self.n_layers:
             raise ValueError(f"expected {self.n_layers} SigLIP2 layers, got {len(dense)}")
-        merged = self.project(torch.cat(dense, dim=-1))
+        merged = self.project(torch.cat(self._as_mapping_dtype(dense), dim=-1))
         pooled = pool_grid(merged, side, self.prefix_side)
         boundary = self.boundary.expand(pooled.shape[0], -1, -1)
         return torch.cat([pooled, boundary], dim=1)
@@ -162,6 +172,7 @@ class DenseVisionExpert(nn.Module):
         if len(dense) != self.n_layers:
             raise ValueError(f"expected {self.n_layers} SigLIP2 layers, got {len(dense)}")
         out = {}
+        dense = self._as_mapping_dtype(dense)
         for index, (features, target) in enumerate(zip(dense, EARLY_TARGET_LAYERS)):
             projected = self.project[index](features)
             out[target] = resample_grid(projected, side, height, width)
