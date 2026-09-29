@@ -4195,3 +4195,59 @@ because one model's improvement is tuning while a property that holds across
 frozen VLMs is a finding. Cross-backbone also decides the redundancy question
 properly: if the effect is density, it should appear wherever the tower is
 resolution-limited and be absent where it is not.
+
+### Hypothesis: a culture adapter on the VLM's own visual features — 2026-09-29
+
+Santiago's hypothesis, and the design rebuilt around it after the merged
+architecture was withdrawn. It survives the redundancy objection because it is not
+about a second encoder.
+
+**The claim.** The VLM's own visual features carry more than its merger delivers
+for culture-specific images, because that merger was trained jointly with the LLM
+on the VLM's own distribution — English-heavy and Western-heavy — and compresses
+2×2 patches into one token by design. A **second projection of the same features**,
+trained on culturally grounded data and nothing else, can deliver what the merger
+does not. Nothing in the VLM is unfrozen; the adapter is the only trainable part.
+
+**Why the features are Qwen's own, not our SigLIP2.** The config settles it: their
+tower has `patch_size 16` and `num_position_embeddings 2304` where
+SigLIP2-so400m-384 is patch 14, so their tower **descends from** SigLIP2 and was
+continuously trained with dynamic resolution and 2D-RoPE — the geometry is
+identical, the weights are not. Taking their tower's features makes the encoder
+identical by construction, lets the token count be matched exactly, leaves the
+projection and its training data as the only difference, and costs no second
+encoder. It also simplifies the code already written: the injection machinery and
+its 38 tests survive; the SigLIP2 load does not.
+
+**The arms, and what each isolates.**
+
+| # | arm | isolates | cost |
+|---|---|---|---|
+| 1 | Qwen as shipped (its merger) | baseline | measured |
+| 2 | Qwen at a raised `max_pixels` | **density alone**, no adapter | inference |
+| 3 | adapter trained on general captions, tokens matched to 196 | does *any* second projection help? | small training |
+| 4 | adapter trained on **CulturalGround**, tokens matched | **specialisation**, at matched density | small training |
+| 5 | adapter cultural, unmerged | specialisation **and** density | small training |
+
+**Predictions, fixed now.** *Specialisation*: arm 4 beats arm 1 on CVQA at matched
+tokens while arm 3 does not, and the effect shrinks on a backbone already trained
+on cultural data. *Density*: arm 2 captures most of the gain and arm 4 adds nothing
+over it. *Neither*: both null, and the remaining difference lives in the LLM or its
+alignment data, which inference cannot separate — stated as a limit, not explained
+away.
+
+**The cross-backbone test is what makes it a mechanism claim**, and it predicts a
+gradient rather than a replication: larger where the backbone's training mixture is
+more Western and English-heavy, smaller on CulturalPangea-7B, which trained on 22M
+culturally grounded pairs. Flat everywhere means density. A gradient means
+specialisation.
+
+**Arm 2 starts with a measurement, not a job.** Raising `max_pixels` only tests
+anything if there is headroom, and what the default already spends on CVQA has
+never been measured — CVQA images are user photographs, often far larger than the
+448 square the API check used, so the processor may already run them at high
+resolution. `merged/visual_tokens.py` reports the merged token count per image at
+the default and at each candidate cap, needs no GPU, and runs on a login node in
+minutes. Arm 2's value comes from that table. If the default already spends on the
+order of our 729, density is not the explanation and arms 3–5 carry the whole
+hypothesis.
