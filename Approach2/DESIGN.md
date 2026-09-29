@@ -4137,3 +4137,12 @@ Tested on CPU with a stub processor: the reservation count, that only the captio
 is scored, that a long caption truncates rather than disappears, that padding
 never becomes a scored token, that each example keeps one image grid, and that the
 split is reproducible. The loop needs a GPU and has not run.
+
+**Both alignment runs submitted — 2026-09-29.** Jobs **22038737** (prefix) and
+**22038738** (early), 40k LLaVA-Pretrain captions, one epoch, 448×448 pinned, the
+gray canvas on Qwen's own tower throughout. Launched in parallel rather than
+sequentially: queue time is not additive, a shared failure shows in both logs and
+a mode-specific one in a single log, so running both is also the cheaper
+diagnostic. What the first hour has to show is only that the loss falls; if the
+mapping cannot learn to speak Qwen's embedding space, neither injection mode can,
+and that is the merged architecture's one schedule risk.
