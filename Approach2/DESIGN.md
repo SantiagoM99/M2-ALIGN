@@ -4251,3 +4251,50 @@ the default and at each candidate cap, needs no GPU, and runs on a login node in
 minutes. Arm 2's value comes from that table. If the default already spends on the
 order of our 729, density is not the explanation and arms 3–5 carry the whole
 hypothesis.
+
+### Run plan to 10-12, all of it — 2026-10-01
+
+Eleven days left, of which the writing needs most. Everything below is listed so
+nothing is discovered missing on the last day, and each row says what blocks it.
+
+**No dependencies, launchable now**
+
+| # | experiment | what it isolates | cost |
+|---|---|---|---|
+| 1 | visual-token census on CVQA images | whether arm 2 has any headroom at all | 2 min, login node |
+| 2 | `qblind_v4.sh` — question-blind on v4 | does a *trained* system also improve without the question | 1.5 h |
+| 3 | Qwen CVQA at raised `max_pixels`, correct + gray | density alone | 2 h, gated by 1 |
+| 4 | the same, question-blind | is the question still a distractor at higher detail | 2 h, gated by 1 |
+| 5 | Qwen xGQA at raised `max_pixels` | control: density must not help everything | 3 h, gated by 1 |
+
+3 and 4 complete a 2×2×2 for Qwen on CVQA: {default, raised} × {with question,
+question-blind} × {correct, gray}; four of the eight cells are already measured.
+
+**Needs a download first (login node, network)**
+
+| # | experiment | what it isolates |
+|---|---|---|
+| 6 | CulturalPangea-7B zero-shot on CVQA, all three arms | the cross-backbone gradient: it trained on 22M cultural pairs |
+| 7 | Pangea-7B, the same | its non-cultural sibling; the pair isolates the cultural data |
+
+**Needs code not yet written**
+
+| # | experiment | state |
+|---|---|---|
+| 8 | the culture adapter on Qwen's **own** tower features, arms 3/4/5 | hook moves from SigLIP2 to Qwen's tower; CulturalGround to build |
+| 9 | CG50 on our own stack | registered 09-26; lower priority now that the adapter is the thesis |
+
+**Blocked on Maryam**
+
+| # | experiment | what is missing |
+|---|---|---|
+| 10 | a1's half of every comparison | her Stage 3 mapping checkpoints |
+| 11 | the three-arm table at one resolution | her `min_pixels`/`max_pixels` |
+
+**Why the census gates three jobs.** Qwen's processor default `max_pixels` is on
+the order of a million pixels, which at 32 px per merged token is roughly 900–1000
+visual tokens for a large photograph — *more* than the 729 our path spends. If CVQA
+images already run there, density is not the explanation, arm 2 is a null by
+construction, and 7 GPU-hours are saved by a two-minute measurement. Then the whole
+hypothesis rests on specialisation, arms 3–5, which was the interesting half
+anyway.
