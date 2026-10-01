@@ -4298,3 +4298,39 @@ images already run there, density is not the explanation, arm 2 is a null by
 construction, and 7 GPU-hours are saved by a two-minute measurement. Then the whole
 hypothesis rests on specialisation, arms 3–5, which was the interesting half
 anyway.
+
+### Approach 1 can be trained here, with no downloads — 2026-10-01
+
+An earlier conclusion in this file was wrong and is corrected: I searched for the
+stage-1 data with `$DT` unset in Santiago's shell, found nothing, and concluded the
+NLLB pairs had been purged. They had not. Searching by content from the literal
+path, everything a1 needs is already on disk:
+
+- **Stage 1**: `$DT/Stage1/data/<Language>_to_English.jsonl`, 11 languages in the
+  `source`/`target` format her loader writes — Bengali and all four transfer
+  targets included;
+- **Stage 2**: `$DT/Stage2/data/<lang>/{wit,cc3m}_pairs.jsonl` for eleven
+  languages, with the image caches, plus `cc3m/english.jsonl` and the LLaVA pairs;
+- **Stage 3**: `$DT/Stage3/data/<lang>.jsonl`, which *is* her translated-GQA
+  format — the same file our own stage 3 reads.
+
+So the only cost is GPU time, and there is a scientific argument for paying it
+rather than waiting: every comparison then lives in **one environment with one
+trainer**. This project has lost weeks to environment boundaries and its own rules
+forbid pairing numbers across them; an a1 trained here makes every contrast
+internally valid without an asterisk. What it is not is *her* a1 — her +6.28 came
+from her environment, so we would report ours and explain any gap.
+
+`job-scripts/a1_train.sh` runs her three stages, one per submission, from a
+**worktree** of `upstream/parallel` rather than a merge: our own Stage1-3 are an
+older lineage and merging would conflict across her whole pipeline, while the
+worktree also pins which commit of hers trained each checkpoint (printed and
+logged). Her arguments are copied from her own launchers, with our data paths and
+our output directories; wandb is dropped.
+
+One dependency to settle before stage 1: her Stage 1 imports **deepspeed**, which
+this venv does not have. The launcher checks for it and, if absent, says so and
+names the alternative — her Stage 2 takes `--stage1-mapping-ckpt` as optional, so
+stage 1 can be skipped, but then the text bridge never receives its text-only
+alignment, which is the core of what a1 claims. That would have to be stated as a
+recipe difference, not glossed.
