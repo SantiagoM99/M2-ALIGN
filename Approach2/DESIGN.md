@@ -4390,3 +4390,26 @@ whole purpose, comes free.
 Cost note for planning: a p90 of 2400 and a maximum of 16224 tokens per image make
 CVQA evaluation on Qwen far more expensive and far more variable than on our fixed
 729, which is worth stating next to any runtime comparison.
+
+**The full census, and a second finding in it — 2026-10-01.** 200 CVQA images,
+median source 1,437,501 pixels:
+
+| processor setting | merged tokens, median | spread |
+|---|---|---|
+| Qwen default | **1400** | p10 300, p90 2400, max 16224 |
+| `max_pixels=1204224` | 1156 | 1125–1224 |
+| `max_pixels=602112` | 588 | 552–616 |
+| `max_pixels=200704` | 187 | 180–192 |
+| our SigLIP2 path | 729 | fixed |
+
+The unexpected part is the **spread**. At the default, one CVQA image gets 300
+visual tokens and another 2400, with an outlier at 16224, so a per-language CVQA
+number mixes image sizes; every pinned cap is tight to about ±5%. That is a
+measurement problem independent of any hypothesis, and it is Maryam's
+resolution-matching point with numbers attached: the comparable arm is a pinned
+one, and the default is the contaminated one.
+
+So the density sweep becomes three **pinned** points — 187, 588 and 1156 — with our
+729 falling between the last two, all inference. It buys the density curve for
+CVQA, the resolution-matched baseline the three-arm table needs anyway, and a
+closed answer to "did you tune the resolution?".
