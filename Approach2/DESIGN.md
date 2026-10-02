@@ -4606,3 +4606,22 @@ this script did exactly that. The script now refuses an arm whose template is th
 reference's. The split is valid for comparing two systems that are **neither** the
 reference, which means it needs a1 evaluated here before it can do the job it was
 written for.
+
+**Her evaluation runs at ~64 visual tokens — 2026-10-02.** Reading her
+`Stage3/evaluate.py` to write our a1 evaluation turned up a default nobody had
+looked at: `--visual-pixels 65536` (256×256), which her own launcher never
+overrides. At 32 px per merged token that is roughly **64 visual tokens**, against
+the processor's own default of ~1400 on CVQA images (census, 10-01) and our fixed
+729. Her reported CVQA baseline over six languages, 36.33, sits about 1.7 below
+our measurement of the same model on the same six (38.00), and the density sweep
+measured 1.12 points over a 7.5-fold budget change — so the gap is the right size
+for the cause. Her baseline and her a1 are internally consistent, both at 64, but
+her absolute numbers are depressed relative to what that backbone can do, and
+nothing of hers is resolution-matched to anything of ours.
+
+`job-scripts/a1_eval.sh` runs her evaluator from the worktree on our data, writing
+per-item results so a1 becomes a paired row in our tables rather than a number
+quoted from a message. It exposes `VISUAL_PIXELS`, and the plan is two points: her
+default, for comparability with her reported numbers, and a matched one, for
+comparability with ours. Whether raising it lifts a1 is a result either way, and
+it is hers to keep.
