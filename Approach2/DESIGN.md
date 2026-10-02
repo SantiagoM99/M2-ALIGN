@@ -4509,3 +4509,40 @@ as much to deleting one of its two inputs as to a sevenfold change in the other,
 and in the question's case it responds the wrong way. Whatever CVQA is measuring,
 it is not sensitive to either input in the way a grounded-VQA benchmark is assumed
 to be, and every claim built on it has to say so.
+
+### Correction: the +2.51 CVQA "advantage" compares supervision, not architectures — 2026-10-02
+
+Santiago asked where our CVQA gain comes from, and the answer is that we do not
+have one measured. The number quoted since 2026-09-20 in this file and in
+`JOINT_ARCHITECTURE.md` — v4 beating Qwen3-VL zero-shot by +2.51 [+0.47, +4.51]
+over ten languages — reads `eval_cvqa_<L>_v4.jsonl` against
+`qwen_cvqa_<L>.jsonl`. By this repository's own naming convention the first is
+**each language's own supervised checkpoint** and the second is a model that never
+saw VQA training. That is a comparison of supervision, not of architectures, and a
+reviewer would say so in one line.
+
+**Like against like, measured today** on jv/mn/ga/si with the Bengali donor
+checkpoint, same image copy, same scoring convention:
+
+| | with question | question-blind | the question's worth |
+|---|---|---|---|
+| v4, donor, zero-shot | 37.93 | 31.81 | **+6.12** |
+| Qwen3-VL zero-shot | 36.72 | 39.14 | **−2.42** |
+| our lead | +1.21 [−1.98, +4.50], p = 0.50 | **−7.33** [−10.44, −4.14], p = 5e-06 | |
+
+**On equal footing we do not win on CVQA; we tie.** And the 2×2 says how: their
+visual shortcut beats ours by 7.33 points, and we recover 6.12 by reading the
+question. Two different routes to the same number.
+
+**What the evidence does support**, and it is a better claim than a 2.5-point lead
+that dies to its first control:
+
+> The two architectures reach the same CVQA accuracy by different routes — theirs
+> through visual plausibility over the answer choices, ours by actually using the
+> native question. The question-blind arm is what separates them; without it the
+> two look equivalent.
+
+**What would establish an architectural gain** is our per-language supervised v4
+against a1 trained on the same per-language data, which is now possible: the data
+for eleven languages is on disk and a1 trains. That is the paper's central table
+and it does not exist yet.

@@ -49,6 +49,8 @@ matched.
 | | Qwen3-VL-8B zero-shot | Approach 2 (v4) | difference |
 |---|---|---|---|
 | CVQA, 10 languages, 2,943 items, 1,370 image clusters | 40.71 | **43.22** | **+2.51 [+0.47, +4.51]**, p = 0.018 |
+
+*(Corrected 2026-10-02: that row compares **our per-language supervised checkpoint** against a **zero-shot** model, so it measures supervision rather than architecture. Like against like — our Bengali donor arm, zero-shot, against Qwen zero-shot on jv/mn/ga/si — the lead is +1.21 [−1.98, +4.50], p = 0.50: a tie. What differs is the route: their visual shortcut leads by 7.33 with the question removed, and the question is worth +6.12 to us and −2.42 to them. DESIGN 2026-10-02.)*
 | CVQA ΔV | +7.00 | **+10.23** | +3.23 [+1.23, +5.28] |
 | xGQA, 7 languages, 88,046 items, 2,786 clusters | **53.00** | 49.66 | **−3.34 [−3.76, −2.92]**, p = 8e-83 |
 | xGQA ΔV | **+29.80** | +17.39 | −12.41 [−12.91, −11.91] |
