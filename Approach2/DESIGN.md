@@ -4335,7 +4335,17 @@ stage 1 can be skipped, but then the text bridge never receives its text-only
 alignment, which is the core of what a1 claims. That would have to be stated as a
 recipe difference, not glossed.
 
-**Stage 1 of a1 submitted — 2026-10-01.** Job **22167968**, Bengali, from a
+**Stage 1 of a1 submitted — 2026-10-01.** Job **22216355**, Bengali, from a
 worktree of her branch at commit `51e68b4` ("Cleaning up after incorporating
 replay"). That hash is the provenance of every a1 checkpoint this line produces.
-Stages 2 and 3 follow one at a time, each needing the previous stage's checkpoint.
+Stages 2 and 3 are queued behind it with `--dependency=afterok`, so a failure in
+one does not waste the next.
+
+The first attempt, job 22167968, died in one second on the launcher's own
+deepspeed check — her Stage 1 imports it and this venv did not have it. Installed
+from the Alliance wheelhouse (0.18.1, plus einops, hjson, ninja, msgpack and
+py-cpuinfo); none of them are in the five packages the submission guard compares,
+so no frozen S1 manifest is disturbed. The guard earned its keep: one second and
+an exact message instead of a wasted allocation. A guess of mine that the failure
+was a `LANG` name collision was wrong, and the rename to `A1_LANG` stands anyway,
+because SLURM does re-export the shell's locale variable into the job.
