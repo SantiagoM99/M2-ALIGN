@@ -27,7 +27,7 @@
 set -uo pipefail
 
 ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 MODE="${MODE:-prefix}"
 LLAVA_DIR="${LLAVA_DIR:-$DT/Stage2/data/llava}"
 LIMIT="${LIMIT:-40000}"

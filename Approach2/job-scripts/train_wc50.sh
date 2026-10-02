@@ -29,7 +29,7 @@
 # Env: DT (required), DATA_PATH, IMAGES_DIR, OUTPUT_DIR, SEED
 set -euo pipefail
 ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 SEED="${SEED:-13}"
 DATA_PATH="${DATA_PATH:-$DT/Stage3/data/bn_wc50.jsonl}"
 IMAGES_DIR="${IMAGES_DIR:-$DT/Stage3/data/gqa/images}"

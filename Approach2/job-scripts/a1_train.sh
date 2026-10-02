@@ -36,7 +36,7 @@ STAGE="${STAGE:?set STAGE=1, 2 or 3}"
 # Never LANG: that is the shell's locale variable, which SLURM re-exports into
 # the job, so ${LANG:-bn} resolves to en_US.UTF-8 and the language lookup dies.
 A1_LANG="${A1_LANG:-bn}"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 A1_ROOT="${A1_ROOT:-$SCRATCH/a1}"
 OUT="${OUT:-$ROOT/Approach2/outputs}"
 LLM="${LLM:-Qwen/Qwen3-VL-8B-Instruct}"
@@ -63,9 +63,14 @@ echo "=== Job info ==="; date; hostname; nvidia-smi || true
 }
 A1_SHA=$(git -C "$A1_ROOT" rev-parse HEAD)
 echo "her code: $A1_ROOT at $A1_SHA"
+echo "DT=$DT"
 
+# Her modules, not ours: her Stage 1 lets deepspeed JIT-compile CPUAdam, and
+# that refuses to build unless the loaded CUDA matches the one torch was built
+# against. Ours loads cudacore/.12.2.2 for the Gemma pipeline; torch here is
+# built against 13.2, and `cuda/13.2` is exactly what her own launcher loads.
 module --force purge
-module load StdEnv/2023 python/3.11.5 cudacore/.12.2.2 arrow/21.0.0
+module load StdEnv/2023 python/3.11.5 gcc/12.3 cuda/13.2 arrow/21.0.0
 source "$SCRATCH/venvs/m2-align/bin/activate"
 export HF_HOME="$SCRATCH/huggingface" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 

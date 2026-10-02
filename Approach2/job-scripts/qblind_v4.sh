@@ -29,7 +29,7 @@ set -uo pipefail
 
 ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 A2="$ROOT/Approach2"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 LANGS="${LANGS:-jv mn ga si}"
 CKPT="${CKPT:-$A2/outputs/stage3_bn_dcl/mapping/pytorch_model.bin}"
 TAG="${TAG:-0926}"
