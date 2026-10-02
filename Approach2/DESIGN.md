@@ -4470,3 +4470,42 @@ arguments, and the override prints itself into the log.
 took three attempts and each died in a different layer of the environment —
 deepspeed absent, then CUDA mismatched, then an AVX-512 kernel that will not build
 here — and none in her code or the data, which is the reassuring part.
+
+### CVQA is nearly flat in visual token budget — 2026-10-02
+
+Jobs 22219082 (187 merged tokens, pinned) and 22219083 (588, pinned), read against
+August's default-resolution run (~1400, variable). Ten languages, 2,943 items over
+1,370 image clusters, gray arm on every cell, paired image-cluster bootstrap, exact
+McNemar. Report `audits/arch_compare_cvqa_density.json`.
+
+| visual tokens | CVQA accuracy | ΔV |
+|---|---|---|
+| ~1400, default and variable | 40.71 | +7.00 |
+| 588, pinned | 40.40 | +6.69 |
+| 187, pinned | 39.59 | +5.88 |
+
+| contrast | Δ accuracy | p |
+|---|---|---|
+| 1400 − 187 (×7.5 in budget) | **+1.12 [+0.40, +1.88]** | 0.0043 |
+| 1400 − 588 (×2.4) | +0.31 [−0.24, +0.86] | 0.34 |
+| 588 − 187 (×3.1, both pinned) | **+0.82 [+0.17, +1.51]** | 0.018 |
+
+**A 7.5-fold change in how much visual information reaches the LLM is worth about
+one point of CVQA accuracy.** The cleanest statement is the pinned-against-pinned
+contrast, because the default arm's budget varies per image: 3.1× buys 0.82
+points. ΔV moves by exactly the same amounts as full accuracy in all three
+contrasts, which is the internal check passing — the gray arm reads no image file,
+so resolution cannot touch it, and the whole effect sits in the image condition.
+
+**This buries density as the explanation of our CVQA advantage, from both
+directions.** Our v4 beats Qwen by +2.51 [+0.47, +4.51] on CVQA, which is larger
+than the entire 187-to-1400 density range. Qwen already spends roughly twice our
+729 tokens (census, same day), and the budget barely matters anyway.
+
+**And it composes with the question-blind result into one claim about CVQA.**
+Removing the native question entirely is worth **+1.50** — it helps — while
+multiplying visual detail by 7.5 is worth **+1.12**. The benchmark responds about
+as much to deleting one of its two inputs as to a sevenfold change in the other,
+and in the question's case it responds the wrong way. Whatever CVQA is measuring,
+it is not sensitive to either input in the way a grounded-VQA benchmark is assumed
+to be, and every claim built on it has to say so.
