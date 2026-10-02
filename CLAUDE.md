@@ -167,7 +167,7 @@ data at `DT=/scratch/santimn/datatransfer`.
   members are read with `extractfile()`.
 - Every reported number comes from a versioned script in `analysis/`. Current:
   `_boot.py`, `arch_compare.py`, `c1_seed_spread.py`, `e3_noninferiority.py`, `x1_did.py`, `block_a.py`, `block_b.py`, `block_c.py`,
-  `block_d.py`, `block_d_input.py`, `power_sim.py`, `pooling_d12.py`, plus the tests
+  `block_d.py`, `block_d_input.py`, `power_sim.py`, `pooling_d12.py`, `question_necessity.py`, plus the tests
   `test_invariance.py`, `test_fail_closed.py`, `test_arch_compare.py`, `test_c1_seed_spread.py`, `test_block_a.py`, `test_block_b.py`, `test_block_c.py`,
   `test_block_d.py`,
   `test_block_d_input.py`, `test_cvqa_s1_builder.py`, `test_pooling_d12.py`. The legacy report scripts

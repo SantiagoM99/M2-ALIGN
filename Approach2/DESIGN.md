@@ -4577,3 +4577,32 @@ confusion in this file today.
 For context next to it: a1 sits **0.63 below its own matched-resolution baseline**
 on CVQA, and today's mechanism result is that our system uses the native question
 (+6.12 when it is removed) while the backbone does not (−2.42).
+
+### The question decides fewer than one CVQA item in ten — 2026-10-02
+
+`analysis/question_necessity.py` splits CVQA by what the native question does for
+a **reference** system, using Qwen3-VL zero-shot's two arms (with the question and
+question-blind) over the ten languages, 2,943 items:
+
+| for the zero-shot VLM | items | share |
+|---|---|---|
+| the question **decides** — right with it, wrong without it | 256 | **8.7%** |
+| the **shortcut suffices** — right both ways | 942 | **32.0%** |
+| wrong with the question | 1,745 | 59.3% |
+
+**The native question is decisive on 8.7% of CVQA and the image with the four
+choices suffices on 32%.** That is the quantitative reason a multilingual text
+bridge cannot show itself in the pooled average, however good it is: fewer than
+one item in ten lets it matter. It is the same story the other measurements tell —
+removing the question is worth +1.50 to this model, a1 gains +6.75 on xGQA and
++0.15 on CVQA, and the across-language spread a1 compresses by 37% on xGQA it does
+not compress at all on CVQA — now with the mechanism counted item by item.
+
+**A design flaw in the split, found by reading its own output and fixed.** The
+labels condition on the reference being correct, so the reference scores 100% on
+both `necessary` and `shortcut` by construction. Comparing the reference against
+anything on those subsets is meaningless — it can only lose — and the first run of
+this script did exactly that. The script now refuses an arm whose template is the
+reference's. The split is valid for comparing two systems that are **neither** the
+reference, which means it needs a1 evaluated here before it can do the job it was
+written for.
