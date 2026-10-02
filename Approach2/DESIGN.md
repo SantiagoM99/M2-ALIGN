@@ -4356,3 +4356,37 @@ instead of wasting it. A duplicate stage 2 (22216715) was submitted and cancelle
 it mattered because both would have written into `outputs/a1_bn_stage2` and
 clobbered each other. `squeue --format="%.10i %.10j %.30E"` is what disambiguated
 them: the stage each job occupies is readable from what it waits on.
+
+### Refuted in two minutes of CPU: density is not the explanation — 2026-10-01
+
+The visual-token census (`merged/visual_tokens.py`, login node, no GPU) settles
+arm 2 before it costs anything. On 200 CVQA images, median source size 1,437,501
+pixels, Qwen3-VL at its **default** processor settings already spends:
+
+| | median | p10 | p90 | max |
+|---|---|---|---|---|
+| merged visual tokens per CVQA image | **1400** | 300 | 2400 | 16224 |
+
+Our SigLIP2 path spends a fixed **729**. So Qwen already gives the LLM roughly
+**twice** the visual tokens we do on the same images, and raising `max_pixels` has
+no headroom to add. **The density hypothesis is refuted**, and the direction is the
+opposite of the one assumed on 09-29: the token-poor side is ours. Arms 2 and 5 of
+the culture-adapter design are cancelled, neither having been submitted, and the
+remaining rows of the census are moot — a higher cap only mattered if the default
+were low.
+
+**What this does to the hypothesis is make it stronger.** Qwen delivers twice the
+visual information to its LLM on these images and still reaches a lower ΔV on CVQA
+(+7.00 against our +10.23). The difference is therefore not *how much* visual
+information arrives; it is what the projection does with it, or the LLM behind it.
+The obvious confound is now excluded by measurement rather than argued away, which
+is the best position a hypothesis can be in before it is tested.
+
+It also simplifies the design. Because the adapter reads **Qwen's own tower
+features**, the token count is matched by construction: there is no pooling choice
+to defend and no arbitrary 144 or 196. The matched-token control, which was arm 3's
+whole purpose, comes free.
+
+Cost note for planning: a p90 of 2400 and a maximum of 16224 tokens per image make
+CVQA evaluation on Qwen far more expensive and far more variable than on our fixed
+729, which is worth stating next to any runtime comparison.
