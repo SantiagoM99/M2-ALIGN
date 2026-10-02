@@ -94,7 +94,12 @@ case "$STAGE" in
       exit 1
     }
     mkdir -p "$S1_OUT"
-    deepspeed --master_port "${PORT[$A1_LANG]}" Stage1/train.py --deepspeed \
+    # Her Stage 1 through our wrapper, which turns off DeepSpeed's CPU offload:
+    # that default forces DeepSpeedCPUAdam, whose AVX-512 kernel will not build
+    # against this toolchain's -march=x86-64-v3 (job 22218332). Her code itself is
+    # untouched; the wrapper patches the one default and calls her main.
+    A1_ROOT="$A1_ROOT" deepspeed --master_port "${PORT[$A1_LANG]}" \
+      "$ROOT/Approach2/merged/a1_stage1_no_offload.py" --deepspeed \
       --llm_path "$LLM" --mt_path "$MT" \
       --save_name "a1-$A1_LANG" --output_dir "$S1_OUT" \
       --stage_name mapping --task nllb_corpus --augmentation False \

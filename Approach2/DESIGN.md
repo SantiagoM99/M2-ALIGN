@@ -4441,3 +4441,25 @@ visual tokens. Flat would mean the benchmark does not reward visual detail, whic
 composes with the question-blind result into a single claim about what CVQA
 measures. A slope would mean visual budget matters after all, and our fixed 729
 would need reading against it.
+
+**a1 stage 1, second failure and its fix — 2026-10-02.** Job 22218332 got past the
+CUDA mismatch and died 8 minutes in, while DeepSpeed JIT-compiled `CPUAdam`:
+`error: inlining failed in call to 'always_inline' '_mm512_slli_epi32': target
+specific option mismatch`. The source needs AVX-512 and the toolchain compiles
+with `-march=x86-64-v3`, which does not include it.
+
+`CPUAdam` is only instantiated because her `get_train_ds_config` defaults to
+`offload=True`, and `Stage1/train.py` calls it positionally, so no flag reaches it.
+Turning the offload off is a fix and not a workaround: only the mapping is
+trainable, so the optimizer state is small and there is nothing to gain from
+keeping it in host memory, while the optimizer, its hyperparameters and the ZeRO
+stage are unchanged — this moves *where* the state lives, not what training
+computes.
+
+`merged/a1_stage1_no_offload.py` does it without editing her worktree, which has
+to stay as committed for the provenance to mean anything: it patches
+`tools.deepspeed_config.get_train_ds_config` and then runs her `Stage1/train.py`
+through `runpy` with `run_name="__main__"`, because her argparse and logging live
+inside her `if __name__ == "__main__"` block and an import would execute none of
+it. The launcher passes that file to `deepspeed` in place of hers, with the same
+arguments, and the override prints itself into the log.
