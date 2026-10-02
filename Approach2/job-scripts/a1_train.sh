@@ -24,16 +24,18 @@
 # her whole pipeline. The worktree also pins which commit of hers trained this.
 #   git fetch upstream && git worktree add $SCRATCH/a1 upstream/parallel
 #
-#   STAGE=1 LANG=bn DT=... sbatch Approach2/job-scripts/a1_train.sh
-#   STAGE=2 LANG=bn DT=... sbatch Approach2/job-scripts/a1_train.sh
-#   STAGE=3 LANG=bn DT=... sbatch Approach2/job-scripts/a1_train.sh
+#   STAGE=1 A1_LANG=bn DT=... sbatch Approach2/job-scripts/a1_train.sh
+#   STAGE=2 A1_LANG=bn DT=... sbatch Approach2/job-scripts/a1_train.sh
+#   STAGE=3 A1_LANG=bn DT=... sbatch Approach2/job-scripts/a1_train.sh
 #
-# Env: STAGE (1|2|3), LANG (default bn), DT (required), A1_ROOT, EPOCHS
+# Env: STAGE (1|2|3), A1_LANG (default bn), DT (required), A1_ROOT, EPOCHS
 set -uo pipefail
 
 ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 STAGE="${STAGE:?set STAGE=1, 2 or 3}"
-LANG_CODE="${LANG:-bn}"
+# Never LANG: that is the shell's locale variable, which SLURM re-exports into
+# the job, so ${LANG:-bn} resolves to en_US.UTF-8 and the language lookup dies.
+A1_LANG="${A1_LANG:-bn}"
 DT="${DT:?set DT}"
 A1_ROOT="${A1_ROOT:-$SCRATCH/a1}"
 OUT="${OUT:-$ROOT/Approach2/outputs}"
@@ -67,16 +69,16 @@ module load StdEnv/2023 python/3.11.5 cudacore/.12.2.2 arrow/21.0.0
 source "$SCRATCH/venvs/m2-align/bin/activate"
 export HF_HOME="$SCRATCH/huggingface" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 
-S1_OUT="$OUT/a1_${LANG_CODE}_stage1"
-S2_OUT="$OUT/a1_${LANG_CODE}_stage2"
-S3_OUT="$OUT/a1_${LANG_CODE}_stage3"
+S1_OUT="$OUT/a1_${A1_LANG}_stage1"
+S2_OUT="$OUT/a1_${A1_LANG}_stage2"
+S3_OUT="$OUT/a1_${A1_LANG}_stage3"
 
 require () { [ -e "$1" ] || { echo "ERROR: missing $1"; exit 1; }; }
 
 cd "$A1_ROOT"
 case "$STAGE" in
   1)
-    NAME="${FULL_NAME[$LANG_CODE]:?no full language name recorded for $LANG_CODE}"
+    NAME="${FULL_NAME[$A1_LANG]:?no full language name recorded for $A1_LANG}"
     require "$DT/Stage1/data/${NAME}_to_English.jsonl"
     python -c "import deepspeed" 2>/dev/null || {
       echo "ERROR: stage 1 needs deepspeed, which this venv does not have."
@@ -87,9 +89,9 @@ case "$STAGE" in
       exit 1
     }
     mkdir -p "$S1_OUT"
-    deepspeed --master_port "${PORT[$LANG_CODE]}" Stage1/train.py --deepspeed \
+    deepspeed --master_port "${PORT[$A1_LANG]}" Stage1/train.py --deepspeed \
       --llm_path "$LLM" --mt_path "$MT" \
-      --save_name "a1-$LANG_CODE" --output_dir "$S1_OUT" \
+      --save_name "a1-$A1_LANG" --output_dir "$S1_OUT" \
       --stage_name mapping --task nllb_corpus --augmentation False \
       --nllb_data_dir "$DT/Stage1/data" --nllb_languages "$NAME" \
       --train_num 100000 --val_size 3000 \
@@ -98,10 +100,10 @@ case "$STAGE" in
       --eval_batch_size 2
     ;;
   2)
-    WIT="$DT/Stage2/data/$LANG_CODE/wit_pairs.jsonl"
-    CC3M="$DT/Stage2/data/$LANG_CODE/cc3m_pairs.jsonl"
+    WIT="$DT/Stage2/data/$A1_LANG/wit_pairs.jsonl"
+    CC3M="$DT/Stage2/data/$A1_LANG/cc3m_pairs.jsonl"
     require "$WIT"
-    DATA=("$WIT"); CACHES=("$DT/Stage2/data/$LANG_CODE/image_cache")
+    DATA=("$WIT"); CACHES=("$DT/Stage2/data/$A1_LANG/image_cache")
     if [ -f "$CC3M" ]; then
       DATA+=("$CC3M"); CACHES+=("$DT/Stage2/data/cc3m/image_cache")
     else
@@ -127,13 +129,13 @@ case "$STAGE" in
       --local-files-only
     ;;
   3)
-    require "$DT/Stage3/data/$LANG_CODE.jsonl"
+    require "$DT/Stage3/data/$A1_LANG.jsonl"
     require "$DT/Stage3/data/gqa/images"
     S2_CKPT=$(ls "$S2_OUT"/pytorch_model.bin "$S2_OUT"/*.bin 2>/dev/null | head -1)
     [ -n "$S2_CKPT" ] || { echo "ERROR: no stage-2 checkpoint under $S2_OUT; run STAGE=2 first"; exit 1; }
     mkdir -p "$S3_OUT"
     python -u Stage3/train.py \
-      --data-dir "$DT/Stage3/data/$LANG_CODE.jsonl" \
+      --data-dir "$DT/Stage3/data/$A1_LANG.jsonl" \
       --images-dir "$DT/Stage3/data/gqa/images" \
       --output-dir "$S3_OUT" --init-mapping-ckpt "$S2_CKPT" \
       --mt-path "$MT" --llm-path "$LLM" \
@@ -145,5 +147,5 @@ case "$STAGE" in
   *) echo "ERROR: STAGE must be 1, 2 or 3"; exit 1 ;;
 esac
 STATUS=$?
-echo "=== Done === $(date) stage=$STAGE lang=$LANG_CODE status=$STATUS her_code=$A1_SHA"
+echo "=== Done === $(date) stage=$STAGE lang=$A1_LANG status=$STATUS her_code=$A1_SHA"
 exit $STATUS
