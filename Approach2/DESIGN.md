@@ -4546,3 +4546,34 @@ that dies to its first control:
 against a1 trained on the same per-language data, which is now possible: the data
 for eleven languages is on disk and a1 trains. That is the paper's central table
 and it does not exist yet.
+
+### The correction above was too broad: against a1 the comparison is valid — 2026-10-02
+
+The entry immediately above is right that v4-supervised against Qwen **zero-shot**
+measures supervision rather than architecture. It is wrong to leave the impression
+that no architectural comparison exists. Her a1 is **also per-language
+supervised**, on the same files: her stage 3 trains on
+`Stage3/data/<lang>.jsonl`, the translated-GQA file our own stage 3 reads. Same
+data, same supervision regime, different architecture.
+
+The three comparisons, kept apart:
+
+| comparison | macro over its languages | valid as architecture? |
+|---|---|---|
+| v4 supervised vs **Qwen3-VL zero-shot**, 10 langs | 43.42 vs 40.75 = **+2.67** | **No** — trained against untrained |
+| v4 Bengali donor, zero-shot, vs Qwen zero-shot, jv/mn/ga/si | 37.93 vs 36.72 = **+1.21**, p = 0.50 | Yes, and it is a **tie** against the shared backbone |
+| **v4 supervised vs a1**, 10 langs | 43.42 vs **38.53** = **+4.89** | **Yes** — same data, same supervision, different architecture |
+
+So the number that belongs in a message to the team is **+4.89 over a1 on CVQA**,
+with three caveats stated: it is not paired, because her per-item outputs are not
+here; the two sides read different CVQA image copies; and her figure comes from her
+environment, not ours. Enough to say out loud, not enough to put in a paper
+without the paired run.
+
+The +1.21 is **not** against a1. It is against Qwen3-VL zero-shot, which is a1's
+backbone, not a1. Conflating the backbone with the system is what produced the
+confusion in this file today.
+
+For context next to it: a1 sits **0.63 below its own matched-resolution baseline**
+on CVQA, and today's mechanism result is that our system uses the native question
+(+6.12 when it is removed) while the backbone does not (−2.42).
