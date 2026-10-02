@@ -4413,3 +4413,18 @@ So the density sweep becomes three **pinned** points — 187, 588 and 1156 — w
 729 falling between the last two, all inference. It buys the density curve for
 CVQA, the resolution-matched baseline the three-arm table needs anyway, and a
 closed answer to "did you tune the resolution?".
+
+**Queued 2026-10-02.** Density sweep on CVQA: 22218180 and 22218181. The a1 chain,
+relaunched after the CUDA fix: 22218332 → 22218333 → 22218334, stages 1/2/3,
+Bengali. Question-blind on v4: 22218335.
+
+Two failures preceded them, both instructive. **a1 stage 1 (22216355)** ran 6 min
+and died in deepspeed's JIT build of `CPUAdam`: *"Installed CUDA version 12.2 does
+not match the version torch was compiled with 13.2"*. Our launcher loaded
+`cudacore/.12.2.2`, the convention of the Gemma pipeline, while her own launcher
+loads `cuda/13.2` — the lesson being that **her code runs with her modules**, which
+was visible in her launcher from the start and not copied. **Question-blind
+(22216881)** died in zero seconds on `DT: set DT`, submitted from a shell that had
+lost the variable; that has now cost four jobs, so `DT` defaults to
+`/scratch/santimn/datatransfer` in all four of our launchers and is printed into
+the log, which also records which path a run actually used.
