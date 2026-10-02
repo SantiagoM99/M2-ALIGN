@@ -32,7 +32,7 @@ set -uo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 TRAINER_SHA="${TRAINER_SHA:-287bae9}"
 FULL_SHA=$(git -C "$PROJECT_ROOT" rev-parse --verify "$TRAINER_SHA^{commit}") || { echo "ERROR: unknown commit $TRAINER_SHA"; exit 1; }
 SEED="${SEED:-42}"

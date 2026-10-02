@@ -27,7 +27,7 @@ set -uo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 S3_EPOCHS="${S3_EPOCHS:-2}"
 REPLAY_EVERY="${REPLAY_EVERY:-3}"
 

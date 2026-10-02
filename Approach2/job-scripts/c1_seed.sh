@@ -20,7 +20,7 @@
 set -uo pipefail
 
 SEED="${SEED:?set SEED, e.g. SEED=14}"
-DT="${DT:?set DT=/scratch/santimn/datatransfer}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 A2="Approach2"
 OUT="$PWD/$A2/outputs"
 REFERENCE="${REFERENCE:-$A2/outputs/s1_C1.submission.json}"

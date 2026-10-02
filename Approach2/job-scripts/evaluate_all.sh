@@ -25,7 +25,7 @@ set -uo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 R="${ROUND:+_$ROUND}"
 # EVAL_TAG re-evaluates a round without touching its earlier results: outputs go
 # to a subdirectory and harvested names gain the tag, e.g. eval_xgqa_de_v4_tf5.

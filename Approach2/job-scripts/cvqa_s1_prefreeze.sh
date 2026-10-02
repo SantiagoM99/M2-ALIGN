@@ -58,7 +58,7 @@ set -euo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
-DT="${DT:?set DT to the datatransfer root}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 CVQA_PARQUET="${CVQA_PARQUET:?set CVQA_PARQUET to local parquet file(s), directory, or glob}"
 
 EXTRACT_UNIT="${EXTRACT_UNIT:-Spanish}"

@@ -32,7 +32,7 @@ set -uo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 R="${ROUND:+_$ROUND}"
 STAGE2_CKPT="${STAGE2_CKPT:?set STAGE2_CKPT}"
 LANGS="${LANGS:-bn de ru zh pt id ko jv mn si ga}"

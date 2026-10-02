@@ -117,6 +117,10 @@ data at `DT=/scratch/santimn/datatransfer`.
 - S1 allocations run from a **detached worktree of their submitted commit**
   (`$SCRATCH/s1_worktrees/<code sha>`), so pulling in the main clone no longer
   kills a queued job. Preparing a submission still needs the intended HEAD.
+- **`DT` defaults to `/scratch/santimn/datatransfer` in every launcher**, and is
+  printed into the log. It is still overridable. Requiring it cost five jobs to a
+  variable that disappears with every new shell and every login node, and each
+  launcher already validates the files it actually needs.
 - **Launchers must be idempotent**: skip work whose output already exists, so
   a re-run only fills gaps.
 - SLURM **freezes the batch script at submit time** — a queued job will not

@@ -34,7 +34,7 @@ set -uo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 N="${N:-1000}"
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"
 MT_PATH="${MT_PATH:-facebook/nllb-200-distilled-600M}"

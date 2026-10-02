@@ -15,7 +15,7 @@
 set -uo pipefail
 
 SEED="${SEED:?set SEED, e.g. SEED=14}"
-DT="${DT:?set DT=/scratch/santimn/datatransfer}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 A2="Approach2"
 O="$PWD/$A2/outputs"
 GATE="${GATE:-$A2/audits/s1_A_analysis.json}"

@@ -40,7 +40,7 @@ set -uo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 BENCH="${BENCH:-all}"
 MODEL_ID="${MODEL_ID:-Qwen/Qwen3-VL-8B-Instruct}"
 OUT_DIR="$A2/outputs/baseline_qwen"
@@ -59,7 +59,7 @@ CVQA_LANGS="${LANGS:-bn ru zh pt id ko jv mn si ga}"
 
 echo "=== Job info ==="
 date; hostname
-echo "BENCH=$BENCH MODEL_ID=$MODEL_ID"
+echo "BENCH=$BENCH MODEL_ID=$MODEL_ID DT=$DT"
 nvidia-smi || true
 
 echo "=== Load modules ==="

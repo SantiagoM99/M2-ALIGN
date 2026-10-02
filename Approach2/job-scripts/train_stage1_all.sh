@@ -23,7 +23,7 @@ set -uo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 LANGS="${LANGS:-de ru zh pt id ko jv mn si ga}"
 
 LLM_PATH="${LLM_PATH:-google/gemma-2-9b-it}"

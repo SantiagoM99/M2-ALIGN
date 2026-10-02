@@ -33,7 +33,7 @@ set -uo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 LLAVA_DIR="${LLAVA_DIR:-$DT/Stage2/data/llava}"
 VIS_LAYERS="${VIS_LAYERS:-9,18,-1}"
 S2_EPOCHS="${S2_EPOCHS:-2}"

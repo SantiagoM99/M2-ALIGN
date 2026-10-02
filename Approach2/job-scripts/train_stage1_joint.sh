@@ -35,7 +35,7 @@ set -uo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 A2="$PROJECT_ROOT/Approach2"
-DT="${DT:?set DT}"
+DT="${DT:-/scratch/santimn/datatransfer}"
 LANGS="${LANGS:-bn de ru zh pt id ko jv mn si ga}"
 TRAIN_NUM="${TRAIN_NUM:-30000}"
 S1_EPOCHS="${S1_EPOCHS:-1}"
