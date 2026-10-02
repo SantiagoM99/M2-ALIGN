@@ -4463,3 +4463,10 @@ through `runpy` with `run_name="__main__"`, because her argparse and logging liv
 inside her `if __name__ == "__main__"` block and an import would execute none of
 it. The launcher passes that file to `deepspeed` in place of hers, with the same
 arguments, and the override prints itself into the log.
+
+**Five jobs running — 2026-10-02.** a1 stages 1/2/3 as 22219792 → 22219793 →
+22219794 with the offload wrapper; the density sweep as 22219082 (187 tokens),
+22219083 (588) and 22219084 (1156); question-blind on v4 as 22218335. a1's stage 1
+took three attempts and each died in a different layer of the environment —
+deepspeed absent, then CUDA mismatched, then an AVX-512 kernel that will not build
+here — and none in her code or the data, which is the reassuring part.
