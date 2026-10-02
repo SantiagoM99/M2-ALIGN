@@ -4428,3 +4428,16 @@ was visible in her launcher from the start and not copied. **Question-blind
 lost the variable; that has now cost four jobs, so `DT` defaults to
 `/scratch/santimn/datatransfer` in all four of our launchers and is printed into
 the log, which also records which path a run actually used.
+
+**Density sweep queued properly — 2026-10-02.** 22219082 (187 merged tokens),
+22219083 (588) and 22219084 (1156), CVQA, ten languages, correct and gray, paired
+against August's default-resolution run (~1400, and variable). The first attempt,
+22218180 and 22218181, died in two seconds on `DT: set DT`: when the default was
+added on 10-01 it went into four launchers and `baseline_qwen.sh`, the one the
+sweep uses, was not among them. It now applies to all seventeen.
+
+What the sweep answers: whether CVQA accuracy and ΔV are flat between 187 and 1400
+visual tokens. Flat would mean the benchmark does not reward visual detail, which
+composes with the question-blind result into a single claim about what CVQA
+measures. A slope would mean visual budget matters after all, and our fixed 729
+would need reading against it.
