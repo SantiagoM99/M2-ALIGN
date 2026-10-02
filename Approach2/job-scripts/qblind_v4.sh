@@ -31,8 +31,20 @@ ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 A2="$ROOT/Approach2"
 DT="${DT:-/scratch/santimn/datatransfer}"
 LANGS="${LANGS:-jv mn ga si}"
+# ARM=zsbn: one donor checkpoint evaluated zero-shot on every target (the setting
+# the transfer claim is about). ARM=v4: each language's own supervised checkpoint,
+# which is the arm that leads a1 by +4.1 and whose mechanism is unknown. Bengali's
+# v4 checkpoint is stage3_bn_dcl, not stage3_bn_v4 (CLAUDE.md).
+ARM="${ARM:-zsbn}"
 CKPT="${CKPT:-$A2/outputs/stage3_bn_dcl/mapping/pytorch_model.bin}"
 TAG="${TAG:-0926}"
+
+checkpoint_for () {  # <lang>
+  if [ "$ARM" = zsbn ]; then echo "$CKPT"; return; fi
+  local dir="stage3_${1}_v4"
+  [ "$1" = bn ] && dir="stage3_bn_dcl"
+  echo "$A2/outputs/$dir/mapping/pytorch_model.bin"
+}
 OUT_DIR="$A2/outputs/qblind"
 RESULTS_DIR="${RESULTS_DIR:-$A2/results}"
 
@@ -43,7 +55,11 @@ module load StdEnv/2023 python/3.11.5 cudacore/.12.2.2 arrow/21.0.0
 source "$SCRATCH/venvs/m2-align/bin/activate"
 export HF_HOME="$SCRATCH/huggingface" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 
-[ -f "$CKPT" ] || { echo "ERROR: no checkpoint at $CKPT"; exit 1; }
+for L in $LANGS; do
+  c=$(checkpoint_for "$L")
+  [ -f "$c" ] || { echo "ERROR: no checkpoint for $L at $c"; exit 1; }
+done
+echo "ARM=$ARM TAG=$TAG LANGS=$LANGS"
 mkdir -p "$OUT_DIR"
 cd "$A2"
 RAN=0
@@ -54,7 +70,7 @@ run_cell () {  # <lang> <question:wq|qb> <image:correct|gray>
   # `set -u`, so the array is expanded only when it has elements.
   local L="$1" q="$2" img="$3" name
   local args=()
-  name="eval_cvqa_${L}_zsbn"
+  name="eval_cvqa_${L}_${ARM}"
   [ "$img" = gray ] && { name="${name}_BLIND"; args+=(--blind); }
   [ "$q" = qb ] && args+=(--blind-question)
   local out="$OUT_DIR/${name}_${q}_${TAG}.jsonl"
@@ -64,7 +80,7 @@ run_cell () {  # <lang> <question:wq|qb> <image:correct|gray>
   if ! python -u evaluate_cvqa.py \
       --data-path "$DT/Stage3/data/cvqa/$L.jsonl" \
       --images-dir "$DT/Stage3/data/cvqa/images" \
-      --ckpt "$CKPT" \
+      --ckpt "$(checkpoint_for "$L")" \
       --vis-layers "9,18,-1" \
       --output-path "$out" \
       --local-files-only \
