@@ -4625,3 +4625,34 @@ quoted from a message. It exposes `VISUAL_PIXELS`, and the plan is two points: h
 default, for comparability with her reported numbers, and a matched one, for
 comparability with ours. Whether raising it lifts a1 is a result either way, and
 it is hers to keep.
+
+### The substitution signature replicates on xGQA and is absent on CVQA — 2026-10-02
+
+Her a1 compresses the across-language spread on xGQA by 37% against its own
+backbone (SD 1.60 → 1.00) and by 3% on CVQA, i.e. not at all. The same test on our
+side, using Qwen as the reference distribution of per-language difficulty:
+
+| | across-language SD | change |
+|---|---|---|
+| xGQA: Qwen 1.68 → ours 1.40 | | **−16%** |
+| CVQA: Qwen 4.53 → ours 5.62 | | **+24%** |
+
+**The direction replicates on xGQA in both systems and is absent from CVQA in
+both** — hers flat, ours actively more unequal. That is what the mechanism
+predicts: on an open-ended benchmark the bridge substitutes for the multilingual
+competence the backbone lacks, lifting weak languages toward strong ones, and on
+CVQA there is nothing to substitute for because the model is not reading the
+question.
+
+**The two tests are not equivalent and the difference matters.** Hers compares a1
+against its *own* backbone, same LLM with the bridge added, so it isolates the
+bridge. Ours compares our whole stack against a different system, so it carries
+every difference between the two. The clean version does not exist on our side:
+our backbone is a text-only Gemma that cannot do VQA at all, so there is no
+"without the bridge" arm to compare against. Ours is suggestive; hers is the
+measurement.
+
+**Queued the same day:** 22300402 (a1 at her default ~64 visual tokens, comparable
+with her reported numbers), 22300403 (a1 at ~588, comparable with ours), 22300405
+(question-blind on our per-language supervised v4, ten languages, the arm that
+leads a1 by about four points and whose mechanism is unknown).
