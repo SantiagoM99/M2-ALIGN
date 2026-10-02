@@ -4334,3 +4334,8 @@ names the alternative — her Stage 2 takes `--stage1-mapping-ckpt` as optional,
 stage 1 can be skipped, but then the text bridge never receives its text-only
 alignment, which is the core of what a1 claims. That would have to be stated as a
 recipe difference, not glossed.
+
+**Stage 1 of a1 submitted — 2026-10-01.** Job **22167968**, Bengali, from a
+worktree of her branch at commit `51e68b4` ("Cleaning up after incorporating
+replay"). That hash is the provenance of every a1 checkpoint this line produces.
+Stages 2 and 3 follow one at a time, each needing the previous stage's checkpoint.
