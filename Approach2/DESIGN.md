@@ -4349,3 +4349,10 @@ so no frozen S1 manifest is disturbed. The guard earned its keep: one second and
 an exact message instead of a wasted allocation. A guess of mine that the failure
 was a `LANG` name collision was wrong, and the rename to `A1_LANG` stands anyway,
 because SLURM does re-export the shell's locale variable into the job.
+
+**The a1 chain — 2026-10-01.** 22216355 (stage 1) → 22216717 (stage 2) →
+22216731 (stage 3), Bengali, chained with `afterok` so a failure stops the rest
+instead of wasting it. A duplicate stage 2 (22216715) was submitted and cancelled;
+it mattered because both would have written into `outputs/a1_bn_stage2` and
+clobbered each other. `squeue --format="%.10i %.10j %.30E"` is what disambiguated
+them: the stage each job occupies is readable from what it waits on.
