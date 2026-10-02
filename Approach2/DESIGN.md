@@ -4656,3 +4656,43 @@ measurement.
 with her reported numbers), 22300403 (a1 at ~588, comparable with ours), 22300405
 (question-blind on our per-language supervised v4, ten languages, the arm that
 leads a1 by about four points and whose mechanism is unknown).
+
+### Training a1 the way she actually runs it now: pooled, and pooled + replay — 2026-10-02
+
+The a1 we trained here is her **per-language** track, which she has replaced. Her
+current system is one shared mapping over eleven languages (`train_pooled.sh` on
+`upstream/parallel`), and her best CVQA result is that pool plus text replay
+(+1.63 over pooled, her message 10-01). Comparing our v4 against our per-language
+a1 therefore compares against her previous system, which is the same error as
+quoting a number across environments: it flatters us by one revision.
+
+`job-scripts/a1_train.sh` gains `POOLED=1` and, at stage 3, `REPLAY=1`. The three
+stages mirror her own pooled launchers argument for argument — eleven languages
+through her comma-separated `--nllb_languages` for stage 1 at 3 epochs and
+English-free, every language's WIT and CC3M paired into her multi-valued
+`--data-path`/`--image-cache-dir` for stage 2, and a directory of symlinks for
+stage 3, where her trainer globs `*.jsonl`, with English in the pool by default as
+she verified against MindMerger's `read_datasets.py`. Her code is still run
+unedited from the worktree; what changed is the launcher. Dropping a language or
+losing English now fails the job instead of quietly becoming a different recipe,
+because a recipe that silently differs from the one being reproduced is worse than
+no reproduction.
+
+**Stage 1 pooled needs a whole node.** The pool is ~1.07M rows × 3 epochs; she
+measured 13.5 h for one language on one A100-40, so one GPU puts this near 150 h.
+Her launcher asks for 4 GPUs, and `train.py` derives grad-accum from
+`train_batch_size 24 / n_gpus`, so 4 GPUs is the same effective batch, four times
+faster. The SBATCH header cannot be conditional, so the pooled stage-1 submission
+passes `--gres=gpu:4 --cpus-per-task=48 --mem=490G --time=2-00:00:00` on the
+command line, and the job warns if it starts with fewer.
+
+**Prediction, recorded before submission.** Our v4's CVQA lead over a1 shrinks
+when a1 is her current system rather than her superseded one: the honest per-
+language figure is +4.89 (43.42 vs 38.53, unpaired, cross-environment), and the
+prediction is that paired pooled-with-replay a1 evaluated here closes part of it
+but not all, leaving a lead whose one-sided LB5 stays above zero. **Refutation
+condition:** if pooled or pooled+replay a1 ties or beats v4 on CVQA under the
+image-cluster bootstrap (LB5 of a1 − v4 ≥ 0), the claim that our architecture
+leads on CVQA is withdrawn, not reframed. On xGQA the prediction is the opposite
+direction — a1 pooled at or above her per-language 56.96 and above our 48.78 —
+because that is the benchmark where the bridge has something to substitute for.
