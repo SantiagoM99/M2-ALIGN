@@ -52,6 +52,8 @@ VISUAL_PIXELS="${VISUAL_PIXELS:-65536}"
 # text=[588]" on every item (job 22300403, 10-02). The merge ratio is 32x32 px
 # per merged token, so the prompt needs the visual tokens plus room for the
 # question and the choices.
+# Nominal merged tokens. The real count varies with aspect ratio even at a fixed
+# pixel budget (551-630 observed at 602112), so the budget below carries slack.
 VISUAL_TOKENS=$(( VISUAL_PIXELS / 1024 ))
 MAX_LLM_SEQ_LEN="${MAX_LLM_SEQ_LEN:-$(( VISUAL_TOKENS + 256 > 512 ? VISUAL_TOKENS + 256 : 512 ))}"
 TAG="${TAG:-a1}"
@@ -96,7 +98,12 @@ for L in $LANGS; do
   fi
   OUT="$OUT_DIR/eval_${BENCHMARK}_${L}_${TAG}.jsonl"
   if [ ! -f "$DATA" ]; then echo "--- skip $L (no $DATA)"; continue; fi
-  if [ -f "$OUT" ]; then echo "--- skip $L ($(basename "$OUT") exists)"; continue; fi
+  # Only a non-empty output counts as done. Her evaluator opens --results-jsonl
+  # before scoring, so a cell that crashes leaves a zero-byte file behind, and
+  # treating that as finished made the rerun skip all five cells and exit 1
+  # (job 22343574).
+  if [ -s "$OUT" ]; then echo "--- skip $L ($(basename "$OUT") exists)"; continue; fi
+  [ -e "$OUT" ] && { echo "--- $(basename "$OUT") is empty from an earlier failure; redoing"; rm -f "$OUT"; }
   echo "=== a1 $BENCHMARK $L -> $(basename "$OUT") === $(date)"
   RAN=$((RAN + 1))
   if ! python -u Stage3/evaluate.py \
@@ -112,6 +119,8 @@ for L in $LANGS; do
       --local-files-only \
       "${IMAGE_ARGS[@]}"; then
     echo "### a1 $BENCHMARK $L FAILED — continuing"
+    # Leave no stub behind: the next run must see this cell as undone.
+    [ -s "$OUT" ] || rm -f "$OUT"
     FAILED+=("$L")
   fi
 done
