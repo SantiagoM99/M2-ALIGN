@@ -126,8 +126,13 @@ for L in $LANGS; do
 done
 
 mkdir -p "$RESULTS_DIR"
-cp "$OUT_DIR"/eval_*_"$TAG".jsonl "$RESULTS_DIR/" 2>/dev/null || true
-cp "$OUT_DIR"/eval_*_"$TAG".jsonl.summary.json "$RESULTS_DIR/" 2>/dev/null || true
+# Copy only non-empty files. The glob `eval_*_matched.jsonl` also matches the
+# zero-byte `eval_cvqa_bn_a1_matched.jsonl` stubs an earlier failed tag left in
+# outputs, which is how five empty files kept reappearing in results after being
+# deleted (harvest of 2026-10-03).
+for f in "$OUT_DIR"/eval_*_"$TAG".jsonl "$OUT_DIR"/eval_*_"$TAG".jsonl.summary.json; do
+  [ -s "$f" ] && cp "$f" "$RESULTS_DIR/"
+done
 echo "=== Done === $(date): $RAN evaluated, her_code=$A1_SHA"
 [ "$RAN" -gt 0 ] || { echo "ERROR: nothing ran; every output already existed"; exit 1; }
 echo "Harvest with: bash Approach2/job-scripts/harvest.sh"

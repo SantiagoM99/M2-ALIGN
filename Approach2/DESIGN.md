@@ -4817,3 +4817,52 @@ hers to collect) and **cultural knowledge injected as stage-3 data**
 zero-shot claim). Prediction to register before that run: the gain concentrates in
 the `other` subset, and if it appears instead in `shortcut`, the arm learned the
 benchmark's answer-choice prior rather than any knowledge, and is withdrawn.
+
+### Her 64-token evaluation costs a1 3.35 CVQA points, and reverses its verdict — 2026-10-03
+
+The matched-resolution arm (job 22355665, 588 merged tokens against her default
+64) on the same five languages and the same items:
+
+| | a1 @64 | a1 @588 | Δ | Qwen @588 | v4 @729 |
+|---|---|---|---|---|---|
+| bn | 34.97 | 37.76 | +2.80 | 39.16 | 39.16 |
+| ga | 36.81 | 42.33 | +5.52 | 32.21 | 35.58 |
+| jv | 35.35 | 40.74 | +5.39 | 36.36 | 40.07 |
+| mn | 34.94 | 36.22 | +1.28 | 36.86 | 41.35 |
+| si | 34.22 | 36.00 | +1.78 | 39.11 | 47.11 |
+| **mean** | **35.26** | **38.61** | **+3.35** | 36.74 | 40.65 |
+
+**Two corrections to yesterday's entry, both material.**
+
+First, the resolution bound. I put a1's handicap at "about 0.9 points" from the
+Qwen density slope (187 → ~1400 tokens, +0.91). The measured cost is **+3.35**,
+nearly four times that. The slope was measured from 187 upward and her setting is
+64, so the estimate was an extrapolation below the measured range and should not
+have been offered as a bound. The lesson is specific: the density curve is flat
+above ~187 tokens and steep below it, which is a fact about where the knee sits,
+not about the benchmark's insensitivity.
+
+Second, and more important: **"a1 is below its own backbone on CVQA" was an
+artefact of her evaluation setting.** At matched resolution a1 is *above* its
+backbone, +2.28 [0.00, +4.65], McNemar p = 0.079 over 1,446 items — suggestive
+and not significant, with a lower bound sitting exactly on zero, but no longer
+the negative result her own numbers show (+0.15 over baseline). Her reported CVQA
+conclusion is depressed by her evaluation, not by her architecture.
+
+**Against our v4 on bn, where both systems are supervised on bn:** a1 @588 37.76
+vs v4 39.16, i.e. **−1.40 [−7.59, +4.48], p = 0.75**. The point estimate has
+shrunk from −4.20 to −1.40 as the confound was removed, and the interval still
+covers zero. Nothing distinguishes the two architectures on CVQA-bn, and the
+honest reading of the sequence is that each time a confound is removed the gap
+gets smaller, not that a lead is being confirmed.
+
+**Consequence for the text-bridge story.** "A text bridge does nothing on CVQA"
+now has to be stated more carefully: at her resolution it does nothing visible,
+at matched resolution it is worth about two points with a one-sided lower bound
+at zero. The question-necessity structure is unchanged — 63% of items at chance,
+9% where the question decides — so the mechanism claim stands, but the magnitude
+claim about CVQA was measured through an instrument set too coarse to see it.
+
+Operational: the five empty `eval_cvqa_*_a1_matched.jsonl` stubs kept returning
+to `results/` because the copy glob for `TAG=matched` also matched them; the
+launcher now copies only non-empty files.
