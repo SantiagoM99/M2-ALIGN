@@ -72,6 +72,18 @@ and the resolution. What survives as the difference is visual token density —
 196 merged tokens against 729 unmerged at the same image size — and it is testable
 by inference alone, across backbones. DESIGN.md 2026-09-29.
 
+### The CVQA lead over a1 is withdrawn; a1 leads on xGQA — 2026-10-02
+
+First paired comparison on identical items in one environment (DESIGN 2026-10-02):
+on CVQA-bn a1 − v4 is −4.20 with the interval covering zero (p = 0.24, n = 286),
+so **no difference is detected** and the +4.89 we had been quoting is withdrawn —
+it compared our per-language checkpoints against a number from her message. On
+xGQA-bn a1 leads by **+4.45** [+3.33, +5.53], p = 6×10⁻²², on 12,578 items over
+398 image clusters. The registered density control (job 22302078) rules out the
+visual-token budget as the xGQA explanation: 187 tokens against ~1,400 changes
+nothing (+0.11, p = 0.17). The pooled a1 in the queue is what makes the CVQA
+comparison powered, in every language rather than one.
+
 ### Paper framing, sharpened 2026-09-26
 
 The paper proposes an architecture, and after the literature check of 2026-09-26

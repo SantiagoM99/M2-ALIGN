@@ -18,6 +18,12 @@ image clusters, stratified by language. CVQA ids carry their image
 pointing at a file whose rows carry `image_id`, and refuses without it rather
 than pretending 12,578 questions are 12,578 independent draws over 398 images.
 
+A collaborator's system may have no blind mode at all — Maryam's evaluator has
+no gray canvas — and then dV does not exist for that arm. `--full-only NAME`
+says so out loud: that arm is read in the full condition only, its dV is null,
+and every contrast touching it reports accuracy alone. It has to be named,
+because an arm whose blind file is merely *missing* is a mistake, not a design.
+
     python3 ../analysis/arch_compare.py \\
       --arm qwen=qwen_{b}_{L}{blind}.jsonl \\
       --arm a2_v4=eval_{b}_{L}{blind}_v4.jsonl \\
@@ -64,17 +70,24 @@ def read_scores(path: Path) -> dict[str, int]:
     return out
 
 
+# xGQA's images are Visual Genome's, and the two pipelines name the field
+# differently: ours writes `image_id`, hers writes `vg_image_id`. Same id.
+IMAGE_FIELDS = ("image_id", "vg_image_id")
+
+
 def read_image_map(path: Path) -> dict[str, str]:
-    """id -> image, from any result file whose rows carry `image_id`."""
+    """id -> image, from any result file whose rows carry one of IMAGE_FIELDS."""
     out: dict[str, str] = {}
     with path.open(encoding="utf-8") as handle:
         for line in handle:
             if not line.strip():
                 continue
             row = json.loads(line)
-            if "image_id" not in row:
-                fail(f"{path}: rows carry no image_id, so it cannot serve as an image map")
-            out[str(row["id"])] = str(row["image_id"])
+            field = next((f for f in IMAGE_FIELDS if f in row), None)
+            if field is None:
+                fail(f"{path}: rows carry none of {', '.join(IMAGE_FIELDS)}, "
+                     "so it cannot serve as an image map")
+            out[str(row["id"])] = str(row[field])
     return out
 
 
@@ -86,18 +99,19 @@ def cluster_of(benchmark: str, item: str, image_map: dict[str, str]) -> str:
     fail(f"{benchmark} item {item} has no image: pass --image-map for pooled intervals")
 
 
-def load_arm(template: str, benchmark: str, langs) -> dict:
+def load_arm(template: str, benchmark: str, langs, full_only: bool = False) -> dict:
+    conditions = {"full": ""} if full_only else CONDITIONS
     cells = {}
     for lang in langs:
         cells[lang] = {
             condition: read_scores(Path(template.format(b=benchmark, L=lang, blind=marker)))
-            for condition, marker in CONDITIONS.items()
+            for condition, marker in conditions.items()
         }
     return cells
 
 
 def shared_items(arms: dict, lang: str) -> list[str]:
-    sets = [set(cell[lang][c]) for cell in arms.values() for c in CONDITIONS]
+    sets = [set(scores) for cell in arms.values() for scores in cell[lang].values()]
     common = set.intersection(*sets)
     if not common:
         fail(f"{lang}: the arms share no scored items")
@@ -114,11 +128,11 @@ def mcnemar_exact(b: int, c: int) -> float:
 
 
 def endpoints(cell: dict, items) -> dict:
-    full, blind = cell["full"], cell["blind"]
-    return {
-        "full": {i: full[i] for i in items},
-        "dv": {i: full[i] - blind[i] for i in items},
-    }
+    full = cell["full"]
+    out = {"full": {i: full[i] for i in items}}
+    if "blind" in cell:
+        out["dv"] = {i: full[i] - cell["blind"][i] for i in items}
+    return out
 
 
 def interval(values: dict, clusters: dict, B: int, seed: int, label: str) -> dict:
@@ -139,6 +153,12 @@ def interval(values: dict, clusters: dict, B: int, seed: int, label: str) -> dic
     }
 
 
+def shared_endpoints(a: dict, b: dict) -> tuple:
+    """Only the endpoints both arms measured: dV needs a blind arm on both sides."""
+    return tuple(e for e in ("full", "dv")
+                 if all(e in a[lang] for lang in a) and all(e in b[lang] for lang in b))
+
+
 def compare(name_a: str, name_b: str, a: dict, b: dict) -> dict:
     """Arm a minus arm b, per item, plus the exact McNemar on full accuracy."""
     discordant_a = discordant_b = 0
@@ -153,7 +173,7 @@ def compare(name_a: str, name_b: str, a: dict, b: dict) -> dict:
         "differences": {
             endpoint: {lang: {i: a[lang][endpoint][i] - b[lang][endpoint][i] for i in a[lang][endpoint]}
                        for lang in a}
-            for endpoint in ("full", "dv")
+            for endpoint in shared_endpoints(a, b)
         },
         "mcnemar": {
             f"{name_a}_only": discordant_a,
@@ -189,14 +209,15 @@ def analyse(arms: dict, benchmark: str, langs, image_map: dict, B=4000, seed=0) 
             lang: {
                 "n": len(cells[lang]["full"]),
                 "full": 100 * sum(cells[lang]["full"].values()) / len(cells[lang]["full"]),
-                "dv": 100 * sum(cells[lang]["dv"].values()) / len(cells[lang]["dv"]),
+                "dv": (100 * sum(cells[lang]["dv"].values()) / len(cells[lang]["dv"])
+                       if "dv" in cells[lang] else None),
             }
             for lang in cells
         }
         report["pooled"][name] = {
             endpoint: interval({lang: cells[lang][endpoint] for lang in cells},
                                clusters, B, seed, f"{benchmark}:{name}:{endpoint}")
-            for endpoint in ("full", "dv")
+            for endpoint in ("full", "dv") if endpoint in next(iter(cells.values()))
         }
     names = sorted(arms)
     for i, name_a in enumerate(names):
@@ -207,7 +228,7 @@ def analyse(arms: dict, benchmark: str, langs, image_map: dict, B=4000, seed=0) 
                 "mcnemar": c["mcnemar"],
                 **{endpoint: interval(c["differences"][endpoint], clusters, B, seed,
                                       f"{benchmark}:{key}:{endpoint}")
-                   for endpoint in ("full", "dv")},
+                   for endpoint in c["differences"]},
                 "per_language_full": {
                     lang: 100 * sum(v.values()) / len(v)
                     for lang, v in c["differences"]["full"].items()
@@ -222,6 +243,8 @@ def main() -> None:
                    help="NAME=TEMPLATE, e.g. qwen=qwen_{b}_{L}{blind}.jsonl")
     p.add_argument("--benchmark", required=True, choices=["cvqa", "xgqa"])
     p.add_argument("--langs", required=True, nargs="+")
+    p.add_argument("--full-only", action="append", default=[], metavar="NAME",
+                   help="arm with no blind mode: full accuracy only, dV null")
     p.add_argument("--image-map", help="result file whose rows carry image_id (needed for xGQA)")
     p.add_argument("--output", required=True)
     p.add_argument("--boot", type=int, default=4000)
@@ -229,13 +252,23 @@ def main() -> None:
     a = p.parse_args()
 
     arms = {}
+    specs = {}
     for spec in a.arm:
         if "=" not in spec:
             fail(f"--arm {spec!r} is not NAME=TEMPLATE")
         name, template = spec.split("=", 1)
-        if "{L}" not in template or "{blind}" not in template:
-            fail(f"--arm {name}: the template needs {{L}} and {{blind}}")
-        arms[name] = load_arm(template, a.benchmark, a.langs)
+        specs[name] = template
+    unknown = [name for name in a.full_only if name not in specs]
+    if unknown:
+        fail(f"--full-only names no such arm: {', '.join(unknown)}")
+    for name, template in specs.items():
+        full_only = name in a.full_only
+        if "{L}" not in template:
+            fail(f"--arm {name}: the template needs {{L}}")
+        if "{blind}" not in template and not full_only:
+            fail(f"--arm {name}: the template needs {{blind}}, or --full-only {name} "
+                 "if that system has no blind mode")
+        arms[name] = load_arm(template, a.benchmark, a.langs, full_only)
     if len(arms) < 2:
         fail("at least two arms are needed")
 
@@ -245,11 +278,14 @@ def main() -> None:
 
     for name in report["arms"]:
         pooled = report["pooled"][name]
-        print(f"{name:12s} full {pooled['full']['estimate']:6.2f}  dV {pooled['dv']['estimate']:6.2f}")
+        dv = f"{pooled['dv']['estimate']:6.2f}" if "dv" in pooled else "  n/a (no blind arm)"
+        print(f"{name:12s} full {pooled['full']['estimate']:6.2f}  dV {dv}")
     for key, c in sorted(report["contrasts"].items()):
-        print(f"{key}: full {c['full']['estimate']:+.2f} {c['full']['ci95']}, "
-              f"dV {c['dv']['estimate']:+.2f} {c['dv']['ci95']}, "
-              f"McNemar p = {c['mcnemar']['p_two_sided']:.3g}")
+        line = (f"{key}: full {c['full']['estimate']:+.2f} {c['full']['ci95']}, "
+                f"McNemar p = {c['mcnemar']['p_two_sided']:.3g}")
+        if "dv" in c:
+            line += f", dV {c['dv']['estimate']:+.2f} {c['dv']['ci95']}"
+        print(line)
     print(f"-> {a.output}")
 
 

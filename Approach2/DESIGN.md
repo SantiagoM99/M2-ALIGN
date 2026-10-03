@@ -4715,3 +4715,57 @@ visual tokens that budget is mostly text, so whether it ever binds is a question
 about her reported numbers, not about ours, and it is answerable from the per-item
 files 22300402 already wrote. To check before quoting anything of hers at the item
 level.
+
+### a1 trained here beats us on xGQA and ties us on CVQA — 2026-10-02
+
+The first paired, same-environment, same-items comparison between the two
+approaches. a1 is our own reproduction of her per-language pipeline (jobs
+22219792/3/4, Bengali), evaluated with her evaluator on our data; v4 is our
+Bengali supervised checkpoint. `analysis/arch_compare.py` gained `--full-only`,
+because her evaluator has no gray canvas and so a1 has no ΔV — an arm whose blind
+file is merely missing still fails closed, but an arm that genuinely has no blind
+mode can now be named as such. It also accepts her `vg_image_id` as the xGQA image
+map, the same Visual Genome id our files call `image_id`.
+
+| benchmark | v4 | a1 | a1 − v4 | McNemar |
+|---|---|---|---|---|
+| CVQA bn (n=286) | 39.16 | 34.97 | **−4.20** [−10.95, +2.12] | p = 0.24 |
+| xGQA bn (n=12,578, 398 images) | 47.66 | 52.11 | **+4.45** [+3.33, +5.53] | p = 6×10⁻²² |
+
+**On CVQA there is no difference detected, and our lead is withdrawn as a claim.**
+The +4.89 figure (43.42 vs 38.53) compared ten of our per-language checkpoints
+against one of her numbers quoted from a message; paired on identical items in one
+environment it is +4.20 on the one language where both systems are supervised, with
+an interval that covers zero and p = 0.24. At n = 286 this panel cannot resolve
+four points — exactly the underpowering CLAUDE.md warns about — so the honest
+statement is "not distinguishable here", not "we lead".
+
+**On xGQA a1 beats us, significantly, and that is the first time the two
+architectures have been compared on identical items.** It is also consistent with
+every mechanism result we have: xGQA is where a text bridge substitutes for
+backbone multilingual competence, and a1's bridge feeds a backbone that can
+already do VQA while ours feeds a text-only Gemma.
+
+**The other four CVQA languages cannot be used, and the reason is the old error
+in a new place.** Our v4 cells are per-language supervised (`stage3_jv_v4` and so
+on) while a1 is one Bengali checkpoint applied to jv/mn/ga/si zero-shot. Pooling
+those five languages gives a1 − v4 of −4.91 [−7.74, −2.06], p = 0.0012, and that
+number is **not reportable**: it is supervised against zero-shot. Deleted nothing
+and recorded it here so it cannot be rediscovered as good news. This is the second
+reason the pooled a1 now in the queue matters: one checkpoint over every language
+is comparable in every language, which turns 286 usable items into 1,446.
+
+**Resolution is the remaining confound on CVQA only, and it is now bounded.**
+a1 ran at her 64 visual tokens against our 729. Job 22302078 — the registered
+density control — ran Qwen on xGQA at 200,704 px (187 merged tokens) against its
+own ~1,400 default over seven languages: **+0.11 [−0.07, +0.28], p = 0.17, i.e.
+nothing**, with ΔV equally flat (+0.11). So on xGQA the token budget buys nothing
+and a1's +4.45 is not a resolution artefact. On CVQA the earlier sweep measured
+about 1.12 points over a 7.5-fold change, so part of the CVQA gap could be budget
+— which is what the matched-resolution rerun is for.
+
+**Our xGQA reproduction of a1 is 4.85 below her reported 56.96** (52.11 here).
+Candidate causes, untested: our stage 1 ran 1 epoch against her 3, ours is
+per-language against her pooled, and her number may be from the pooled or the
+pooled+replay checkpoint. Not a claim about her result; a gap to close before any
+table prints both.

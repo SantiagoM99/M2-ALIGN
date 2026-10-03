@@ -96,6 +96,51 @@ class ArchCompareTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "share no scored items"):
             analyse(arms, "cvqa", ["jv"], {}, B=50)
 
+    def test_the_image_map_accepts_her_vg_image_id_field(self):
+        """Her xGQA rows name the Visual Genome image `vg_image_id`; ours `image_id`."""
+        path = Path(self.root) / "hers.jsonl"
+        path.write_text('{"id": "7", "vg_image_id": "img3", "correct": true}\n', encoding="utf-8")
+        self.assertEqual(read_image_map(path), {"7": "img3"})
+
+    def test_an_image_map_with_neither_field_fails_closed(self):
+        path = Path(self.root) / "plain.jsonl"
+        path.write_text('{"id": "7", "correct": true}\n', encoding="utf-8")
+        with self.assertRaises(SystemExit):
+            read_image_map(path)
+
+    def test_a_full_only_arm_reports_accuracy_and_no_dv(self):
+        """A collaborator's system with no gray canvas still gets a paired contrast."""
+        arms = self.arms({"ours": (30, 10)})
+        write_arm(self.root, "theirs", "cvqa", "jv", 24, 0)
+        Path(self.root, "theirs_cvqa_jv_BLIND.jsonl").unlink()
+        arms["theirs"] = load_arm(str(Path(self.root) / "theirs_{b}_{L}.jsonl"),
+                                  "cvqa", ["jv"], full_only=True)
+        report = analyse(arms, "cvqa", ["jv"], {}, B=50)
+        self.assertAlmostEqual(report["pooled"]["theirs"]["full"]["estimate"], 100 * 24 / N)
+        self.assertNotIn("dv", report["pooled"]["theirs"])
+        self.assertIsNone(report["per_language"]["theirs"]["jv"]["dv"])
+        contrast = report["contrasts"]["ours-minus-theirs"]
+        self.assertAlmostEqual(contrast["full"]["estimate"], 100 * (30 - 24) / N)
+        self.assertNotIn("dv", contrast)
+        self.assertEqual(contrast["mcnemar"]["ours_only"], 6)
+        self.assertEqual(contrast["mcnemar"]["theirs_only"], 0)
+
+    def test_the_other_arm_keeps_its_dv(self):
+        """One arm without a blind mode must not cost the others their dV."""
+        arms = self.arms({"ours": (30, 10), "backbone": (20, 5)})
+        write_arm(self.root, "theirs", "cvqa", "jv", 24, 0)
+        arms["theirs"] = load_arm(str(Path(self.root) / "theirs_{b}_{L}.jsonl"),
+                                  "cvqa", ["jv"], full_only=True)
+        report = analyse(arms, "cvqa", ["jv"], {}, B=50)
+        self.assertAlmostEqual(report["pooled"]["ours"]["dv"]["estimate"], 100 * (30 - 10) / N)
+        self.assertIn("dv", report["contrasts"]["backbone-minus-ours"])
+
+    def test_a_missing_blind_file_without_the_flag_fails_closed(self):
+        write_arm(self.root, "theirs", "cvqa", "jv", 24, 0)
+        Path(self.root, "theirs_cvqa_jv_BLIND.jsonl").unlink()
+        with self.assertRaises(SystemExit):
+            load_arm(str(Path(self.root) / "theirs_{b}_{L}{blind}.jsonl"), "cvqa", ["jv"])
+
     def test_arm_order_does_not_change_the_report(self):
         arms = self.arms({"a": (36, 12), "b": (24, 12)})
         reversed_arms = {name: arms[name] for name in reversed(list(arms))}
