@@ -4769,3 +4769,51 @@ Candidate causes, untested: our stage 1 ran 1 epoch against her 3, ours is
 per-language against her pooled, and her number may be from the pooled or the
 pooled+replay checkpoint. Not a claim about her result; a gap to close before any
 table prints both.
+
+### Where CVQA's headroom actually is: 62% of items sit at chance — 2026-10-03
+
+Qwen's CVQA baseline over bn/ga/jv/mn/si, at four visual budgets, against both
+systems:
+
+| arm | mean CVQA (5 langs) |
+|---|---|
+| Qwen, 187 tokens | 36.37 |
+| Qwen, 588 | 36.74 |
+| Qwen, 1176 | 37.04 |
+| Qwen, ~1400 (its default) | 37.28 |
+| **Qwen, question deleted** | **39.73** |
+| a1, 64 tokens | 35.26 |
+| v4, 729 tokens | 40.65 |
+
+Two things follow immediately. **a1 is below its own backbone on CVQA** at every
+resolution we measured, and the 64-token handicap (worth about 0.9 points over a
+7.5-fold change, measured here) does not cover the gap. **Our v4 is above it**, by
+3.37 against Qwen's own default — so "still below the CVQA baseline" is true of a1
+and false of Approach 2.
+
+**The question-necessity split, now run with Qwen as the reference and both
+systems as arms (neither is the reference, so the split is valid):**
+
+| subset | share | v4 | a1 |
+|---|---|---|---|
+| necessary (question decides) | 9.1% | 48.85 | 45.04 |
+| shortcut (image + choices suffice) | 28.0% | 64.69 | 73.83 |
+| other (baseline wrong with the question) | 62.9% | 28.13 | 16.81 |
+
+On bn alone, where a1 is in-language and the arms are therefore comparable, the
+`other` cell is **v4 25.0 and a1 17.05, against 25.0 for a four-way coin**. Neither
+system has option-position bias (predicted indices are flat and match the answer
+distribution), so this is not a scoring artefact: **on the 63% of CVQA that its
+backbone gets wrong, our system is exactly at chance and a1 is below it.**
+
+**What this says about the lever.** Those items are culture-specific facts — which
+deity, which dish, which festival — and the benchmark already scores higher with
+the question deleted (39.73, above every with-question arm). A text bridge improves
+the pathway CVQA least rewards, which is why a1's bridge buys +0.15 there against
++6.75 on xGQA, and why no further work on the text mapping can be expected to move
+CVQA. The levers that match the measurement are the visual budget (small, free, and
+hers to collect) and **cultural knowledge injected as stage-3 data**
+(`build_culturalground.py`, donor languages only — training a target ends its
+zero-shot claim). Prediction to register before that run: the gain concentrates in
+the `other` subset, and if it appears instead in `shortcut`, the arm learned the
+benchmark's answer-choice prior rather than any knowledge, and is withdrawn.

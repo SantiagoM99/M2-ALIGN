@@ -1,0 +1,105 @@
+{
+  "arms": {
+    "a1": {
+      "all": {
+        "ci95": [
+          29.25170068027211,
+          40.83044982698962
+        ],
+        "estimate": 34.96503496503497,
+        "image_clusters": 136,
+        "items": 286
+      },
+      "necessary": {
+        "ci95": [
+          21.05263157894737,
+          63.63636363636363
+        ],
+        "estimate": 42.857142857142854,
+        "image_clusters": 19,
+        "items": 21
+      },
+      "other": {
+        "ci95": [
+          11.764705882352942,
+          22.77777777777778
+        ],
+        "estimate": 17.045454545454547,
+        "image_clusters": 117,
+        "items": 176
+      },
+      "shortcut": {
+        "ci95": [
+          59.375,
+          77.38095238095238
+        ],
+        "estimate": 68.53932584269663,
+        "image_clusters": 70,
+        "items": 89
+      }
+    },
+    "v4": {
+      "all": {
+        "ci95": [
+          34.05797101449275,
+          44.11764705882353
+        ],
+        "estimate": 39.16083916083916,
+        "image_clusters": 136,
+        "items": 286
+      },
+      "necessary": {
+        "ci95": [
+          38.095238095238095,
+          76.19047619047619
+        ],
+        "estimate": 57.142857142857146,
+        "image_clusters": 19,
+        "items": 21
+      },
+      "other": {
+        "ci95": [
+          18.579234972677597,
+          31.791907514450866
+        ],
+        "estimate": 25.0,
+        "image_clusters": 117,
+        "items": 176
+      },
+      "shortcut": {
+        "ci95": [
+          53.93258426966292,
+          71.95121951219512
+        ],
+        "estimate": 62.92134831460674,
+        "image_clusters": 70,
+        "items": 89
+      }
+    }
+  },
+  "boot": 4000,
+  "counts": {
+    "necessary": 21,
+    "other": 176,
+    "shortcut": 89
+  },
+  "definition": "necessary = reference right with the question and wrong without it; shortcut = right both ways; other = wrong with the question",
+  "langs": [
+    "bn"
+  ],
+  "reference_by_construction": {
+    "necessary": "100% for the reference by definition",
+    "other": "0% for the reference by definition",
+    "shortcut": "100% for the reference by definition"
+  },
+  "seed": 0,
+  "shares": {
+    "necessary": 7.34,
+    "other": 61.54,
+    "shortcut": 31.12
+  },
+  "split_defined_by": {
+    "blind": "qwen_cvqa_{L}_QBLIND.jsonl",
+    "with": "qwen_cvqa_{L}.jsonl"
+  }
+}
