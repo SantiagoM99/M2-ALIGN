@@ -116,6 +116,17 @@ echo "arm: $S3_SLUG (POOLED=$POOLED REPLAY=$REPLAY)"
 
 require () { [ -e "$1" ] || { echo "ERROR: missing $1"; exit 1; }; }
 
+# A whole node is only ever requested for the pooled run, so a job holding four
+# GPUs with POOLED=0 means the flag was lost between the shell and sbatch --
+# which is what happened to job 22343575, where a mangled command line spent 51
+# minutes of a 4-GPU node retraining Bengali.
+if [ "$POOLED" != 1 ] && [ "$(nvidia-smi --list-gpus 2>/dev/null | wc -l)" -ge 4 ]; then
+  echo "ERROR: $(nvidia-smi --list-gpus | wc -l) GPUs allocated but POOLED=0."
+  echo "  The pooled flag did not reach the job. Submit with Approach2/job-scripts/a1_pooled.sh,"
+  echo "  which sets the mode and the resources together."
+  exit 1
+fi
+
 cd "$A1_ROOT"
 case "$STAGE" in
   1)
