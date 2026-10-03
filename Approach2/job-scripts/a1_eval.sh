@@ -30,7 +30,11 @@
 #   TAG=her_default sbatch Approach2/job-scripts/a1_eval.sh
 #   VISUAL_PIXELS=602112 TAG=matched sbatch Approach2/job-scripts/a1_eval.sh
 #
-# Env: BENCHMARK (cvqa|xgqa), LANGS, CKPT, VISUAL_PIXELS, TAG, A1_ROOT, DT
+# The matched arm also needs a longer prompt budget; the launcher derives one
+# from the resolution rather than leaving her 512 to truncate the image tokens.
+#
+# Env: BENCHMARK (cvqa|xgqa), LANGS, CKPT, VISUAL_PIXELS, MAX_LLM_SEQ_LEN, TAG,
+#      A1_ROOT, DT
 set -uo pipefail
 
 ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
@@ -41,6 +45,15 @@ BENCHMARK="${BENCHMARK:-cvqa}"
 LANGS="${LANGS:-jv mn ga si bn}"
 CKPT="${CKPT:-$A2/outputs/a1_bn_stage3/pytorch_model.bin}"
 VISUAL_PIXELS="${VISUAL_PIXELS:-65536}"
+# Raising the resolution without raising this truncates the prompt. Her
+# `--max-llm-seq-len` defaults to 512 and her tokenizer truncates from the LEFT,
+# so at 588 visual tokens the truncation eats part of the image placeholder run
+# and the processor raises "Mismatch in `image` token count ... ids=[492] and
+# text=[588]" on every item (job 22300403, 10-02). The merge ratio is 32x32 px
+# per merged token, so the prompt needs the visual tokens plus room for the
+# question and the choices.
+VISUAL_TOKENS=$(( VISUAL_PIXELS / 1024 ))
+MAX_LLM_SEQ_LEN="${MAX_LLM_SEQ_LEN:-$(( VISUAL_TOKENS + 256 > 512 ? VISUAL_TOKENS + 256 : 512 ))}"
 TAG="${TAG:-a1}"
 MT="${MT:-facebook/nllb-200-distilled-600M}"
 LLM="${LLM:-Qwen/Qwen3-VL-8B-Instruct}"
@@ -63,7 +76,12 @@ source "$SCRATCH/venvs/m2-align/bin/activate"
 export HF_HOME="$SCRATCH/huggingface" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 
 mkdir -p "$OUT_DIR"
-echo "her code $A1_SHA | ckpt $CKPT | visual_pixels $VISUAL_PIXELS | tag $TAG"
+echo "her code $A1_SHA | ckpt $CKPT | visual_pixels $VISUAL_PIXELS (~$VISUAL_TOKENS tokens)"
+echo "max_llm_seq_len $MAX_LLM_SEQ_LEN | tag $TAG"
+[ "$MAX_LLM_SEQ_LEN" -gt "$VISUAL_TOKENS" ] || {
+  echo "ERROR: max_llm_seq_len $MAX_LLM_SEQ_LEN does not even fit $VISUAL_TOKENS visual tokens"
+  exit 1
+}
 cd "$A1_ROOT"
 RAN=0
 FAILED=()
@@ -89,6 +107,7 @@ for L in $LANGS; do
       --llm-path "$LLM" \
       --mt-path "$MT" \
       --visual-pixels "$VISUAL_PIXELS" \
+      --max-llm-seq-len "$MAX_LLM_SEQ_LEN" \
       --results-jsonl "$OUT" \
       --local-files-only \
       "${IMAGE_ARGS[@]}"; then

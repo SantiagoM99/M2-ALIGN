@@ -4696,3 +4696,22 @@ image-cluster bootstrap (LB5 of a1 − v4 ≥ 0), the claim that our architectur
 leads on CVQA is withdrawn, not reframed. On xGQA the prediction is the opposite
 direction — a1 pooled at or above her per-language 56.96 and above our 48.78 —
 because that is the benchmark where the bridge has something to substitute for.
+
+### Her evaluator truncates the prompt from the left, and 512 is the real cap — 2026-10-02
+
+The matched-resolution a1 arm (22300403) died on every item with "Mismatch in
+`image` token count between text and `input_ids`. Got ids=[492] and text=[588]".
+Not OOM: `--max-llm-seq-len` defaults to **512** and `tokenizer_llm.truncation_side
+= "left"`, so at 588 visual tokens the truncation cuts into the image placeholder
+run and the processor refuses. `a1_eval.sh` now derives the budget from the
+resolution (32×32 px per merged token, plus 256 for the question and choices) and
+exposes `MAX_LLM_SEQ_LEN`. Her default arm (22300402, ~64 tokens) is unaffected and
+stays at her 512, so comparability with her reported numbers is preserved.
+
+**The part that is not just an operational fix.** Left truncation is silent
+whenever it does *not* reach the image tokens: a CVQA prompt over 512 tokens loses
+its head — instruction and the start of the question — and still scores. At 64
+visual tokens that budget is mostly text, so whether it ever binds is a question
+about her reported numbers, not about ours, and it is answerable from the per-item
+files 22300402 already wrote. To check before quoting anything of hers at the item
+level.
