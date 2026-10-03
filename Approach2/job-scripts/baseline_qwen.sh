@@ -21,6 +21,11 @@
 #   BENCH  xgqa | cvqa | all   (default all; xGQA is the long half — split
 #          into BENCH=xgqa and BENCH=cvqa jobs if queue times matter)
 #   LANGS  override language list for the chosen benchmark
+#   LOCATION_AWARE=1  CVQA only: state the item's country in the prompt, which
+#                     is CVQA's own location-aware condition (2406.05967). The
+#                     country comes from each row's `subset` field, never from
+#                     the language: CVQA's Bengali subset is India. Output names
+#                     gain _LOC so the two conditions cannot overwrite each other.
 #   BLIND_QUESTION=1  CVQA only: keep image and choices, drop the native
 #          question. Writes *_QBLIND.jsonl, the text-side twin of the gray arm
 #   MIN_PIXELS / MAX_PIXELS  processor resolution; set MAX_PIXELS to a
@@ -49,6 +54,7 @@ GQA_IMAGES="${GQA_IMAGES:-$DT/Stage3/data/gqa/images}"
 [ -d "$GQA_IMAGES" ] || GQA_IMAGES="$PROJECT_ROOT/Stage3/data/gqa/images"
 
 BLIND_QUESTION="${BLIND_QUESTION:-0}"
+LOCATION_AWARE="${LOCATION_AWARE:-0}"
 RES_ARGS=()
 RES_TAG=""
 [ -n "${MIN_PIXELS:-}" ] && RES_ARGS+=(--min-pixels "$MIN_PIXELS")
@@ -87,6 +93,10 @@ run_one () {  # <bench> <lang> <blind:0|1>
   local args=()
   [ ${#RES_ARGS[@]} -gt 0 ] && args=("${RES_ARGS[@]}")
   [ "$blind" = 1 ] && { suffix="_BLIND"; args+=(--blind); }
+  if [ "$LOCATION_AWARE" = 1 ]; then
+    if [ "$bench" != cvqa ]; then echo "--- skip $bench (LOCATION_AWARE is CVQA only)"; return; fi
+    suffix="${suffix}_LOC"; args+=(--location-aware)
+  fi
   if [ "$BLIND_QUESTION" = 1 ]; then
     if [ "$bench" != cvqa ]; then echo "--- skip $bench (BLIND_QUESTION is CVQA only)"; return; fi
     suffix="${suffix}_QBLIND"; args+=(--blind-question)

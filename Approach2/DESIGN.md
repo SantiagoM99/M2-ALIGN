@@ -4866,3 +4866,48 @@ claim about CVQA was measured through an instrument set too coarse to see it.
 Operational: the five empty `eval_cvqa_*_a1_matched.jsonl` stubs kept returning
 to `results/` because the copy glob for `TAG=matched` also matched them; the
 launcher now copies only non-empty files.
+
+### Location-aware prompting: is the 63% missing knowledge or unretrieved knowledge? — 2026-10-03
+
+CVQA's own evaluation is a 2×2 — {location-aware, location-agnostic} × {English,
+local} (Romero et al., 2406.05967) — and **every CVQA number in this project is
+the location-agnostic, local-language cell**. Their location-aware condition puts
+the item's country in the prompt. We had never run it.
+
+**Why it is a diagnostic and not a score.** 62.9% of CVQA items are ones the
+backbone answers wrongly, and on those our system sits at chance (25.0 on bn,
+against 25.0 for a four-way coin). Two different states of the world produce
+that: the model does not hold the fact, or it holds it and the question does not
+retrieve it. Stating the country separates them, and the answer picks the lever.
+If the `other` subset lifts, the gap is retrieval and the fix is the prompt. If it
+does not, the knowledge is absent and CulturalGround is the right spend.
+
+**Prediction, recorded before the run.** The pooled CVQA gain from
+location-aware prompting is positive but small, LB5 > 0 and under two points, and
+it is **concentrated in the `other` subset**; `shortcut` moves by less than a
+point because those items are already answered without the question. Refuted if
+`other` does not move (interval covers zero) — which would say the knowledge is
+not there to retrieve. Also refuted *as a diagnostic*, differently, if the gain
+appears mostly in `shortcut`: that would mean the country is acting as a prior
+over answer strings rather than as a retrieval cue, and the arm says nothing about
+knowledge.
+
+**How the instrument could fail, at both ends.** It can bottom out because the
+country is already inferable from the image for many items, so there is nothing
+to add; the gray-canvas arm bounds that. It can also mislead upwards: the country
+narrows the plausible answer set, which raises accuracy without retrieving
+anything, and the `shortcut` cell is what detects that.
+
+**Both arms, same condition.** The baseline must get the same prompt or the
+contrast measures the prompt and not the architecture, so `baseline_qwen.sh` and
+`qblind_v4.sh` both gained `LOCATION_AWARE=1`, and the CVQA prompt moved into
+`cvqa_prompt.py`, shared by both evaluators — until today each built
+`Question: {question}` from its own f-string and could have drifted unnoticed.
+
+**The country comes from the row, never from the language.** CVQA's `Subset` is
+(language, country) and our rows carry it. This matters: **CVQA's Bengali subset
+is India, not Bangladesh**; Chinese spans China and Singapore; Spanish spans seven
+countries. `country_of` refuses a row without a subset rather than guessing. One
+consequence for the CG50 arm already registered: its documented example builds
+from `--country bangladesh` while the Bengali panel it would be evaluated on is
+India's, so that country choice has to be revisited before the build.

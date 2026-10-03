@@ -59,6 +59,11 @@ def parser(benchmark):
     p.add_argument(
         "--question-field", choices=["query", "english_query"], default="query"
     )
+    p.add_argument(
+        "--location-aware", action="store_true",
+        help="state the item's country in the prompt, CVQA's own location-aware "
+             "condition; every cell so far is location-agnostic"
+    )
     conditions = p.add_mutually_exclusive_group()
     conditions.add_argument("--blind", action="store_true")
     conditions.add_argument("--no-image", action="store_true")
@@ -100,6 +105,8 @@ def validate_args(a):
         raise ValueError(
             "English direct-prompt A4 requires --no-text-branch and question mode"
         )
+    if a.location_aware and a.benchmark != "cvqa":
+        raise ValueError("--location-aware is a CVQA condition; xGQA items have no country")
     if sum(bool(v) for v in (a.blind, a.no_image, a.shuffle_map)) > 1:
         raise ValueError("image conditions are mutually exclusive")
     if (
@@ -374,6 +381,7 @@ def make_manifest(a, prepared, state=None):
                 "max_seq_len",
                 "max_mt_seq_len",
                 "no_chat_template",
+                "location_aware",
             )
         },
         "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
@@ -452,6 +460,7 @@ class Runtime:
             llm_input_features,
             mt_input_features,
         )
+        from cvqa_prompt import country_of
         from evaluate_cvqa import format_cvqa_chat
         from evaluate_vqa import row_nllb_tag, open_ended_correct
 
@@ -500,9 +509,11 @@ class Runtime:
                 formatter = (
                     format_cvqa_chat if a.benchmark == "cvqa" else format_chat_prompt
                 )
+                country = country_of(row) if a.location_aware else None
                 prompt = formatter(
                     self.tokenizer_llm, asked(a, row, a.question_field),
                     not a.no_chat_template,
+                    *( (country,) if a.benchmark == "cvqa" else () ),
                 )
             ids, mask = llm_input_features(
                 [prompt],
@@ -516,6 +527,7 @@ class Runtime:
             result = {
                 **ident,
                 "query": asked(a, row, "query"),
+                "country_shown": country if a.location_aware else None,
                 "condition": cell_condition,
                 "assigned_image_id": assigned
                 if not a.no_image and not a.blind

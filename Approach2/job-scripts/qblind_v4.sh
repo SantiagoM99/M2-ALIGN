@@ -24,7 +24,13 @@
 #
 #   DT=/scratch/santimn/datatransfer sbatch Approach2/job-scripts/qblind_v4.sh
 #
-# Env: DT (required), LANGS, CKPT, TAG
+# LOCATION_AWARE=1 adds CVQA's own location-aware condition: the item's country
+# goes in the prompt, taken from each row's `subset` field. The name gains _LOC
+# before the blind marker, so `eval_cvqa_{L}_v4_LOC{blind}_wq_<tag>.jsonl` is
+# still an arch_compare template. Pass a fresh TAG so the two conditions do not
+# share a filename.
+#
+# Env: DT (required), LANGS, CKPT, TAG, LOCATION_AWARE
 set -uo pipefail
 
 ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
@@ -38,6 +44,7 @@ LANGS="${LANGS:-jv mn ga si}"
 ARM="${ARM:-zsbn}"
 CKPT="${CKPT:-$A2/outputs/stage3_bn_dcl/mapping/pytorch_model.bin}"
 TAG="${TAG:-0926}"
+LOCATION_AWARE="${LOCATION_AWARE:-0}"
 
 checkpoint_for () {  # <lang>
   if [ "$ARM" = zsbn ]; then echo "$CKPT"; return; fi
@@ -59,7 +66,7 @@ for L in $LANGS; do
   c=$(checkpoint_for "$L")
   [ -f "$c" ] || { echo "ERROR: no checkpoint for $L at $c"; exit 1; }
 done
-echo "ARM=$ARM TAG=$TAG LANGS=$LANGS"
+echo "ARM=$ARM TAG=$TAG LANGS=$LANGS LOCATION_AWARE=$LOCATION_AWARE"
 mkdir -p "$OUT_DIR"
 cd "$A2"
 RAN=0
@@ -71,6 +78,7 @@ run_cell () {  # <lang> <question:wq|qb> <image:correct|gray>
   local L="$1" q="$2" img="$3" name
   local args=()
   name="eval_cvqa_${L}_${ARM}"
+  [ "$LOCATION_AWARE" = 1 ] && { name="${name}_LOC"; args+=(--location-aware); }
   [ "$img" = gray ] && { name="${name}_BLIND"; args+=(--blind); }
   [ "$q" = qb ] && args+=(--blind-question)
   local out="$OUT_DIR/${name}_${q}_${TAG}.jsonl"

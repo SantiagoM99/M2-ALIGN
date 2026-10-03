@@ -31,17 +31,15 @@ from common import (
 )
 
 
-def build_cvqa_open_ended_prompt(question: str) -> str:
-    """Must match Stage3/evaluate.py's `build_cvqa_open_ended_prompt`:
-    question only, no visible options."""
-    return f"Question: {question}"
+from cvqa_prompt import build_cvqa_open_ended_prompt, country_of  # noqa: F401
 
 
-def format_cvqa_chat(tokenizer_llm, question: str, use_chat_template: bool) -> str:
+def format_cvqa_chat(tokenizer_llm, question: str, use_chat_template: bool,
+                     country: str | None = None) -> str:
     """Chat-wrap the CVQA prompt the same way common.format_chat_prompt does
     for open-ended VQA (system folded into the user turn, leading BOS
     stripped) — only the task prompt differs."""
-    user_prompt = build_cvqa_open_ended_prompt(question)
+    user_prompt = build_cvqa_open_ended_prompt(question, country)
     if not use_chat_template or getattr(tokenizer_llm, "chat_template", None) is None:
         return user_prompt
     messages = [{"role": "user", "content": f"{_VQA_SYSTEM}\n\n{user_prompt}"}]

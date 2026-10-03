@@ -45,9 +45,12 @@ import json
 import logging
 import os
 import re
+import sys
 
 import requests
 import torch
+from pathlib import Path
+
 from PIL import Image
 from transformers import AutoProcessor, Qwen3VLForConditionalGeneration
 from tqdm import tqdm
@@ -65,9 +68,10 @@ def build_open_ended_prompt(question: str) -> str:
     return f"Question: {question}\nAnswer with a single word or short phrase, in English."
 
 
-def build_cvqa_open_ended_prompt(question: str) -> str:
-    """Must match Stage3/evaluate.py's `build_cvqa_open_ended_prompt` exactly."""
-    return f"Question: {question}"
+# The CVQA prompt comes from Approach2/cvqa_prompt.py, shared with
+# evaluate_cvqa.py so the baseline and our stack cannot drift apart.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from cvqa_prompt import build_cvqa_open_ended_prompt, country_of  # noqa: E402
 
 
 def blind_question(question: str, enabled: bool) -> str:
@@ -288,6 +292,7 @@ def evaluate_cvqa_open_ended(
     rows: list[dict], lang: str, image_resolver,
     model, processor, device, max_examples: int | None, logger: logging.Logger,
     output_path: str | None = None, hide_question: bool = False,
+    location_aware: bool = False,
 ) -> tuple[float, int]:
     """CVQA's own open-ended protocol: no options shown in the prompt; score
     each candidate answer choice by log-likelihood and take the argmax."""
@@ -300,7 +305,10 @@ def evaluate_cvqa_open_ended(
         if image is None:
             continue
         choices = row["choices"]
-        prompt = build_cvqa_open_ended_prompt(blind_question(row["query"], hide_question))
+        prompt = build_cvqa_open_ended_prompt(
+            blind_question(row["query"], hide_question),
+            country_of(row) if location_aware else None,
+        )
         scores = [
             score_choice_loglikelihood(image, prompt, choice, _VQA_SYSTEM, model, processor, device)
             for choice in choices
@@ -314,6 +322,7 @@ def evaluate_cvqa_open_ended(
                 "id": row.get("id", idx), "query": row["query"],
                 "choices": choices, "answer_index": target_idx,
                 "pred_index": pred_idx, "scores": scores, "correct": ok,
+                "country_shown": country_of(row) if location_aware else None,
             }, ensure_ascii=False) + "\n")
         if idx < 5:
             logger.info(
@@ -360,6 +369,9 @@ def main() -> None:
     parser.add_argument("--blind", action="store_true",
                         help="Replace every image with a neutral gray canvas — the same "
                              "language-prior control as Approach2/evaluate_vqa.py --blind.")
+    parser.add_argument("--location-aware", action="store_true",
+                        help="state the item's country in the prompt (CVQA's own "
+                             "location-aware condition; needs the `subset` field)")
     parser.add_argument("--blind-question", action="store_true",
                         help="CVQA only: keep image and answer choices, remove the native question.")
     parser.add_argument("--min-pixels", type=int, default=None,
@@ -401,6 +413,7 @@ def main() -> None:
         acc, correct = evaluate_cvqa_open_ended(
             rows, args.lang, resolver, model, processor, device, max_examples, logger,
             output_path=args.output_path, hide_question=args.blind_question,
+            location_aware=args.location_aware,
         )
     else:
         acc, correct = evaluate_open_ended(
@@ -414,6 +427,7 @@ def main() -> None:
             "scored": len(rows), "correct": correct, "accuracy": acc / 100.0,
             "data_path": args.eval_data, "model_id": args.model_id,
             "blind": args.blind, "blind_question": args.blind_question,
+            "location_aware": args.location_aware,
             "min_pixels": args.min_pixels, "max_pixels": args.max_pixels,
             "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
         }
