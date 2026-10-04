@@ -4911,3 +4911,27 @@ countries. `country_of` refuses a row without a subset rather than guessing. One
 consequence for the CG50 arm already registered: its documented example builds
 from `--country bangladesh` while the Bengali panel it would be evaluated on is
 India's, so that country choice has to be revisited before the build.
+
+### Ten CVQA cells reproduce byte-identically, and a launcher now refuses a stale tree — 2026-10-04
+
+Jobs 22437673 and 22437674 were meant to be the location-aware arms. They were
+submitted before the code that implements the condition was pulled, and SLURM
+freezes only the batch script — the evaluator is read when the job runs — so they
+ran the location-**agnostic** condition into files named `_loc`. A name that
+claims a condition the file does not hold is worse than a crash, so all 80 files
+were deleted, and both launchers now refuse `LOCATION_AWARE=1` when the evaluator
+in the tree has no such flag.
+
+**What the waste bought.** Those cells were exact re-runs of cells scored on
+2026-09-26, and the per-item `correct` vectors are **byte-identical** on all ten:
+v4/zsbn on ga/jv/mn/si in both question conditions, and the Bengali cell against
+its own `1002` counterpart (same `stage3_bn_dcl` checkpoint), plus the five Qwen
+baseline cells against their originals. Across eight days, three different nodes
+and two job submissions, the evaluation path is deterministic to the bit. That is
+the reproducibility claim the paper needs and we had never measured it directly.
+
+Also corrected: `qblind_v4.sh`'s `ARM` defaults to `zsbn`, one Bengali checkpoint
+applied to every language, and the per-language supervised arm needs `ARM=v4`.
+The command issued on 10-03 omitted it, which would have put a zero-shot arm into
+a comparison against per-language systems — the same error as the withdrawn
+`+2.51`, caught here by the filename rather than by the reasoning.

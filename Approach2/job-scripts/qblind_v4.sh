@@ -30,7 +30,11 @@
 # still an arch_compare template. Pass a fresh TAG so the two conditions do not
 # share a filename.
 #
-# Env: DT (required), LANGS, CKPT, TAG, LOCATION_AWARE
+# ARM defaults to `zsbn` (one Bengali checkpoint applied to every language). The
+# per-language supervised arm is ARM=v4, and a comparison against a per-language
+# system needs it: mixing the two is the supervised-vs-zero-shot error.
+#
+# Env: DT (required), LANGS, CKPT, TAG, ARM (zsbn|v4), LOCATION_AWARE
 set -uo pipefail
 
 ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
@@ -66,6 +70,17 @@ for L in $LANGS; do
   c=$(checkpoint_for "$L")
   [ -f "$c" ] || { echo "ERROR: no checkpoint for $L at $c"; exit 1; }
 done
+# Refuse when the condition cannot actually be honoured. SLURM freezes the batch
+# script at submit time but the evaluator is read when the job RUNS, so a job
+# submitted before `git pull` runs old Python under a new launcher: jobs 22437673
+# and 22437674 spent 2.5 GPU-hours re-running the location-AGNOSTIC condition
+# into files named `_loc`, which is worse than failing, because the name claims
+# a condition the file does not hold.
+if [ "$LOCATION_AWARE" = 1 ] && ! grep -q -- "--location-aware" "$A2/eval_runtime.py"; then
+  echo "ERROR: LOCATION_AWARE=1 but $A2/eval_runtime.py has no --location-aware."
+  echo "  The working tree predates it: git pull, then resubmit."
+  exit 1
+fi
 echo "ARM=$ARM TAG=$TAG LANGS=$LANGS LOCATION_AWARE=$LOCATION_AWARE"
 mkdir -p "$OUT_DIR"
 cd "$A2"

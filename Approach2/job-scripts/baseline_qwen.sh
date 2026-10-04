@@ -55,6 +55,17 @@ GQA_IMAGES="${GQA_IMAGES:-$DT/Stage3/data/gqa/images}"
 
 BLIND_QUESTION="${BLIND_QUESTION:-0}"
 LOCATION_AWARE="${LOCATION_AWARE:-0}"
+# Refuse when the condition cannot actually be honoured. SLURM freezes the batch
+# script at submit time but the evaluator is read when the job RUNS, so a job
+# submitted before `git pull` runs old Python under a new launcher: jobs 22437673
+# and 22437674 spent 2.5 GPU-hours re-running the location-AGNOSTIC condition
+# into files named `_loc`, which is worse than failing, because the name claims
+# a condition the file does not hold.
+if [ "$LOCATION_AWARE" = 1 ] && ! grep -q -- "--location-aware" "$A2/baseline_qwen/evaluate.py"; then
+  echo "ERROR: LOCATION_AWARE=1 but baseline_qwen/evaluate.py has no --location-aware."
+  echo "  The working tree predates it: git pull, then resubmit."
+  exit 1
+fi
 RES_ARGS=()
 RES_TAG=""
 [ -n "${MIN_PIXELS:-}" ] && RES_ARGS+=(--min-pixels "$MIN_PIXELS")
