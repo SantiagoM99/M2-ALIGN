@@ -71,7 +71,8 @@ def build_open_ended_prompt(question: str) -> str:
 # The CVQA prompt comes from Approach2/cvqa_prompt.py, shared with
 # evaluate_cvqa.py so the baseline and our stack cannot drift apart.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from cvqa_prompt import build_cvqa_open_ended_prompt, country_of  # noqa: E402
+from cvqa_prompt import build_cvqa_open_ended_prompt, country_lookup, country_of  # noqa: E402
+from evaluate_vqa import ISO_TO_NLLB  # noqa: E402  (the one language-tag table)
 
 
 def blind_question(question: str, enabled: bool) -> str:
@@ -292,7 +293,7 @@ def evaluate_cvqa_open_ended(
     rows: list[dict], lang: str, image_resolver,
     model, processor, device, max_examples: int | None, logger: logging.Logger,
     output_path: str | None = None, hide_question: bool = False,
-    location_aware: bool = False,
+    location_aware: bool = False, countries: dict | None = None,
 ) -> tuple[float, int]:
     """CVQA's own open-ended protocol: no options shown in the prompt; score
     each candidate answer choice by log-likelihood and take the argmax."""
@@ -307,7 +308,7 @@ def evaluate_cvqa_open_ended(
         choices = row["choices"]
         prompt = build_cvqa_open_ended_prompt(
             blind_question(row["query"], hide_question),
-            country_of(row) if location_aware else None,
+            country_of(row, countries, ISO_TO_NLLB.get(lang)) if location_aware else None,
         )
         scores = [
             score_choice_loglikelihood(image, prompt, choice, _VQA_SYSTEM, model, processor, device)
@@ -322,7 +323,8 @@ def evaluate_cvqa_open_ended(
                 "id": row.get("id", idx), "query": row["query"],
                 "choices": choices, "answer_index": target_idx,
                 "pred_index": pred_idx, "scores": scores, "correct": ok,
-                "country_shown": country_of(row) if location_aware else None,
+                "country_shown": (country_of(row, countries, ISO_TO_NLLB.get(lang))
+                                  if location_aware else None),
             }, ensure_ascii=False) + "\n")
         if idx < 5:
             logger.info(
@@ -369,6 +371,10 @@ def main() -> None:
     parser.add_argument("--blind", action="store_true",
                         help="Replace every image with a neutral gray canvas — the same "
                              "language-prior control as Approach2/evaluate_vqa.py --blind.")
+    parser.add_argument("--cvqa-inventory",
+                        default=str(Path(__file__).resolve().parent.parent / "audits" / "cvqa_inventory.json"),
+                        help="supplies the country for the legacy CVQA copy, whose rows "
+                             "store subset='legacy'")
     parser.add_argument("--location-aware", action="store_true",
                         help="state the item's country in the prompt (CVQA's own "
                              "location-aware condition; needs the `subset` field)")
@@ -414,6 +420,7 @@ def main() -> None:
             rows, args.lang, resolver, model, processor, device, max_examples, logger,
             output_path=args.output_path, hide_question=args.blind_question,
             location_aware=args.location_aware,
+            countries=country_lookup(args.cvqa_inventory) if args.location_aware else None,
         )
     else:
         acc, correct = evaluate_open_ended(

@@ -64,6 +64,11 @@ def parser(benchmark):
         help="state the item's country in the prompt, CVQA's own location-aware "
              "condition; every cell so far is location-agnostic"
     )
+    p.add_argument(
+        "--cvqa-inventory", default=str(Path(__file__).resolve().parent / "audits" / "cvqa_inventory.json"),
+        help="supplies the country for the legacy CVQA copy, whose rows store "
+             "subset='legacy'; the S1 panels carry their own subset"
+    )
     conditions = p.add_mutually_exclusive_group()
     conditions.add_argument("--blind", action="store_true")
     conditions.add_argument("--no-image", action="store_true")
@@ -460,7 +465,9 @@ class Runtime:
             llm_input_features,
             mt_input_features,
         )
-        from cvqa_prompt import country_of
+        from cvqa_prompt import country_lookup, country_of
+
+        countries = country_lookup(a.cvqa_inventory) if a.location_aware else None
         from evaluate_cvqa import format_cvqa_chat
         from evaluate_vqa import row_nllb_tag, open_ended_correct
 
@@ -509,7 +516,10 @@ class Runtime:
                 formatter = (
                     format_cvqa_chat if a.benchmark == "cvqa" else format_chat_prompt
                 )
-                country = country_of(row) if a.location_aware else None
+                country = (
+                    country_of(row, countries, row_nllb_tag(row))
+                    if a.location_aware else None
+                )
                 prompt = formatter(
                     self.tokenizer_llm, asked(a, row, a.question_field),
                     not a.no_chat_template,

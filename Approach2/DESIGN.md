@@ -4935,3 +4935,29 @@ applied to every language, and the per-language supervised arm needs `ARM=v4`.
 The command issued on 10-03 omitted it, which would have put a zero-shot arm into
 a comparison against per-language systems — the same error as the withdrawn
 `+2.51`, caught here by the filename rather than by the reasoning.
+
+### The country lives in the inventory, not in the legacy rows — 2026-10-05
+
+Jobs 22448653 and 22448654 died in minutes: `country_of` refused because the
+legacy CVQA copy stores `subset: "legacy"`, a placeholder, while only the S1
+panels carry CVQA's own `(language, country)` per row. My check the day before
+confirmed the field *existed* and never looked at its value — the refusal worked,
+the claim behind it did not.
+
+The country now comes from `audits/cvqa_inventory.json`, the committed record of
+which CVQA subsets each language unit was built from, keyed by NLLB tag so the
+chain inventory → tag → row is exact and nobody types a country by hand:
+ben_Beng → India, gle_Latn → Ireland, jav_Latn → Indonesia, khk_Cyrl → Mongolia,
+sin_Sinh → Sri Lanka. A row's own subset still wins when it has one, so the same
+code serves the legacy copy and the S1 panels.
+
+**Languages spanning several countries are refused, not resolved.** CVQA's Chinese
+is China *and* Singapore and its Spanish is seven countries, so those map to
+AMBIGUOUS and the run stops with a message saying the country must come from the
+row, i.e. from an S1 panel. Our five target languages are single-country, so the
+planned arm is unaffected.
+
+Worth keeping in view for the paper: **CVQA's Bengali subset is India**. Every
+Bengali number in this project is India-grounded, which is also why the CG50 arm's
+documented `--country bangladesh` is the wrong country for the panel it would be
+read on.
