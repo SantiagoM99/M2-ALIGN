@@ -212,6 +212,13 @@ case "$STAGE" in
     INIT=()
     if [ -n "$S1_CKPT" ]; then
       INIT=(--stage1-mapping-ckpt "$S1_CKPT"); echo "warm start: $S1_CKPT"
+    elif [ "$POOLED" = 1 ]; then
+      # In a chained pooled run this must never be a warning: the job would
+      # train a different recipe from the one being reproduced, succeed, and
+      # hand stage 3 a checkpoint nobody can describe.
+      echo "ERROR: no stage-1 checkpoint under $S1_OUT, but POOLED=1 warm-starts from it."
+      echo "  Check that STAGE=1 wrote it before letting the dependency run."
+      exit 1
     else
       echo "WARNING: no stage-1 checkpoint under $S1_OUT; stage 2 starts cold."
       echo "That is a different recipe from hers and has to be reported as such."
