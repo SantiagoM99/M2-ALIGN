@@ -4961,3 +4961,46 @@ Worth keeping in view for the paper: **CVQA's Bengali subset is India**. Every
 Bengali number in this project is India-grounded, which is also why the CG50 arm's
 documented `--country bangladesh` is the wrong country for the panel it would be
 read on.
+
+### Collaborator results: a1 pooled + replay, six languages — recorded 2026-10-05
+
+Reported by Maryam in chat (provenance is her message, not a file in this repo).
+Six languages, her current architecture: one pooled mapping plus text replay. Her
+per-language columns, with every macro average recomputed here to verify the
+transcription:
+
+| CVQA open-ended | jv | si | mn | ga | bn | id | macro |
+|---|---|---|---|---|---|---|---|
+| direct | 34.68 | 39.11 | 35.90 | 32.52 | 37.41 | 38.35 | 36.33 |
+| translate-then-test | 38.05 | 43.11 | 34.94 | 34.97 | 42.66 | 38.11 | **38.64** |
+| a1 | 33.33 | 37.33 | 35.58 | 38.04 | 39.86 | 34.71 | 36.48 |
+| English (ceiling) | 42.09 | 45.33 | 37.82 | 36.50 | 41.96 | 40.53 | 40.70 |
+
+| CVQA closed-ended (letters) | macro | | xGQA | macro |
+|---|---|---|---|---|
+| direct | 62.57 | | direct | 51.44 |
+| translate-then-test | 62.91 | | translate-then-test | 51.94 |
+| a1 | **56.48** | | a1 | **58.19** |
+
+MGSM 84.8 → 78.2 (−6.6); MSVAMP 83.4 → 78.5 (−4.9).
+
+**Readings, and what is unchanged from her 09-23 table.** xGQA stands: **+6.75**
+over its own baseline while translate-then-test adds +0.50, so the continuous
+bridge beats its own discrete translation output. CVQA still fails in both
+protocols: **+0.15** open-ended and **−6.10** closed-ended, and on open-ended
+**translate-then-test beats a1 by 2.16** — the exact reversal of xGQA, and the
+sharpest single statement of the mechanism we have from her side. The English
+ceiling sits 4.22 above a1, so there is room that the bridge does not take.
+Pooling with replay did **not** recover the reasoning loss: −6.6 MGSM and −4.9
+MSVAMP against her own backbone.
+
+**Why this matters for our message to her.** Her 09-23 note says she matched the
+resolution between baseline and a1 after finding `max_pixels` differed. That made
+the comparison internally valid; it did not make the level right, because both
+arms sit at her `--visual-pixels 65536` default, about 64 merged tokens against
+the processor's ~1400. Our matched-resolution rerun of a1 is worth **+3.35**
+(2026-10-03), so the instrument, not only the architecture, is implicated in a
+CVQA conclusion drawn at +0.15. The closed-ended deficit is the larger number and
+we have never tested whether it survives the same correction — her evaluator has
+the arm (`--benchmark cvqa_mcq`, lettered options scored by letter logits), so it
+costs one short job on our side.
