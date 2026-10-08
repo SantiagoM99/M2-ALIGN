@@ -5091,3 +5091,33 @@ Also fixed in the builder: the language filter matched only the code, so a file
 writing `Bengali` where we pass `bn` would have failed on the cluster; it now
 accepts the code or the recorded name, and still refuses loudly, naming the
 language values the file actually carries.
+
+### What CulturalGround's India file actually contains, and what the builder had wrong — 2026-10-08
+
+`--probe --country india` (717,590 rows) says the registered builder would have
+produced nothing usable. Three mismatches, all fixed before any build:
+
+- **The question field is not `question`.** It is `reformulated_question` (natural
+  phrasing) with `original_question` as the Wikidata-derived fallback. The
+  registered FIELDS list matched none of them, so every row would have been
+  dropped as "no question".
+- **The image filename is in `media`, not `image`.** These rows spell `image` as
+  the *string* `"None"`, which `str()` turns into the word None — a filename of
+  "None" and, in the question path, the word itself inside a prompt. `pick` now
+  treats "None"/"null"/"nan" as missing.
+- **`label` is in the row's own language.** Our stage-3 rows are native question
+  with **English** answer, which is the format CVQA is scored in and the one the
+  translated-GQA rows use. Taking the Bengali label would change the output
+  language as well as the knowledge, and the language change would dominate the
+  contrast. India ships 100,191 English rows against 48,562 Bengali ones and the
+  Wikidata entity id is shared, so the English answer is joined on
+  **(entity, property_id, question_type)** — not on the entity alone, which would
+  pair a property answer with an entity question. An entity carrying two
+  conflicting English answers is dropped rather than resolved. `--native-answers`
+  keeps the old behaviour as a labelled ablation.
+
+`--probe` now also counts what the build depends on — rows in the donor language
+with a question, an image and a joinable English answer — so the next failure of
+this kind costs a probe rather than a build. Bengali is a donor language, India
+is 48,562 rows before filtering, and the row id now hashes the property and
+question type so two questions about one entity cannot collide.

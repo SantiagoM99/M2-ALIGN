@@ -66,6 +66,47 @@ class CulturalGroundTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             cg.select(raw(5, lang="Bulgarian"), "bn", sample=5, per_image=4, seed=13)
 
+    def test_the_literal_string_None_counts_as_missing(self):
+        """CulturalGround writes "None" where there is no value, and a bare str()
+        would put that word into a prompt or a filename."""
+        self.assertEqual(cg.pick({"image": "None", "media": "Taj_Mahal"}, "image"), "Taj_Mahal")
+        self.assertIsNone(cg.pick({"image": "None", "media": "none"}, "image"))
+
+    def test_the_english_answer_is_joined_by_entity_property_and_type(self):
+        """Our stage-3 rows are native question with English answer, and
+        CulturalGround's label is in the row's own language."""
+        rows = [
+            {"id": "Q1", "property_id": "None", "question_type": "entity_level_vqa",
+             "language": "en", "label": "Narendra Modi", "reformulated_question": "Who?",
+             "media": "m1"},
+            {"id": "Q1", "property_id": "P6", "question_type": "property_level_vqa",
+             "language": "en", "label": "India", "reformulated_question": "Where?",
+             "media": "m1"},
+            {"id": "Q1", "property_id": "None", "question_type": "entity_level_vqa",
+             "language": "bn", "label": "নরেন্দ্র মোদী", "reformulated_question": "কে?",
+             "media": "m1"},
+        ]
+        answers = cg.english_answers(rows)
+        self.assertEqual(answers[("Q1", "None", "entity_level_vqa")], "Narendra Modi")
+        self.assertEqual(answers[("Q1", "P6", "property_level_vqa")], "India")
+        bn = [r for r in rows if r["language"] == "bn"]
+        with tempfile.TemporaryDirectory() as tmp:
+            cg.download = lambda template, country: archive(tmp, ["m1"])
+            images = Path(tmp) / "images"
+            images.mkdir()
+            built = cg.build_rows(bn, "bn", "india", images, answers)
+        self.assertEqual([(r["query"], r["answer"]) for r in built], [("কে?", "Narendra Modi")])
+
+    def test_an_entity_with_two_conflicting_english_answers_is_dropped(self):
+        """Ambiguity is skipped rather than resolved by picking one."""
+        rows = [
+            {"id": "Q1", "property_id": "None", "question_type": "t", "language": "en",
+             "label": "A", "media": "m1"},
+            {"id": "Q1", "property_id": "None", "question_type": "t", "language": "en",
+             "label": "B", "media": "m1"},
+        ]
+        self.assertEqual(cg.english_answers(rows), {})
+
     def test_questions_per_image_are_capped(self):
         taken = cg.select(raw(120, images=10), "bn", sample=120, per_image=3, seed=13)
         self.assertEqual(len(taken), 30)
