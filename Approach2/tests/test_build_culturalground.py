@@ -84,20 +84,20 @@ class CulturalGroundTests(unittest.TestCase):
         rows = [
             {"id": "Q1", "property_id": "None", "question_type": "entity_level_vqa",
              "language": "en", "label": "Narendra Modi", "reformulated_question": "Who?",
-             "image": "india/m1"},
+             "image": "india/m1.jpg"},
             {"id": "Q1", "property_id": "P6", "question_type": "property_level_vqa",
              "language": "en", "label": "India", "reformulated_question": "Where?",
-             "image": "india/m1"},
+             "image": "india/m1.jpg"},
             {"id": "Q1", "property_id": "None", "question_type": "entity_level_vqa",
              "language": "bn", "label": "নরেন্দ্র মোদী", "reformulated_question": "কে?",
-             "image": "india/m1"},
+             "image": "india/m1.jpg"},
         ]
         answers = cg.english_answers(rows)
         self.assertEqual(answers[("Q1", "None", "entity_level_vqa")], "Narendra Modi")
         self.assertEqual(answers[("Q1", "P6", "property_level_vqa")], "India")
         bn = [r for r in rows if r["language"] == "bn"]
         with tempfile.TemporaryDirectory() as tmp:
-            cg.download = lambda template, country: archive(tmp, ["m1"])
+            cg.download = lambda template, country: archive(tmp, ["m1.jpg"])
             images = Path(tmp) / "images"
             images.mkdir()
             built = cg.build_rows(bn, "bn", "india", images, answers)
@@ -107,11 +107,42 @@ class CulturalGroundTests(unittest.TestCase):
         """Ambiguity is skipped rather than resolved by picking one."""
         rows = [
             {"id": "Q1", "property_id": "None", "question_type": "t", "language": "en",
-             "label": "A", "image": "india/m1"},
+             "label": "A", "image": "india/m1.jpg"},
             {"id": "Q1", "property_id": "None", "question_type": "t", "language": "en",
-             "label": "B", "image": "india/m1"},
+             "label": "B", "image": "india/m1.jpg"},
         ]
         self.assertEqual(cg.english_answers(rows), {})
+
+    def test_a_format_the_trainer_cannot_open_is_dropped(self):
+        """train_stage3_vqa appends .jpg/.jpeg/.png to the id, so a .tiff row
+        trains for fifteen minutes and dies in a DataLoader worker (job 22750351)."""
+        self.assertIsNone(cg.loadable_name("Q1_airport.tiff"))
+        self.assertIsNone(cg.loadable_name("Q1_map.svg"))
+        self.assertIsNone(cg.loadable_name("Q1_noextension"))
+        with tempfile.TemporaryDirectory() as tmp:
+            cg.download = lambda template, country: archive(tmp, ["ok.jpg", "bad.tiff"])
+            images = Path(tmp) / "images"
+            images.mkdir()
+            rows = [{"id": "q0", "language": "bn", "image": "india/ok.jpg",
+                     "question": "what?", "answer": "a"},
+                    {"id": "q1", "language": "bn", "image": "india/bad.tiff",
+                     "question": "what?", "answer": "a"}]
+            built = cg.build_rows(rows, "bn", "country", images)
+            self.assertEqual([r["vg_image_id"] for r in built], ["cg_ok"])
+            self.assertFalse((images / "cg_bad.tiff").exists())
+
+    def test_a_case_variant_extension_is_kept_under_a_lowercased_name(self):
+        """.JPG is the same bytes under a name the trainer will not try."""
+        self.assertEqual(cg.loadable_name("Q1_photo.JPG"), "Q1_photo.jpg")
+        with tempfile.TemporaryDirectory() as tmp:
+            cg.download = lambda template, country: archive(tmp, ["Shot.JPG"])
+            images = Path(tmp) / "images"
+            images.mkdir()
+            rows = [{"id": "q0", "language": "bn", "image": "india/Shot.JPG",
+                     "question": "what?", "answer": "a"}]
+            built = cg.build_rows(rows, "bn", "country", images)
+            self.assertEqual([r["vg_image_id"] for r in built], ["cg_Shot"])
+            self.assertTrue((images / "cg_Shot.jpg").exists())
 
     def test_questions_per_image_are_capped(self):
         taken = cg.select(raw(120, images=10), "bn", sample=120, per_image=3, seed=13)

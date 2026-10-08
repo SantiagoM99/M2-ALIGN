@@ -90,6 +90,22 @@ FIELDS = {
 # (None, "")` is not enough and a bare str() would emit the word into a prompt.
 MISSING = {"none", "null", "nan", ""}
 
+# What the stage-3 trainer can actually open: `train_stage3_vqa.py:_load_image`
+# appends exactly these, lowercase, to the row's `vg_image_id`. Wikimedia Commons
+# also ships .tiff, .svg and .webp, and a row pointing at one of those trains for
+# fifteen minutes and then dies in a DataLoader worker (job 22750351). A case
+# variant like .JPG is the same bytes under a name the trainer will not try, so
+# those are written with a lowercased extension rather than dropped.
+LOADABLE = (".jpg", ".jpeg", ".png")
+
+
+def loadable_name(base: str) -> str | None:
+    """`base` under a name the trainer will find, or None if it cannot open it."""
+    suffix = Path(base).suffix
+    if suffix.lower() not in LOADABLE:
+        return None
+    return Path(base).stem + suffix.lower()
+
 
 def fail(message: str):
     raise SystemExit(f"build_culturalground: {message}")
@@ -206,10 +222,13 @@ def extract_images(country: str, wanted: set[str], images_dir: Path) -> set[str]
             base = Path(member.name).name
             if base not in wanted:
                 continue
+            name = loadable_name(base)
+            if name is None:
+                continue
             handle = tar.extractfile(member)
             if handle is None:
                 continue
-            target = images_dir / f"cg_{base}"
+            target = images_dir / f"cg_{name}"
             if not target.exists():
                 target.write_bytes(handle.read())
             written.add(base)
@@ -251,11 +270,17 @@ def english_answers(rows) -> dict:
 def build_rows(selected, lang: str, country: str, images_dir: Path,
                answers: dict | None = None) -> list[dict]:
     language, tag = donor_tag(lang)
-    wanted = {Path(str(pick(r, "image"))).name for r in selected}
-    have = extract_images(country, wanted, images_dir)
-    missing = len(wanted - have)
+    wanted = {Path(str(pick(r, "image") or "")).name for r in selected}
+    unreadable = {b for b in wanted if loadable_name(b) is None}
+    if unreadable:
+        print(f"{len(unreadable)} of {len(wanted)} images are in a format the trainer "
+              f"cannot open ({sorted({Path(b).suffix.lower() for b in unreadable})}); "
+              "their rows are dropped", file=sys.stderr)
+    have = extract_images(country, wanted - unreadable, images_dir)
+    missing = len(wanted - unreadable - have)
     if missing:
-        print(f"{missing} of {len(wanted)} images were not in the archive", file=sys.stderr)
+        print(f"{missing} of {len(wanted) - len(unreadable)} images were not in the archive",
+              file=sys.stderr)
     out = []
     unresolved = 0
     for row in selected:
@@ -272,7 +297,7 @@ def build_rows(selected, lang: str, country: str, images_dir: Path,
         out.append({
             "id": stable_id(SOURCE_DATASET, country, lang, pick(row, "identifier"),
                             pick(row, "property"), pick(row, "question_type")),
-            "vg_image_id": f"cg_{Path(base).stem}",
+            "vg_image_id": f"cg_{Path(loadable_name(base)).stem}",
             "query": question,
             "answer": answer,
             "source_language": language,
