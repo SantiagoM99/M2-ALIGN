@@ -12,6 +12,38 @@ from pathlib import Path
 from s1_contract import ROOT, SPEC_SHA, atomic_json, read_json, read_rows, shuffle_maps
 
 
+FROZEN_C_ARMS = ("C1", "C2", "C3", "C4", "C5")
+
+
+def resolve_external_arms(specs, checkpoints, taken=()):
+    """Parse --extra-arm NAME=DIR, refusing anything that could pass as S1.
+
+    An arm trained outside the frozen contract may be read on Block C's grid --
+    that is what makes it comparable to C1 -- but it may never borrow a frozen
+    arm's name, be given twice, or be evaluated before its trainer wrote
+    complete.json. The best checkpoint appears after epoch 1, so the file's
+    existence is not completion.
+    """
+    out = []
+    seen = set(taken)
+    for spec in specs or []:
+        if "=" not in spec:
+            raise ValueError(f"--extra-arm {spec!r} is not NAME=CHECKPOINT_DIR")
+        name, directory = spec.split("=", 1)
+        if not name or not directory:
+            raise ValueError(f"--extra-arm {spec!r} is not NAME=CHECKPOINT_DIR")
+        if name in FROZEN_C_ARMS:
+            raise ValueError(f"--extra-arm {name} collides with a frozen S1 arm")
+        if name in seen:
+            raise ValueError(f"--extra-arm {name} given twice")
+        marker = Path(checkpoints) / directory / "complete.json"
+        if not marker.is_file():
+            raise ValueError(f"{name} has not finished training: {marker} is missing")
+        seen.add(name)
+        out.append({"arm": name, "checkpoint_dir": directory})
+    return out
+
+
 def build(a):
     panels = read_json(a.panels)
     ck = lambda name: str(
@@ -39,6 +71,7 @@ def build(a):
     cells = []
     parity = []
     registered = {}
+    external = []
 
     def add(
         b, t, arm, condition, tc, vc, no_text=False, instruction=False, english=False
@@ -161,6 +194,15 @@ def build(a):
         arms = {arm: (ck(name), ck(name)) for arm, name in trained.items()}
         if "C4" in wanted:
             arms["C4"] = (ck("stage1"), ck("stage2_dc_llava"))
+        # An arm trained outside S1 -- CG50 is the first -- read on the same 30
+        # cells, the same panels and, crucially, the same shuffle maps, because
+        # that is what makes its contrast against C1 paired. The frozen arm
+        # definitions above are untouched: this only adds a checkpoint, and the
+        # plan records that the arm is external so no reader mistakes it for an
+        # S1 arm.
+        external.extend(resolve_external_arms(a.extra_arm, a.checkpoints, arms))
+        for entry in external:
+            arms[entry["arm"]] = (ck(entry["checkpoint_dir"]), ck(entry["checkpoint_dir"]))
         for b, targets in [("cvqa", ["jv", "mn", "ga", "si", "bn"]), ("xgqa", ["bn"])]:
             for t in targets:
                 for arm, (tc, vc) in sorted(arms.items()):
@@ -235,6 +277,11 @@ def build(a):
     if a.block == "B":
         cells = falsifier_first(cells)
     plan = {"spec_sha": SPEC_SHA, "block": a.block, "cells": cells, "parity": parity}
+    if external:
+        # Named in the plan, and therefore in the submission and the manifests,
+        # so an arm trained outside the frozen contract can never be read as one
+        # of its five.
+        plan["external_arms"] = external
     if a.block_a_report:
         plan["block_a_report"] = str(Path(a.block_a_report).resolve())
     atomic_json(a.output, plan)
@@ -287,5 +334,8 @@ if __name__ == "__main__":
                    help="Block C: training seed of the arm checkpoints to evaluate")
     p.add_argument("--arms", nargs="+",
                    help="Block C: evaluate only these arms (default all five)")
+    p.add_argument("--extra-arm", action="append", metavar="NAME=DIR",
+                   help="Block C: also evaluate a checkpoint trained outside S1 on the "
+                        "same 30 cells and the same shuffle maps, e.g. CG50=cg50_seed13")
     p.add_argument("--output", required=True)
     build(p.parse_args())
