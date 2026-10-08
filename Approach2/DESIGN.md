@@ -5051,3 +5051,43 @@ that the country buys answer-set narrowing.
 report that showing the options lifts LLaVA from 30 to 49.6. Our split says 28% of
 items are answerable from image and choices alone, and those are precisely the
 items a country hint helps. Two different interventions, the same shortcut.
+
+### CG50 amended before the run: India, not Bangladesh, and two declared readings — 2026-10-08
+
+The CG50 arm registered on 2026-09-26 documents its build as
+`--country bangladesh --lang bn`. That is the wrong country for the panel it
+would be read on: **CVQA's Bengali subset is `('Bengali', 'India')`** — Bengali
+questions about India. Training on Bangladeshi entities and evaluating on Indian
+ones matches the language and mismatches the culture, which is the one confound
+this arm cannot afford: CVQA tests entity knowledge, so a null would not separate
+"culturally grounded supervision does not help this architecture" from "we
+supplied the wrong culture". The registration's own argument for preferring
+CulturalGround over WorldCuisines was to remove exactly that class of escape.
+
+**Amendment, recorded before building anything:** the build is
+`--country india --lang bn`. Nothing else about the arm changes — 50% replacement
+of the Bengali stage-3 rows, fixed row count, donor language only, same trainer,
+same warm start, same 30-cell grid.
+
+**Two readings, both declared now.** One training run answers two questions that
+must not be conflated:
+
+1. **In bn (country matched, language supervised).** Does the 63%-at-chance block
+   move when the knowledge actually corresponds to the panel? Pass: Δ on the
+   `other` subset with LB5 > 0, and the gain **not** concentrated in `shortcut`.
+   This is the direct test of 2026-10-08's diagnosis, and it is the reading the
+   country change exists to make interpretable.
+2. **In jv/mn/ga (zero-shot, other cultures).** Does culturally grounded
+   supervision in one donor language transfer to unseen languages whose countries
+   differ? This is the originally registered endpoint — LB5(Δ_ground(CG50) −
+   Δ_ground(C1)) > 0 on CVQA jv/mn/ga pooled, source task retained with
+   UB95(U(C1) − U(CG50)) on xGQA-bn < δ = 1.0 — and it is unchanged.
+
+Reading 2 can pass while reading 1 fails, and the reverse, and the paper must say
+which it is claiming. A gain that appears only in `shortcut` is not knowledge, by
+the same rule that refuted the location-aware diagnostic this morning.
+
+Also fixed in the builder: the language filter matched only the code, so a file
+writing `Bengali` where we pass `bn` would have failed on the cluster; it now
+accepts the code or the recorded name, and still refuses loudly, naming the
+language values the file actually carries.

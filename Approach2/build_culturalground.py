@@ -133,10 +133,14 @@ def select(rows, lang: str, sample: int, per_image: int, seed: int):
     already built. The cap matters because these rows are generated per cultural
     entity, so one entity can carry many questions.
     """
-    kept = [r for r in rows if str(pick(r, "language") or "").lower().startswith(lang)]
+    # CulturalGround's `language` may hold the code or the name, so accept both
+    # rather than spending a round trip on the cluster to find out which.
+    wanted = {lang.lower(), NLLB[lang][0].lower()}
+    kept = [r for r in rows
+            if any(str(pick(r, "language") or "").lower().startswith(w) for w in wanted)]
     if not kept:
         seen = collections.Counter(str(pick(r, "language")) for r in rows)
-        fail(f"no rows in {lang}; this file carries {seen.most_common(6)}")
+        fail(f"no rows matching {sorted(wanted)}; this file carries {seen.most_common(6)}")
     kept.sort(key=lambda r: str(pick(r, "identifier")))
     random.Random(seed).shuffle(kept)
     taken, per_entity = [], collections.Counter()

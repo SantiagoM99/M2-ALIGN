@@ -54,8 +54,17 @@ class CulturalGroundTests(unittest.TestCase):
         self.assertTrue(all(r["language"] == "bn" for r in taken))
 
     def test_a_missing_language_names_what_is_there(self):
-        with self.assertRaisesRegex(SystemExit, "no rows in ko"):
+        with self.assertRaisesRegex(SystemExit, r"no rows matching \['ko', 'korean'\]"):
             cg.select(raw(5, lang="bn"), "ko", sample=5, per_image=4, seed=13)
+
+    def test_the_language_may_be_spelled_as_a_name(self):
+        """CulturalGround may write `Bengali` where we pass `bn`; both must match,
+        and a language whose name merely starts the same must not."""
+        taken = cg.select(raw(20, lang="Bengali") + raw(20, lang="en"), "bn",
+                          sample=100, per_image=10, seed=13)
+        self.assertEqual(len(taken), 20)
+        with self.assertRaises(SystemExit):
+            cg.select(raw(5, lang="Bulgarian"), "bn", sample=5, per_image=4, seed=13)
 
     def test_questions_per_image_are_capped(self):
         taken = cg.select(raw(120, images=10), "bn", sample=120, per_image=3, seed=13)
