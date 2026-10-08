@@ -5004,3 +5004,50 @@ CVQA conclusion drawn at +0.15. The closed-ended deficit is the larger number an
 we have never tested whether it survives the same correction — her evaluator has
 the arm (`--benchmark cvqa_mcq`, lettered options scored by letter logits), so it
 costs one short job on our side.
+
+### Location-aware prompting works, and is not knowledge retrieval — 2026-10-08
+
+Job 22517012: v4 with the item's country in the prompt, against its own agnostic
+cells on identical items, five languages, 1,446 items over 683 image clusters.
+
+| | agnostic | location-aware | Δ |
+|---|---|---|---|
+| accuracy, real image | 40.65 | 42.18 | +1.53 |
+| accuracy, gray canvas | 30.76 | 34.18 | **+3.42** |
+| paired contrast | | | **+1.66** [+0.42, +2.90], McNemar p = 0.0088 |
+| ΔV (full − blind) | 9.54 | 7.75 | **−1.80** [−3.55, −0.07] |
+
+| subset (Qwen agnostic as reference) | n | agnostic | location-aware | Δ |
+|---|---|---|---|---|
+| necessary — the question decides | 131 | 48.85 | 51.91 | +3.05 |
+| shortcut — image + choices suffice | 405 | 64.69 | 68.40 | **+3.70** |
+| other — backbone wrong | 910 | 28.13 | 28.68 | **+0.55** |
+| all | 1446 | 40.25 | 41.91 | +1.66 |
+
+**The prediction is refuted, in the second of the two ways registered on 10-03.**
+The registered reading was: a gain concentrated in `other` means retrieval; a gain
+concentrated in `shortcut` means "the country is acting as a prior over answer
+strings rather than as a retrieval cue, and the arm says nothing about knowledge".
+The gain is +3.70 on `shortcut` and +0.55 on `other`, and the gray-canvas arm
+gains more than the real-image arm, so ΔV falls. Stating the country narrows the
+plausible answer set; it does not make the model see or know more.
+
+**The diagnostic still did its job, and the answer is the one that costs money.**
+The 63% of CVQA where the backbone fails does not move when the country is
+supplied — +0.55, against +3.70 where the image and choices already sufficed. So
+that block is **absent knowledge, not unretrieved knowledge**, and the prompt is
+not the lever. CulturalGround is, which makes the CG50 arm the next spend rather
+than a lower-priority option.
+
+**What may and may not be claimed from the +1.66.** It is a real, paired,
+significant accuracy gain and it would raise every CVQA number in the paper. It is
+**not** grounding, and reporting it without ΔV beside it would be exactly the
+language-prior inflation CLAUDE.md's endpoint rule exists to prevent. If the paper
+adopts CVQA's location-aware condition — and there is a case for it, since it is
+the benchmark's own protocol — every row must carry ΔV, and the honest sentence is
+that the country buys answer-set narrowing.
+
+**Also an independent replication of the benchmark's own warning.** CVQA's authors
+report that showing the options lifts LLaVA from 30 to 49.6. Our split says 28% of
+items are answerable from image and choices alone, and those are precisely the
+items a country hint helps. Two different interventions, the same shortcut.

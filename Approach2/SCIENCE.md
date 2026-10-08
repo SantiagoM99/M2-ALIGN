@@ -72,6 +72,17 @@ and the resolution. What survives as the difference is visual token density —
 196 merged tokens against 729 unmerged at the same image size — and it is testable
 by inference alone, across backbones. DESIGN.md 2026-09-29.
 
+### CVQA's remaining gap is absent knowledge, not prompting — 2026-10-08
+
+Stating the item's country, CVQA's own location-aware condition, raises our
+accuracy by +1.66 [+0.42, +2.90] (p = 0.0088) **while ΔV falls 1.80**: the gain
+lands on the items answerable from image and choices alone (+3.70) and not on the
+63% the backbone gets wrong (+0.55), and it is larger with a gray canvas than with
+the real image. The registered diagnostic therefore returns its second answer —
+the country is an answer-set prior, and the 63% block is knowledge the model does
+not hold. Culturally grounded supervision, not prompting, is the lever
+(DESIGN 2026-10-08).
+
 ### The CVQA lead over a1 is withdrawn; a1 leads on xGQA — 2026-10-02
 
 First paired comparison on identical items in one environment (DESIGN 2026-10-02):

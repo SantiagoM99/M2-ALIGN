@@ -1,0 +1,109 @@
+{
+  "arms": {
+    "v4_agnostic": {
+      "all": {
+        "ci95": [
+          37.78866340097971,
+          42.739160357880245
+        ],
+        "estimate": 40.24896265560166,
+        "image_clusters": 683,
+        "items": 1446
+      },
+      "necessary": {
+        "ci95": [
+          40.625,
+          57.142857142857146
+        ],
+        "estimate": 48.85496183206107,
+        "image_clusters": 124,
+        "items": 131
+      },
+      "other": {
+        "ci95": [
+          25.27839643652561,
+          30.992196209587515
+        ],
+        "estimate": 28.13186813186813,
+        "image_clusters": 568,
+        "items": 910
+      },
+      "shortcut": {
+        "ci95": [
+          60.294117647058826,
+          69.05940594059406
+        ],
+        "estimate": 64.69135802469135,
+        "image_clusters": 332,
+        "items": 405
+      }
+    },
+    "v4_location": {
+      "all": {
+        "ci95": [
+          39.421088904204,
+          44.35204435204435
+        ],
+        "estimate": 41.90871369294606,
+        "image_clusters": 683,
+        "items": 1446
+      },
+      "necessary": {
+        "ci95": [
+          43.18181818181818,
+          60.0
+        ],
+        "estimate": 51.908396946564885,
+        "image_clusters": 124,
+        "items": 131
+      },
+      "other": {
+        "ci95": [
+          25.759280089988753,
+          31.635969664138678
+        ],
+        "estimate": 28.681318681318682,
+        "image_clusters": 568,
+        "items": 910
+      },
+      "shortcut": {
+        "ci95": [
+          63.95939086294416,
+          72.77227722772277
+        ],
+        "estimate": 68.39506172839506,
+        "image_clusters": 332,
+        "items": 405
+      }
+    }
+  },
+  "boot": 4000,
+  "counts": {
+    "necessary": 131,
+    "other": 910,
+    "shortcut": 405
+  },
+  "definition": "necessary = reference right with the question and wrong without it; shortcut = right both ways; other = wrong with the question",
+  "langs": [
+    "bn",
+    "ga",
+    "jv",
+    "mn",
+    "si"
+  ],
+  "reference_by_construction": {
+    "necessary": "100% for the reference by definition",
+    "other": "0% for the reference by definition",
+    "shortcut": "100% for the reference by definition"
+  },
+  "seed": 0,
+  "shares": {
+    "necessary": 9.06,
+    "other": 62.93,
+    "shortcut": 28.01
+  },
+  "split_defined_by": {
+    "blind": "qwen_cvqa_{L}_QBLIND.jsonl",
+    "with": "qwen_cvqa_{L}.jsonl"
+  }
+}
