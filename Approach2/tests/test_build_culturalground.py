@@ -69,8 +69,14 @@ class CulturalGroundTests(unittest.TestCase):
     def test_the_literal_string_None_counts_as_missing(self):
         """CulturalGround writes "None" where there is no value, and a bare str()
         would put that word into a prompt or a filename."""
-        self.assertEqual(cg.pick({"image": "None", "media": "Taj_Mahal"}, "image"), "Taj_Mahal")
-        self.assertIsNone(cg.pick({"image": "None", "media": "none"}, "image"))
+        self.assertIsNone(cg.pick({"image": "None"}, "image"))
+        self.assertEqual(cg.pick({"image": "india/Q1_x.jpg"}, "image"), "india/Q1_x.jpg")
+        self.assertIsNone(cg.pick({"original_question": "None"}, "question"))
+
+    def test_media_is_not_treated_as_a_filename(self):
+        """`media` is the Commons page name ("Narendra_Modi"), with no directory
+        and no extension; it would never match an archive member."""
+        self.assertIsNone(cg.pick({"image": "None", "media": "Narendra_Modi"}, "image"))
 
     def test_the_english_answer_is_joined_by_entity_property_and_type(self):
         """Our stage-3 rows are native question with English answer, and
@@ -78,13 +84,13 @@ class CulturalGroundTests(unittest.TestCase):
         rows = [
             {"id": "Q1", "property_id": "None", "question_type": "entity_level_vqa",
              "language": "en", "label": "Narendra Modi", "reformulated_question": "Who?",
-             "media": "m1"},
+             "image": "india/m1"},
             {"id": "Q1", "property_id": "P6", "question_type": "property_level_vqa",
              "language": "en", "label": "India", "reformulated_question": "Where?",
-             "media": "m1"},
+             "image": "india/m1"},
             {"id": "Q1", "property_id": "None", "question_type": "entity_level_vqa",
              "language": "bn", "label": "নরেন্দ্র মোদী", "reformulated_question": "কে?",
-             "media": "m1"},
+             "image": "india/m1"},
         ]
         answers = cg.english_answers(rows)
         self.assertEqual(answers[("Q1", "None", "entity_level_vqa")], "Narendra Modi")
@@ -101,9 +107,9 @@ class CulturalGroundTests(unittest.TestCase):
         """Ambiguity is skipped rather than resolved by picking one."""
         rows = [
             {"id": "Q1", "property_id": "None", "question_type": "t", "language": "en",
-             "label": "A", "media": "m1"},
+             "label": "A", "image": "india/m1"},
             {"id": "Q1", "property_id": "None", "question_type": "t", "language": "en",
-             "label": "B", "media": "m1"},
+             "label": "B", "image": "india/m1"},
         ]
         self.assertEqual(cg.english_answers(rows), {})
 

@@ -70,11 +70,14 @@ FORBIDDEN = ("jv", "mn", "ga", "si", "su")
 # `reformulated_question` (natural phrasing) with `original_question` as the
 # Wikidata-derived fallback; the short answer is `label`, the long ones being
 # `reformulated_answer`/`original_answer`; and the image filename lives in
-# `media`, because `image` holds the string "None" on these rows.
+# `image` when it holds one -- a path like `india/Q1149_....jpg`. `media` is NOT a
+# filename: it is the Commons page name ("Narendra_Modi"), with no directory and
+# no extension, so a row whose `image` is the string "None" has no image we can
+# resolve and is dropped rather than guessed at.
 FIELDS = {
     "question": ["reformulated_question", "original_question", "question", "text"],
     "answer": ["label", "answer", "response"],
-    "image": ["image", "media", "image_path", "file_name"],
+    "image": ["image", "image_path", "file_name"],
     "language": ["language", "lang"],
     "identifier": ["id", "qa_id", "uid"],
     # The answer belongs to an (entity, property, question type), not to a row,
@@ -146,6 +149,9 @@ def probe(country: str, lang: str = "bn") -> None:
                  and answers.get(answer_key(r)))
     print(f"{lang}: {len(mine)} rows, {usable} with question + image + English answer "
           f"({len(answers)} English answers joinable)")
+    no_image = sum(1 for r in mine if not pick(r, "image"))
+    print(f"  {no_image} of {len(mine)} carry no resolvable image path "
+          f"(`media` is a Commons page name, not a filename)")
     for field in ("question", "answer", "image"):
         sample = [str(pick(r, field)) for r in mine[:200] if pick(r, field)][:2]
         print(f"  {field:9s} sample: {sample}")
