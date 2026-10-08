@@ -5121,3 +5121,22 @@ with a question, an image and a joinable English answer — so the next failure 
 this kind costs a probe rather than a build. Bengali is a donor language, India
 is 48,562 rows before filtering, and the row id now hashes the property and
 question type so two questions about one entity cannot collide.
+
+### CG50 built and training: 15,000 India/Bengali rows, no image leakage — 2026-10-08
+
+Built on a login node from `neulab/CulturalGround`, India, Bengali, seed 13,
+`--sample 20000 --per-image 4`, English answers joined on (entity, property,
+question type):
+
+- 20,000 Bengali rows selected; **19,994** survived (1 image absent from the
+  2.40 GB country archive, 2 rows without an unambiguous English answer)
+- mixed into `bn.jsonl` at `--fraction 0.5`: **15,000 CulturalGround + 15,000
+  translated GQA = 30,000**, the same total as the unmixed file, so the contrast
+  is distribution and not volume
+- **14,636 distinct images**, written into the shared images directory under the
+  `cg_` prefix
+- leakage audit `audits/cg_leakage.json`: 19,378 training images against 2,943
+  CVQA panel images, SHA-256 over contents, **no file-level overlap**. Entity-level
+  overlap is not leakage and the paper states it rather than testing it.
+
+Training is job **22749753** (`train_wc50.sh`, `DATA_PATH=bn_cg50.jsonl`).
