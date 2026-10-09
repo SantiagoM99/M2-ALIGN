@@ -386,7 +386,26 @@ def main(args, logger) -> None:
     if run_path.exists():
         old = read_json(run_path)
         if old["configuration"] != config:
-            raise ValueError("training run configuration changed")
+            # The guard exists because this trainer resumes: a 12 h partition can
+            # requeue a job mid-run, and continuing with different data or
+            # hyperparameters would splice two configurations into one
+            # checkpoint. Naming the difference is what turns that refusal into
+            # something actionable -- "configuration changed" alone cost two
+            # rounds on 2026-10-08.
+            differing = sorted(
+                k for k in set(old["configuration"]) | set(config)
+                if old["configuration"].get(k) != config.get(k)
+            )
+            detail = "; ".join(
+                f"{k}: {old['configuration'].get(k)!r} -> {config.get(k)!r}"
+                for k in differing
+            )
+            raise ValueError(
+                f"training run configuration changed ({detail}). "
+                f"{run_path} describes a different run. To start a new one, move "
+                "that output directory aside; to resume the old one, restore its "
+                "inputs."
+            )
     else:
         atomic_json(run_path, run)
     tokenizer_mt = (
