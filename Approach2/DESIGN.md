@@ -5189,3 +5189,31 @@ exact command instead of only the missing path.
 
 Stage 2 pooled finished the same night (job 22425412, 3 h 34), so the chain
 resumes at stage 3 once the English file exists.
+
+### The country helps our system twice as much as its backbone, and only ours pays ΔV — 2026-10-10
+
+The baseline half of the location-aware experiment (job 22517011, five languages,
+1,446 items), beside the v4 half read on 10-08:
+
+| | accuracy | ΔV | country effect | ΔV effect |
+|---|---|---|---|---|
+| Qwen agnostic | 37.07 | 5.19 | | |
+| Qwen location-aware | 37.90 | 5.74 | **+0.83** [−0.35, +2.01], p = 0.21 | **+0.55** |
+| v4 agnostic | 40.65 | 9.54 | | |
+| v4 location-aware | 42.18 | 7.75 | **+1.66** [+0.42, +2.90], p = 0.009 | **−1.80** |
+
+**Stating the country is worth twice as much to our system as to the model ours is
+built on, and only ours loses grounding for it.** For the backbone the effect is
+not distinguishable from zero and ΔV is flat. That makes the 10-08 reading
+sharper rather than weaker: the country is not a property of the benchmark that
+any model would exploit, it is something our pipeline is unusually ready to
+exploit — a text prior reaching the frozen LLM through a connector trained on
+short English answers. Our ΔV is also the higher of the two to begin with (9.54
+against 5.19), so the 1.80 it gives up is a real loss of the thing we claim.
+
+For the record, the five cells that died in the 10-06 run (id/pt/ru/ko/zh, before
+the inventory supplied the country) left zero-byte files that the launcher's copy
+glob carried into `results/` and harvest committed. Deleted, and the copy now
+takes only non-empty files — the same fix `a1_eval.sh` got on 10-03, in the
+second launcher that needed it. The skip rule keys on the summary file, which is
+written last, so those cells remain retryable.
