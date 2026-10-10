@@ -99,6 +99,26 @@ MISSING = {"none", "null", "nan", ""}
 LOADABLE = (".jpg", ".jpeg", ".png")
 
 
+def opens(path: Path) -> bool:
+    """Can the trainer actually decode this file?
+
+    `train_stage3_vqa._load_image` does `Image.open(path).convert("RGB")`, so the
+    bytes have to decode fully, not merely exist under a known extension.
+    CulturalGround ships truncated images -- one of its JPEGs is exactly 5 MiB and
+    stops mid-scan -- and a row pointing at one of those trains for three hours
+    before dying in a DataLoader worker (job 22777617). `Image.open` alone would
+    not catch it; the decode is what catches it.
+    """
+    from PIL import Image
+
+    try:
+        with Image.open(path) as image:
+            image.load()
+        return True
+    except Exception:
+        return False
+
+
 def loadable_name(base: str) -> str | None:
     """`base` under a name the trainer will find, or None if it cannot open it."""
     suffix = Path(base).suffix
@@ -215,6 +235,7 @@ def extract_images(country: str, wanted: set[str], images_dir: Path) -> set[str]
     """
     archive = download(IMAGES, country)
     written = set()
+    corrupt = set()
     with tarfile.open(archive) as tar:
         for member in tar:
             if not member.isfile():
@@ -231,7 +252,16 @@ def extract_images(country: str, wanted: set[str], images_dir: Path) -> set[str]
             target = images_dir / f"cg_{name}"
             if not target.exists():
                 target.write_bytes(handle.read())
+            if not opens(target):
+                # Leaving it behind would be a landmine for the next build: the
+                # cg_ namespace is ours, so the broken file goes.
+                target.unlink(missing_ok=True)
+                corrupt.add(base)
+                continue
             written.add(base)
+    if corrupt:
+        print(f"{len(corrupt)} extracted images do not decode and were deleted; "
+              "their rows are dropped", file=sys.stderr)
     return written
 
 

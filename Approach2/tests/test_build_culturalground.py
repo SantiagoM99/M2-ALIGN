@@ -21,12 +21,28 @@ def raw(n, lang="bn", images=10):
              "question": f"what is this {i}?", "answer": f"a{i}"} for i in range(n)]
 
 
-def archive(tmp, names, evil=False):
-    """A country archive; with evil=True it also carries a path-traversal member."""
+def encoded(name):
+    """A real, decodable image, because the builder now decodes what it extracts."""
+    from PIL import Image
+
+    suffix = Path(name).suffix.lower()
+    buffer = io.BytesIO()
+    Image.new("RGB", (8, 8), (10, 20, 30)).save(
+        buffer, format={".png": "PNG", ".tiff": "TIFF", ".gif": "GIF"}.get(suffix, "JPEG")
+    )
+    return buffer.getvalue()
+
+
+def archive(tmp, names, evil=False, broken=()):
+    """A country archive; with evil=True it also carries a path-traversal member.
+
+    Names in `broken` carry bytes that do not decode, which is how
+    CulturalGround's truncated JPEGs behave.
+    """
     path = Path(tmp) / "country.tar.gz"
     with tarfile.open(path, "w:gz") as tar:
         for name in names:
-            data = b"jpegbytes"
+            data = b"truncated" if name in broken else encoded(name)
             info = tarfile.TarInfo(f"images/{name}")
             info.size = len(data)
             tar.addfile(info, io.BytesIO(data))
@@ -143,6 +159,31 @@ class CulturalGroundTests(unittest.TestCase):
             built = cg.build_rows(rows, "bn", "country", images)
             self.assertEqual([r["vg_image_id"] for r in built], ["cg_Shot"])
             self.assertTrue((images / "cg_Shot.jpg").exists())
+
+    def test_an_image_that_does_not_decode_is_dropped_and_deleted(self):
+        """CulturalGround ships truncated JPEGs: one is exactly 5 MiB and stops
+        mid-scan, which cost three hours of training (job 22777617). The
+        extension is not evidence that the bytes decode."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cg.download = lambda template, country: archive(
+                tmp, ["broken.jpg"], broken={"broken.jpg"})
+            images = Path(tmp) / "images"
+            images.mkdir()
+            rows = [{"id": "q0", "language": "bn", "image": "india/broken.jpg",
+                     "question": "what?", "answer": "a"}]
+            built = cg.build_rows(rows, "bn", "country", images)
+            self.assertEqual(built, [])
+            self.assertFalse((images / "cg_broken.jpg").exists())
+
+    def test_opens_distinguishes_a_real_image_from_bytes_with_the_right_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            good = Path(tmp) / "good.png"
+            from PIL import Image
+            Image.new("RGB", (4, 4), (1, 2, 3)).save(good)
+            bad = Path(tmp) / "bad.png"
+            bad.write_bytes(b"not an image")
+            self.assertTrue(cg.opens(good))
+            self.assertFalse(cg.opens(bad))
 
     def test_questions_per_image_are_capped(self):
         taken = cg.select(raw(120, images=10), "bn", sample=120, per_image=3, seed=13)

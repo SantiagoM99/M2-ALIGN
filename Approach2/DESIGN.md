@@ -5140,3 +5140,28 @@ question type):
   overlap is not leakage and the paper states it rather than testing it.
 
 Training is job **22749753** (`train_wc50.sh`, `DATA_PATH=bn_cg50.jsonl`).
+
+### CG50, third failure: CulturalGround ships images that do not decode — 2026-10-09
+
+Job 22777617 trained for **three hours** and died in a DataLoader worker on
+`cg_Q19666712_Dr._Mayilvahanan_Natarajan_receiving_the_award_at_Pharma_Leaders_2018.jpg`.
+The file was present, had a loadable extension, and was **exactly 5,242,880 bytes
+— 5 MiB — and stops mid-scan**: truncated in the source archive, not by our
+extraction, which writes the member's declared size. `Image.open` succeeds on it;
+`image.load()` is what fails, and the trainer's `convert("RGB")` triggers that
+load, which is why the failure arrives at the first batch that touches the row
+rather than at startup.
+
+The builder now **decodes every image it extracts** — the trainer's own criterion
+— deletes the ones that do not and drops their rows, counted in the output. The
+`cg_` namespace is ours, so a broken file is removed rather than left as a
+landmine for the next build.
+
+**The pattern across the three failures of this arm is one mistake repeated.**
+The field names, then the extensions, then the bytes: each time the builder
+trusted a property of the data that had not been checked, and each time the cost
+was paid by a GPU job rather than by a probe. Deciding by the consumer's own
+criterion — what does `_load_image` actually accept — is what ends the class,
+instead of enumerating the formats that have burned us so far. The test archive
+now carries real encoded images for the same reason: a fixture of `b"jpegbytes"`
+could not have caught any of this.
