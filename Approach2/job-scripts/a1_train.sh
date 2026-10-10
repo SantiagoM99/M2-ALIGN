@@ -250,7 +250,14 @@ case "$STAGE" in
       # stage does not). Pooling without it is a different recipe, so it has to
       # be asked for rather than fallen into.
       if [ "$INCLUDE_ENGLISH" = 1 ]; then
-        require "$DT/Stage3/data/en.jsonl"
+        [ -f "$DT/Stage3/data/en.jsonl" ] || {
+          echo "ERROR: missing $DT/Stage3/data/en.jsonl, which her pooled stage 3 includes."
+          echo "  Our mirror holds the same 30k rows as english.jsonl, in the source schema."
+          echo "  Convert it once, on a login node:"
+          echo "    python3 Approach2/build_stage3_english.py \\"
+          echo "      --input $DT/Stage3/data/english.jsonl --output $DT/Stage3/data/en.jsonl"
+          exit 1
+        }
         ln -sf "$DT/Stage3/data/en.jsonl" "$POOL_DATA/en.jsonl"; POOLED_IN="$POOLED_IN en"
       else
         echo "INCLUDE_ENGLISH=0 — the no-English ablation, not her recipe"

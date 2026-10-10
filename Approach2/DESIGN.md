@@ -5165,3 +5165,27 @@ criterion — what does `_load_image` actually accept — is what ends the class
 instead of enumerating the formats that have burned us so far. The test archive
 now carries real encoded images for the same reason: a fixture of `b"jpegbytes"`
 could not have caught any of this.
+
+### The English pool exists under another name — 2026-10-10
+
+a1's pooled stage 3 (job 22425413) died in two seconds on
+`ERROR: missing $DT/Stage3/data/en.jsonl`, the guard added on 10-02 doing its
+job: her pooled stage 3 includes English, verified against MindMerger's
+`read_datasets.py`, and running without it is a different recipe from the one
+being reproduced.
+
+Our mirror has those rows, as **`english.jsonl`** — 30,000 of them, and the same
+sample: both it and our `bn.jsonl` begin at vg_image_id 2375767, "Is there a bread
+to the right of the soup?". What it does not have is the schema. It is the
+*source* the eleven languages were translated from, `{question, answer,
+vg_image_id}`, while her trainer reads `row["query"]` and `row["nllb_lang_tag"]`.
+Pooling it as it stands would have raised a KeyError at the first English batch —
+or, worse, silently trained English through whatever tag a default supplied.
+
+`build_stage3_english.py` does the rename and adds `eng_Latn`, refusing a row
+with a missing field and refusing ids that collide. It is deterministic and
+idempotent, so re-running it is a no-op, and the stage-3 guard now prints the
+exact command instead of only the missing path.
+
+Stage 2 pooled finished the same night (job 22425412, 3 h 34), so the chain
+resumes at stage 3 once the English file exists.
