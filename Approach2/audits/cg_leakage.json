@@ -1,0 +1,12 @@
+{
+  "collisions": [],
+  "distinct_eval_contents": 1314,
+  "distinct_train_contents": 18855,
+  "eval_dir": "/scratch/santimn/datatransfer/Stage3/data/cvqa/images",
+  "eval_images": 2943,
+  "eval_prefix": "",
+  "method": "SHA-256 over file contents; catches the same photograph, not the same entity",
+  "train_dir": "/scratch/santimn/datatransfer/Stage3/data/gqa/images",
+  "train_images": 19369,
+  "train_prefix": "cg_"
+}
