@@ -158,8 +158,12 @@ echo "=== Harvest results into git ==="
 # directory, which is how twelve 2-byte files once collided with a real harvest.
 RESULTS_DIR="${RESULTS_DIR:-$A2/results}"
 mkdir -p "$RESULTS_DIR"
-cp "$OUT_DIR"/qwen_*.jsonl "$RESULTS_DIR/" 2>/dev/null || true
-cp "$OUT_DIR"/qwen_*.summary.json "$RESULTS_DIR/" 2>/dev/null || true
+# Only non-empty files. The evaluator opens its output before scoring, so a cell
+# that crashes leaves a zero-byte file, and copying those put five empty results
+# into the repo on 2026-10-10 -- the same mistake a1_eval.sh was fixed for.
+for f in "$OUT_DIR"/qwen_*.jsonl "$OUT_DIR"/qwen_*.summary.json; do
+  [ -s "$f" ] && cp "$f" "$RESULTS_DIR/"
+done
 cd "$PROJECT_ROOT"
 echo "Harvested into $RESULTS_DIR; commit by hand from a login node."
 
