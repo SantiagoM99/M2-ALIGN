@@ -72,6 +72,21 @@ and the resolution. What survives as the difference is visual token density —
 196 merged tokens against 729 unmerged at the same image size — and it is testable
 by inference alone, across backbones. DESIGN.md 2026-09-29.
 
+### The CVQA lead is re-established on the pooled panel — 2026-10-13
+
+a1's pooled checkpoint, trained here on her recipe and scored by her own
+evaluator at matched resolution, loses to v4 by **4.14 [−6.62, −1.74]** on CVQA
+over six languages, 1,858 items and 869 image clusters (McNemar p = 0.0013). The
+refutation condition recorded on 10-02 required a tie or a win for a1 to withdraw
+the claim that our architecture leads on CVQA; it is not met, so the lead stands
+— now paired, in one environment, with both systems supervised in every language
+scored. Two limits travel with it: her best arm, pooled + replay, is +1.63 above
+pooled by her own measurement and is not in the comparison, which at the
+conservative end of our interval leaves 0.11; and our side spends six
+per-language checkpoints against her one shared mapping, with the symmetric arm
+(our stage 3 pooled) not trained. Accuracy only — her evaluator has no blind arm,
+so nothing here is a grounding claim. DESIGN 2026-10-13.
+
 ### CVQA's remaining gap is absent knowledge, not prompting — 2026-10-08
 
 Stating the item's country, CVQA's own location-aware condition, raises our
@@ -84,6 +99,9 @@ not hold. Culturally grounded supervision, not prompting, is the lever
 (DESIGN 2026-10-08).
 
 ### The CVQA lead over a1 is withdrawn; a1 leads on xGQA — 2026-10-02
+
+**Superseded on the CVQA half by the 10-13 entry above**; the xGQA reading
+stands.
 
 First paired comparison on identical items in one environment (DESIGN 2026-10-02):
 on CVQA-bn a1 − v4 is −4.20 with the interval covering zero (p = 0.24, n = 286),

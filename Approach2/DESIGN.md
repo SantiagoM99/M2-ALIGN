@@ -5217,3 +5217,65 @@ glob carried into `results/` and harvest committed. Deleted, and the copy now
 takes only non-empty files — the same fix `a1_eval.sh` got on 10-03, in the
 second launcher that needed it. The skip rule keys on the summary file, which is
 written last, so those cells remain retryable.
+
+### a1 pooled, paired on 1,858 items: the CVQA lead is re-established — 2026-10-13
+
+The comparison the pooled checkpoint was trained for, with its prediction and
+refutation condition recorded 2026-10-02 before the training was submitted. a1
+here is her current system reproduced on our cluster — one shared mapping over
+her eleven languages plus English, her code unedited at `51e68b4`, three epochs
+with val_loss 0.4558 → 0.4163 → 0.3772 and the best checkpoint saved at the
+third — scored by her own `Stage3/evaluate.py` on our CVQA panel at matched
+resolution (602,112 px, ~588 merged visual tokens) against our per-language v4
+checkpoints. Six languages, 1,858 items over 869 image clusters, one image copy,
+one environment.
+
+| arm | CVQA | ΔV |
+|---|---|---|
+| a1 pooled | 36.11 [33.87, 38.40] | — (her evaluator has no gray canvas) |
+| v4 | 40.26 [38.04, 42.55] | 9.36 [7.37, 11.44] |
+| **a1 − v4** | **−4.14 [−6.62, −1.74]** | — |
+
+McNemar on identical items: 240 a1-only against 317 v4-only, p = 0.0013.
+
+**The refutation condition is not met, and the lead withdrawn on 10-02 is
+re-established.** The rule fixed before the run was that a tie or a win for a1
+(LB5 of a1 − v4 ≥ 0) withdraws the claim that our architecture leads on CVQA.
+The whole interval sits below zero and the one-sided UB95 is −2.09. The 10-02
+withdrawal was correct for what it had — one language, n = 286, an interval
+covering zero — and what changed is comparability rather than the statistic: a
+pooled a1 is supervised in every language we score, so all six panels count
+instead of one, and the supervised-against-zero-shot error that made the
+five-language pooling unreportable does not recur.
+
+**The prediction was right in direction and nearly exact in size.** It said the
+lead would shrink from the honest cross-environment +4.89 and survive with its
+lower bound above zero. Paired, same environment, same items: +4.14.
+
+**Two things the number does not cover, and both belong in the paper's text.**
+Her best arm is pooled + replay, which by her own measurement (her message
+10-01) is +1.63 above pooled on CVQA, and it is not in this comparison; it can
+be trained from the stage 2 that already exists. Granting her offset at face
+value the lead is about 2.5 points, and at the conservative end of our interval
+it is 1.74 − 1.63 = 0.11 — so the lead survives the replay offset at the point
+estimate and not robustly at the bound, and the text says so rather than
+leaving the reader to do the subtraction. Second, the two systems spend capacity
+differently: six per-language checkpoints of ours against one shared mapping of
+hers. That is each system as its authors actually run it, which is the
+comparison worth reporting, but the symmetric arm — our stage 3 trained pooled
+— does not exist, and a reviewer will ask for it. The only pooled evidence we
+have is X3/D12, where a joint stage-1 mapping *lost* 1.18 CVQA points, which
+argues the asymmetry flatters us less than it appears.
+
+**Per language, descriptive only** (n = 225–412; pooled group tests only at this
+scale): bn +0.35, ga −0.92, id −3.88, jv −5.72, mn −7.37, si −8.44. The deficit
+is smallest on Bengali and largest on the three lowest-resource targets, the
+shape a shared mapping would produce. Not tested here, and not a claim.
+
+Accuracy only: her evaluator has no blind arm, so `--full-only a1` applies and
+this contrast carries no grounding statement. One seed per system. Read by
+`analysis/read_a1_pooled.sh`, which exists because the `arch_compare` invocation
+is five template arguments long and the terminal splits it on paste; report
+`audits/arch_compare_cvqa_v4_a1_pooled_matched.json`, results harvested in
+`c35671e`. The xGQA half of the 10-02 prediction — a1 pooled at or above her
+per-language 56.96 and above our 48.78 — is still unread.
