@@ -5279,3 +5279,84 @@ is five template arguments long and the terminal splits it on paste; report
 `audits/arch_compare_cvqa_v4_a1_pooled_matched.json`, results harvested in
 `c35671e`. The xGQA half of the 10-02 prediction — a1 pooled at or above her
 per-language 56.96 and above our 48.78 — is still unread.
+
+### The other half of the 10-02 prediction: a1 pooled leads xGQA by 7.95, and the reproduction gap closes — 2026-10-20
+
+The same pooled checkpoint read on 10-13, her code unedited, her own
+`--visual-pixels 65536` rather than a matched budget: the registered density
+control (job 22302078) measured +0.11 [−0.07, +0.28] on xGQA, so the token
+budget buys nothing there and the cheap setting costs no validity. Seven
+languages, 88,046 items over 2,786 image clusters.
+
+| arm | xGQA | ΔV |
+|---|---|---|
+| a1 pooled | 57.61 | — (her evaluator has no gray canvas) |
+| v4 | 49.66 | 17.39 |
+| **a1 − v4** | **+7.95 [+7.53, +8.36]** | — |
+
+McNemar 16,184 a1-only against 9,184 v4-only. a1 leads in every language and
+almost uniformly: bn +8.75, zh +8.31, ko +8.22, ru +8.06, id +7.66, pt +7.58,
+de +7.07.
+
+**The 10-02 prediction is met on both halves, in opposite directions.** It said
+a1 pooled would reach or pass her reported 56.96 on xGQA and beat our arm there,
+while our CVQA lead would shrink and survive. xGQA: 57.61 macro against her
+56.96. CVQA: +4.14 in our favour, 10-13. The two benchmarks disagree about which
+architecture wins, by 8 points and 4 points, paired on identical items in one
+environment. That double dissociation is the sharpest form of the mechanism
+claim this project has: the text bridge pays where the backbone lacks the
+language, and does not pay where the question needs cultural knowledge the
+backbone does not hold.
+
+**The reproduction gap of 10-02 was ours, and the recipe explains it.** Our
+per-language a1 scored 52.11 on xGQA-bn against her reported 56.96, and three
+causes were named as untested: one stage-1 epoch against her three, per-language
+against pooled, and her figure possibly coming from a pooled checkpoint. Trained
+her way, the same panel reads **56.42** — 4.31 of the 4.85 recovered — and the
+seven-language macro sits 0.65 above her own number. So her system reproduces
+here, and a table may now print both architectures without a provenance
+asterisk.
+
+Read by `analysis/read_a1_pooled.sh` with `BENCH=xgqa`; report
+`audits/arch_compare_xgqa_v4_a1_pooled_her_default.json`, results harvested in
+`1d1b735`. Accuracy only, `--full-only a1`, one seed per system. The
+pooled + replay arm finished training and its evaluation has not been launched.
+
+### Her replay arm is a two-job chain, and its pool has a prerequisite nothing built — 2026-10-21
+
+Job 23145191 died in two seconds on
+`missing $DT/Stage3/data/replay/translation_bn.jsonl`. The pooled arm needs only
+the VQA pool; the replay arm also needs the text replay pool her
+`Stage3/load_replay_data.py` writes, and nothing in our tree had ever built it.
+Her own `load_replay_data.sh` cannot be used as it stands — it writes under
+/scratch/tajm and reads an NLLB snapshot from her home — so
+`job-scripts/a1_replay_pool.sh` is her argument list with our paths, her python
+still run unedited from the worktree, and `job-scripts/a1_replay.sh` submits the
+chain (pool, then stage 3 with `afterok`) in one line.
+
+**Two decisions in that launcher, both recorded because they are deviations.**
+It builds four languages rather than her eleven: her builder writes a file per
+pooled language, but `train_pooled_replay.sh` opens only `REPLAY_LANGS`, which
+is `bn de ru zh` in her launcher and in ours, plus `math_en`. The seven the
+trainer never opens would cost NLLB time and change nothing about the
+checkpoint. And a missing **NLLB-3.3B** snapshot is a hard failure rather than a
+fall back to the 600M model our own pipeline runs: 3.3B is what translated her
+Stage 3 VQA data and her math questions, and quietly substituting a smaller
+translator is the same class of error as comparing numbers across environments.
+The snapshot is discovered by glob rather than pinned, since its hash differs
+per download, and `MT` overrides it.
+
+Stages 1 and 2 are shared with the no-replay arm and are not retrained; the fork
+is at stage 3 and writes to `a1_pooled_replay_stage3`, so the checkpoint read on
+10-13 and 10-20 is untouched.
+
+**CG50's fourth failure was not the data.** Job 23195176 stopped at 1 m 55 on the
+resume guard: `outputs/cg50_seed13/training_run.json` recorded `data_path`
+sha256 `dbea4fb8…` and the file on disk is `982f0705…`. That is the guard added
+on 10-10 working as intended, and it also answers the open question about the
+pool — the sha differs from the one the 10-08 run trained on, so the current
+`bn_cg50.jsonl` is the post-fix rebuild, and the launcher's own check printed the
+mix exactly: 15,000 translated GQA and 15,000 CulturalGround. Resolved by moving
+the stale output directory aside. `verify_cg_images.py` (committed 10-14) re-runs
+the trainer's own decode criterion over a pool that already exists, for the case
+the sha cannot settle.
