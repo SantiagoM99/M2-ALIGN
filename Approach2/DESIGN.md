@@ -5373,8 +5373,14 @@ added with the location-aware work on 10-05, defaults to a path derived from
 allocation runs from a worktree of its own commit, so the two namespaces
 disagreed on that one string while pointing at byte-identical files, and
 `make_manifest` freezes `vars(a)` whole — correctly, since it cannot know which
-paths are allowed to move. Every CVQA cell was refused; the xGQA cells have no
-such flag.
+paths are allowed to move.
+
+**Corrected 2026-10-22.** The sentence above first said the xGQA cells have no
+such flag. They do: `parser()` builds one argument list and differs only in
+`set_defaults(benchmark=...)`, so an xGQA namespace carries `cvqa_inventory`
+too. The first fix passed the path for CVQA cells only, and job 24898780 then
+died on `s1_C_xgqa_bn_C1_correct` — the same refusal one benchmark later. The
+plan now states the path for every cell.
 
 `s1_plan.py` now passes `--cvqa-inventory` resolved against the planner's
 `ROOT`, like the shuffle registries and every other path it hands a cell, and

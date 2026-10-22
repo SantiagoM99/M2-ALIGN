@@ -79,11 +79,16 @@ class PlanPathTests(unittest.TestCase):
         self.addCleanup(self._tmp.cleanup)
         self.plan_path = block_a_plan(self.root)
 
-    def test_every_cvqa_cell_carries_the_inventory_path(self):
+    def test_every_cell_carries_the_inventory_path(self):
+        """Both benchmarks: `parser()` differs only in its `benchmark` default."""
         plan = json.loads(self.plan_path.read_text())
-        cvqa = [c for c in plan["cells"] if c["benchmark"] == "cvqa"]
-        self.assertTrue(cvqa)
-        for cell in cvqa:
+        self.assertTrue(plan["cells"])
+        self.assertEqual(
+            {c["benchmark"] for c in plan["cells"]},
+            {"cvqa", "xgqa"},
+            "the fixture must cover both parsers",
+        )
+        for cell in plan["cells"]:
             with self.subTest(cell=cell["id"]):
                 self.assertIn("--cvqa-inventory", cell["argv"])
                 value = cell["argv"][cell["argv"].index("--cvqa-inventory") + 1]
@@ -91,13 +96,6 @@ class PlanPathTests(unittest.TestCase):
                 # resolve() on the planner side, and /var is a symlink on macOS:
                 # compare the physical spelling, which is the whole point here.
                 self.assertTrue(value.startswith(str(self.root.resolve())), value)
-
-    def test_xgqa_cells_do_not_carry_it(self):
-        """Its parser has no such flag; passing it anyway would fail to parse."""
-        plan = json.loads(self.plan_path.read_text())
-        for cell in plan["cells"]:
-            if cell["benchmark"] == "xgqa":
-                self.assertNotIn("--cvqa-inventory", cell["argv"])
 
     def test_the_namespace_survives_a_different_working_directory(self):
         """The invariant the manifest comparison actually depends on."""

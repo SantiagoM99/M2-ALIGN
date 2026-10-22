@@ -157,17 +157,19 @@ def build(a):
                     ).resolve()
                 ),
             ]
-        if b == "cvqa":
-            # The parser derives this path from its own `__file__`, so a
-            # submission prepared in the clone and an allocation running from a
-            # worktree of the same commit disagree on the string while reading
-            # the same bytes -- and the manifest freezes `vars(a)` whole, so the
-            # comparison reports `arguments` changed and refuses every CVQA cell
-            # (job 24806466). Freeze it here, like every other path.
-            argv += [
-                "--cvqa-inventory",
-                str((ROOT / "Approach2/audits/cvqa_inventory.json").resolve()),
-            ]
+        # Every cell, both benchmarks: `parser()` differs only in
+        # `set_defaults(benchmark=...)`, so an xGQA namespace carries this field
+        # too. The parser derives the path from its own `__file__`, so a
+        # submission prepared in the clone and an allocation running from a
+        # worktree of the same commit disagree on the string while reading the
+        # same bytes -- and the manifest freezes `vars(a)` whole, so the
+        # comparison reports `arguments` changed and refuses the cell (jobs
+        # 24806466 on CVQA, then 24898780 on xGQA). Freeze it like every other
+        # path the plan hands a cell.
+        argv += [
+            "--cvqa-inventory",
+            str((ROOT / "Approach2/audits/cvqa_inventory.json").resolve()),
+        ]
         cells.append({"id": cid, "benchmark": b, "argv": argv})
         return cid
 
