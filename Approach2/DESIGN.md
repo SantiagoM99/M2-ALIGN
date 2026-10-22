@@ -5360,3 +5360,32 @@ mix exactly: 15,000 translated GQA and 15,000 CulturalGround. Resolved by moving
 the stale output directory aside. `verify_cg_images.py` (committed 10-14) re-runs
 the trainer's own decode criterion over a pool that already exists, for the case
 the sha cannot settle.
+
+### A path inferred from `__file__` refused all 60 CG50 cells — 2026-10-21
+
+CG50 trained clean (job 24760613, 3 h 25, `complete.json` written) and its
+evaluation died in 20 seconds on
+`s1_C_cvqa_jv_C1_correct: changed after submission: arguments`.
+
+The arm was not the problem and neither was the data. `--cvqa-inventory`,
+added with the location-aware work on 10-05, defaults to a path derived from
+`eval_runtime.__file__`. A submission is prepared in the clone and the
+allocation runs from a worktree of its own commit, so the two namespaces
+disagreed on that one string while pointing at byte-identical files, and
+`make_manifest` freezes `vars(a)` whole — correctly, since it cannot know which
+paths are allowed to move. Every CVQA cell was refused; the xGQA cells have no
+such flag.
+
+`s1_plan.py` now passes `--cvqa-inventory` resolved against the planner's
+`ROOT`, like the shuffle registries and every other path it hands a cell, and
+`tests/test_s1_plan_paths.py` holds the invariant the manifest comparison
+depends on: re-parsing a frozen plan from a different working directory yields
+an identical namespace. Planning is deterministic, so re-running `cg50_eval.sh`
+after the commit produces the same 60 cells.
+
+**The lesson is the 10-09 one in a new place.** The worktree design says every
+path in a submission is absolute and points at the main clone; a default
+computed from the module's own location silently violates that, and it violated
+it for sixteen days before a job touched the code path. A guard that compares
+everything is worth more than one that is told what may vary — it found this —
+but a plan that infers a path it could state is where the defect lives.

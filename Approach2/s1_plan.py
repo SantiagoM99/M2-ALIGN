@@ -157,6 +157,17 @@ def build(a):
                     ).resolve()
                 ),
             ]
+        if b == "cvqa":
+            # The parser derives this path from its own `__file__`, so a
+            # submission prepared in the clone and an allocation running from a
+            # worktree of the same commit disagree on the string while reading
+            # the same bytes -- and the manifest freezes `vars(a)` whole, so the
+            # comparison reports `arguments` changed and refuses every CVQA cell
+            # (job 24806466). Freeze it here, like every other path.
+            argv += [
+                "--cvqa-inventory",
+                str((ROOT / "Approach2/audits/cvqa_inventory.json").resolve()),
+            ]
         cells.append({"id": cid, "benchmark": b, "argv": argv})
         return cid
 
