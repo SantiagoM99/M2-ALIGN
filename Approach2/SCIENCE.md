@@ -72,6 +72,22 @@ and the resolution. What survives as the difference is visual token density —
 196 merged tokens against 729 unmerged at the same image size — and it is testable
 by inference alone, across backbones. DESIGN.md 2026-09-29.
 
+### Culturally grounded supervision: large where the culture matches, absent in transfer — 2026-10-22
+
+CG50, 50% of the Bengali stage-3 rows replaced by CulturalGround India rows at a
+fixed row count, read against C1 on C1's own grid. **Reading 1 passes**: CVQA-bn
+utility +15.03 [+9.06, +21.05], grounding +12.00, and on the block the reference
+answers wrongly +18.18 [+10.86, +25.86]. **Reading 2 fails**: on the zero-shot
+targets jv/mn/ga the grounding gain is +1.35 [−1.32, +4.00], and source retention
+on xGQA-bn misses the δ = 1.0 margin by 0.04. The answer-set objection is measured,
+not asserted: 10.49% of CVQA-bn answers appear in the training rows against ~0% on
+the zero-shot targets, and splitting the panel leaves **+13.28 [+6.72, +20.00]**
+on items whose answer the arm never saw, with grounding +11.46 — so exposure
+inflates the raw figure and does not create it, and it does not explain the
+bn-versus-transfer contrast (+13.28 against +1.35). Still confounded: bn has
+language supervision and country match together, separable only by the Bangladesh
+arm the 10-08 amendment discarded. DESIGN 2026-10-22.
+
 ### Both halves of the architecture comparison are now measured — 2026-10-20
 
 The pooled a1, her recipe reproduced here and read on identical items in one

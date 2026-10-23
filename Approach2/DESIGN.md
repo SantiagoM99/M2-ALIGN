@@ -5471,3 +5471,58 @@ before the claim is written, not after a reviewer asks.
 
 Report `audits/arch_compare_xgqa_a1pooled_vs_qwen.json`, `--full-only a1p`;
 Qwen's own gray-canvas ΔV on that panel is 29.80 against our 17.39.
+
+### CG50 read: culturally grounded supervision works where the culture matches, and does not transfer — 2026-10-22
+
+Job 24900531, 60 cells, both readings declared on 2026-10-08 before the arm was
+built, reported by `analysis/cg50.py` into `audits/s1_CG50_analysis.json`.
+
+**Reading 1 (bn, country matched) passes.** CG50 − C1 on CVQA-bn, 286 items:
+utility **+15.03 [+9.06, +21.05]**, grounding **+12.00 [+5.82, +18.14]**. By the
+question-necessity split, the gain is largest on `other`, the block the reference
+answers wrongly: **+18.18 [+10.86, +25.86]**, LB5 +11.96, against +10.11
+[−2.15, +22.22] on `shortcut` and +9.52 on the 21 `necessary` items. The declared
+condition is met. One limit on how far that can be pushed: `other` minus
+`shortcut` is +8.07 [−6.35, +21.99], so the subsets do not separate — the block
+moved, but the gain is not shown to be specific to it.
+
+**Reading 2 (jv/mn/ga zero-shot) fails.** Grounding gain **+1.35 [−1.32, +4.00]**,
+LB5 −0.85 where LB5 > 0 was required; utility +0.75 [−1.69, +3.24]. Source
+retention on xGQA-bn is U(C1) − U(CG50) = +0.45 with **UB95 +1.04** against
+δ = 1.0, so non-inferiority is missed by 0.04 of a point and is not claimed.
+Culturally grounded supervision in one donor language does not reach languages
+whose cultures differ.
+
+**The answer-set objection, measured rather than declared.**
+`analysis/cg_entity_overlap.py` compares CVQA's English choices with
+CulturalGround's English answers: **10.49%** of CVQA-bn gold answers sit in
+CG50's 15,000 cultural rows, against 0.0% jv, 0.0% si, 0.31% ga, 0.32% mn. The
+share bounds what memorisation can contribute and does not measure it, so the bn
+gain is split:
+
+| CVQA-bn | Δ U | Δ grounding | n |
+|---|---|---|---|
+| answer seen in training | +30.00 [+14.29, +46.43] | +16.67 [+2.30, +30.30] | 30 |
+| answer never seen | **+13.28 [+6.72, +20.00]** | **+11.46 [+4.92, +18.13]** | 256 |
+| difference | +16.72 [+0.35, +33.94] | | |
+
+0.1049 × 30.00 + 0.8951 × 13.28 = 15.03, the full panel, so the decomposition is
+exact. **The effect survives**: on items whose answer the arm never saw the gain
+is +13.28 with LB5 +7.72, and grounding rises there too, so this is not an answer
+prior. **Exposure is also real**: the gain more than doubles where the answer was
+seen and that difference excludes zero. The number to report as the effect is
+therefore **+13.28**, with +15.03 given as the full panel and the split beside it.
+
+**What the overlap does not explain is the contrast between the two readings.**
+If exposure drove reading 1, bn's clean-item gain should sit near the zero-shot
+targets, whose overlap is ~0%. It is +13.28 against +1.35. What separates bn from
+jv/mn/ga is that the supervised culture is the panel's own — which is what the
+10-08 amendment from Bangladesh to India was for, and without it this contrast
+could not have been read at all.
+
+**The confound that remains.** bn carries language supervision and country match
+together, and nothing we ran separates them: a reviewer may say bn gains because
+the rows are Bengali, not because they are Indian. The arm that separates them is
+the one the amendment discarded — Bengali rows built from Bangladesh — and it is
+one 3 h 25 training plus its 30-cell evaluation. It should be run before the claim
+is written as a claim about culture.
