@@ -1,0 +1,189 @@
+{
+  "arms": {
+    "C1": "s1_C1_seed13",
+    "CG50": "cg50_seed13"
+  },
+  "boot": 4000,
+  "difference": "CG50 minus C1, except retention which is C1 minus CG50, as declared",
+  "inference": "one training seed per arm: conditional on these trajectories, no training variance",
+  "readings": {
+    "1_bn_country_matched": {
+      "condition": "LB5(dU on `other`) > 0 and the gain not concentrated in `shortcut`; the second half is read as other-minus-shortcut >= 0, an operationalisation fixed at read time, not on 2026-10-08",
+      "full": {
+        "U": {
+          "ci95": [
+            9.060402684563758,
+            21.05263157894737
+          ],
+          "estimate": 15.034965034965035,
+          "image_clusters": 136,
+          "items": 286,
+          "lb5": 10.0,
+          "macro_estimate": 15.034965034965035,
+          "ub95": 20.141342756183747
+        },
+        "grounding": {
+          "ci95": [
+            5.8181818181818175,
+            18.138987043580684
+          ],
+          "estimate": 12.004662004662006,
+          "image_clusters": 136,
+          "items": 286,
+          "lb5": 6.736353077816493,
+          "macro_estimate": 12.004662004662006,
+          "ub95": 17.1462829736211
+        }
+      },
+      "other_minus_shortcut_U": {
+        "ci95": [
+          -6.348814229249012,
+          21.98870193767843
+        ],
+        "estimate": 8.069458631256385,
+        "items": {
+          "other": 176,
+          "shortcut": 89
+        },
+        "lb5": -3.870481927710842,
+        "resamples_used": 4000,
+        "ub95": 19.807244931871054
+      },
+      "panel": "cvqa bn",
+      "passes": true,
+      "subsets": {
+        "necessary": {
+          "U": {
+            "ci95": [
+              -9.523809523809524,
+              27.272727272727273
+            ],
+            "estimate": 9.523809523809524,
+            "image_clusters": 19,
+            "items": 21,
+            "lb5": -5.0,
+            "macro_estimate": 9.523809523809524,
+            "ub95": 25.0
+          },
+          "grounding": {
+            "ci95": [
+              -13.043478260869563,
+              38.59649122807017
+            ],
+            "estimate": 14.285714285714286,
+            "image_clusters": 19,
+            "items": 21,
+            "lb5": -7.936507936507936,
+            "macro_estimate": 14.285714285714286,
+            "ub95": 34.92063492063492
+          }
+        },
+        "other": {
+          "U": {
+            "ci95": [
+              10.857142857142858,
+              25.862068965517242
+            ],
+            "estimate": 18.181818181818183,
+            "image_clusters": 117,
+            "items": 176,
+            "lb5": 11.956521739130435,
+            "macro_estimate": 18.181818181818183,
+            "ub95": 24.571428571428573
+          },
+          "grounding": {
+            "ci95": [
+              4.814814814814815,
+              19.879518072289155
+            ],
+            "estimate": 12.121212121212123,
+            "image_clusters": 117,
+            "items": 176,
+            "lb5": 5.86080586080586,
+            "macro_estimate": 12.121212121212123,
+            "ub95": 18.560606060606062
+          }
+        },
+        "shortcut": {
+          "U": {
+            "ci95": [
+              -2.150537634408602,
+              22.22222222222222
+            ],
+            "estimate": 10.112359550561798,
+            "image_clusters": 70,
+            "items": 89,
+            "lb5": 0.0,
+            "macro_estimate": 10.112359550561798,
+            "ub95": 20.238095238095237
+          },
+          "grounding": {
+            "ci95": [
+              0.3508771929824551,
+              23.01587301587301
+            ],
+            "estimate": 11.235955056179778,
+            "image_clusters": 70,
+            "items": 89,
+            "lb5": 2.1052631578947367,
+            "macro_estimate": 11.235955056179778,
+            "ub95": 21.111111111111125
+          }
+        }
+      }
+    },
+    "2_zero_shot_transfer": {
+      "condition": "LB5(dGround(CG50)-dGround(C1)) > 0 and UB95(U(C1)-U(CG50)) < 1.0",
+      "grounding_gain": {
+        "ci95": [
+          -1.3162575595873354,
+          4.002911208151382
+        ],
+        "estimate": 1.3547237076648848,
+        "image_clusters": 401,
+        "items": 935,
+        "lb5": -0.8456659619450315,
+        "macro_estimate": 1.355785583801944,
+        "ub95": 3.5513361462728557
+      },
+      "panel": "cvqa jv/mn/ga pooled",
+      "passes": false,
+      "source_retention_xgqa_bn": {
+        "ci95": [
+          -0.30165912518853694,
+          1.188008292138415
+        ],
+        "estimate": 0.4452218158689776,
+        "image_clusters": 398,
+        "items": 12578,
+        "lb5": -0.16468005018820578,
+        "macro_estimate": 0.4452218158689776,
+        "ub95": 1.0362694300518134
+      },
+      "utility_gain": {
+        "ci95": [
+          -1.693121693121693,
+          3.2426778242677825
+        ],
+        "estimate": 0.7486631016042781,
+        "image_clusters": 401,
+        "items": 935,
+        "lb5": -1.2779552715654952,
+        "macro_estimate": 0.765666205339007,
+        "ub95": 2.823018458197611
+      }
+    }
+  },
+  "reference": {
+    "question_blind": "Approach2/results/qwen_cvqa_bn_QBLIND.jsonl",
+    "with_question": "Approach2/results/qwen_cvqa_bn.jsonl"
+  },
+  "seed": 0,
+  "spec_sha": "3b4faff4d673fad94cd3115b3f14212eeca9c12e",
+  "submission_sha256": "2d03f44d9f43d5b9a8c05c2bd1ff24039ab19d4f4ff40ed68443f37a741fd652",
+  "subset_counts": {
+    "necessary": 21,
+    "other": 176,
+    "shortcut": 89
+  }
+}
