@@ -49,34 +49,38 @@ class OverlapTests(unittest.TestCase):
 
     def test_an_overlapping_gold_answer_is_counted(self):
         rows = [
-            {"choices": ["Ganesh", "Kartik"], "answer_index": 0},
-            {"choices": ["Kartik", "Ganesh"], "answer_index": 0},
+            {"id": "a_0", "choices": ["Ganesh", "Kartik"], "answer_index": 0},
+            {"id": "b_0", "choices": ["Kartik", "Ganesh"], "answer_index": 0},
         ]
         out = audit.audit_panel(rows, self.exposure)
         self.assertEqual(out["gold_answer_in_training_answers"], 1)
         self.assertEqual(out["gold_answer_share"], 0.5)
         # The second item's gold is absent but a distractor is present.
         self.assertEqual(out["any_choice_in_training_answers"], 2)
+        # The per-item labels are the join key for splitting the gain.
+        self.assertEqual(out["labels"], {"a_0": "overlap", "b_0": "clean"})
 
     def test_the_entity_label_is_read_from_the_image_id(self):
         """The Commons stem is the only entity label the training rows carry."""
-        out = audit.audit_panel([{"choices": ["statue"], "answer_index": 0}], self.exposure)
+        out = audit.audit_panel([{"id": "c_0", "choices": ["statue"], "answer_index": 0}], self.exposure)
         self.assertEqual(out["gold_answer_in_training_entity_labels"], 1)
         self.assertEqual(out["gold_answer_in_training_answers"], 0)
 
     def test_case_accents_and_punctuation_do_not_hide_an_overlap(self):
-        out = audit.audit_panel([{"choices": ["  gánesh! "], "answer_index": 0}], self.exposure)
+        out = audit.audit_panel([{"id": "d_0", "choices": ["  gánesh! "], "answer_index": 0}], self.exposure)
         self.assertEqual(out["gold_answer_in_training_answers"], 1)
 
     def test_a_disjoint_panel_scores_zero(self):
-        out = audit.audit_panel([{"choices": ["borobudur", "prambanan"], "answer_index": 0}],
-                                self.exposure)
+        out = audit.audit_panel(
+            [{"id": "e_0", "choices": ["borobudur", "prambanan"], "answer_index": 0}],
+            self.exposure,
+        )
         self.assertEqual(out["gold_answer_share"], 0.0)
         self.assertEqual(out["any_choice_share"], 0.0)
 
     def test_a_panel_without_choices_is_refused(self):
         with self.assertRaises(SystemExit):
-            audit.audit_panel([{"answer_index": 0}], self.exposure)
+            audit.audit_panel([{"id": "f_0", "answer_index": 0}], self.exposure)
 
 
 if __name__ == "__main__":

@@ -194,7 +194,7 @@ def subset_mean_difference(cells, values, labels, first, second, B, seed, estima
     }
 
 
-def analyse(cells, labels, B=4000, seed=0):
+def analyse(cells, labels, B=4000, seed=0, overlap=None):
     if B <= 0:
         raise ValueError("bootstrap count must be positive")
     validate_grid(cells)
@@ -274,6 +274,48 @@ def analyse(cells, labels, B=4000, seed=0):
     )
     report["readings"]["1_bn_country_matched"] = bn
 
+    # The answer-set objection, decomposed. `cg_entity_overlap.py` measured that
+    # 10.49% of CVQA-bn gold answers sit in CG50's training rows against ~0% on
+    # the zero-shot targets. A share bounds the contribution of memorised answers
+    # -- it cannot exceed the share -- but only the split measures it, and the
+    # number the paper needs is the gain on the items whose answer the arm never
+    # saw.
+    if overlap:
+        groups = {"overlap", "clean"}
+        unknown = sorted(set(overlap.values()) - groups)
+        if unknown:
+            raise ValueError(f"overlap labels must be overlap/clean, got {unknown}")
+        split = {"counts": {g: sum(1 for v in overlap.values() if v == g) for g in sorted(groups)}}
+        for endpoint in ("U", "grounding"):
+            values = contrast(eps, ("bn",), GAIN, endpoint)
+            for g in sorted(groups):
+                subset = {i: v for i, v in values["bn"].items() if overlap.get(i) == g}
+                if subset:
+                    split.setdefault(g, {})[endpoint] = interval(
+                        cells, "cvqa", {"bn": subset}, B, seed, f"CG50:bn:{g}:{endpoint}"
+                    )
+        try:
+            split["overlap_minus_clean_U"] = subset_mean_difference(
+                cells,
+                contrast(eps, ("bn",), GAIN, "U")["bn"],
+                overlap,
+                "overlap",
+                "clean",
+                B,
+                seed,
+                "CG50:bn:overlap-minus-clean:U",
+            )
+        except ValueError as exc:
+            split["overlap_minus_clean_U"] = {"unavailable": str(exc)}
+        clean = split.get("clean", {}).get("U")
+        split["survives_the_answer_set_objection"] = bool(clean and clean["lb5"] > 0)
+        split["reading"] = (
+            "the gain on `clean` items is the part no memorised answer can explain; "
+            "exposure on `overlap` items may still require the image, so a positive "
+            "overlap-minus-clean difference is not by itself evidence of memorisation"
+        )
+        report["readings"]["1b_answer_set_overlap"] = split
+
     # Contrasts answer the gates; a table needs the levels they are differences
     # of, so both arms are reported on both panels.
     report["levels"] = {}
@@ -306,12 +348,19 @@ def main():
     ap.add_argument("--reference-with", required=True, help="the reference's with-question arm")
     ap.add_argument("--reference-blind", required=True, help="its question-blind arm")
     ap.add_argument("--output", required=True)
+    ap.add_argument("--overlap-labels", help="per-item overlap/clean labels from cg_entity_overlap.py")
     ap.add_argument("--boot", type=int, default=4000)
     ap.add_argument("--seed", type=int, default=0)
     a = ap.parse_args()
     cells = load_cells(a.submission, a.results_dir, block="C")
     labels = labels_for_panel(cells, a.reference_with, a.reference_blind)
-    report = analyse(cells, labels, a.boot, a.seed)
+    overlap = None
+    if a.overlap_labels:
+        with open(a.overlap_labels, encoding="utf-8") as handle:
+            overlap = json.load(handle).get("bn")
+        if not overlap:
+            raise SystemExit(f"{a.overlap_labels} carries no bn labels")
+    report = analyse(cells, labels, a.boot, a.seed, overlap)
     report["submission_sha256"] = file_sha(a.submission)
     report["reference"] = {
         "with_question": str(a.reference_with),
@@ -323,6 +372,9 @@ def main():
             {
                 "reading_1_bn": report["readings"]["1_bn_country_matched"]["passes"],
                 "reading_2_transfer": report["readings"]["2_zero_shot_transfer"]["passes"],
+                "survives_answer_set_objection": report["readings"]
+                .get("1b_answer_set_overlap", {})
+                .get("survives_the_answer_set_objection"),
                 "subset_counts": report["subset_counts"],
             },
             indent=2,

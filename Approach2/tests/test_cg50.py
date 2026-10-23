@@ -193,6 +193,29 @@ class CG50Tests(unittest.TestCase):
         report = cg50.analyse(self.cells, labels, B=200)
         self.assertFalse(report["readings"]["1_bn_country_matched"]["passes"])
 
+    def test_a_gain_only_on_overlapping_answers_does_not_survive(self):
+        """The whole point of the split: memorised answers cannot carry the claim."""
+        overlap = {i: ("overlap" if i in BOOST else "clean") for i in self.labels()}
+        split = cg50.analyse(self.cells, self.labels(), B=200, overlap=overlap)[
+            "readings"
+        ]["1b_answer_set_overlap"]
+        self.assertEqual(split["clean"]["U"]["estimate"], 0.0)
+        self.assertGreater(split["overlap"]["U"]["estimate"], 0)
+        self.assertFalse(split["survives_the_answer_set_objection"])
+
+    def test_a_gain_on_unseen_answers_survives(self):
+        overlap = {i: ("clean" if i in BOOST else "overlap") for i in self.labels()}
+        split = cg50.analyse(self.cells, self.labels(), B=200, overlap=overlap)[
+            "readings"
+        ]["1b_answer_set_overlap"]
+        self.assertGreater(split["clean"]["U"]["lb5"], 0)
+        self.assertTrue(split["survives_the_answer_set_objection"])
+
+    def test_an_unknown_overlap_label_is_refused(self):
+        bad = {i: "maybe" for i in self.labels()}
+        with self.assertRaisesRegex(ValueError, "overlap/clean"):
+            cg50.analyse(self.cells, self.labels(), B=20, overlap=bad)
+
     def test_an_incomplete_grid_is_refused(self):
         cells = dict(self.cells)
         cells.pop(("cvqa", "bn", "CG50", "gray"))

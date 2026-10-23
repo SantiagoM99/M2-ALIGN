@@ -14,8 +14,12 @@ DT="${DT:-/scratch/santimn/datatransfer}"
 TRAINING="${TRAINING:-$DT/Stage3/data/bn_cg50.jsonl}"
 SUB="${SUB:-Approach2/outputs/s1_CG50.eval.submission.json}"
 OUT="${OUT:-Approach2/audits/cg_entity_overlap.json}"
+# Per-item labels, so read_cg50.sh can split the gain into overlapping and
+# clean items: the share bounds the contribution, the split measures it.
+LABELS="${LABELS:-Approach2/audits/cg_overlap_labels.json}"
 
 python3 Approach2/analysis/cg_entity_overlap.py \
   --training "$TRAINING" \
   --submission "$SUB" \
-  --output "$OUT"
+  --output "$OUT" \
+  --emit-labels "$LABELS"

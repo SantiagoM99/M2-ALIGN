@@ -117,6 +117,7 @@ def audit_panel(rows: list[dict], exposure: dict) -> dict:
     entity_blob = " | ".join(sorted(entities))
     gold_exact = gold_in_entity = any_choice = 0
     examples = []
+    labels = {}
     for r in rows:
         choices = [normalise(c) for c in r.get("choices", [])]
         if not choices:
@@ -127,10 +128,12 @@ def audit_panel(rows: list[dict], exposure: dict) -> dict:
         in_entity = bool(gold) and gold in entity_blob
         gold_in_entity += in_entity
         any_choice += any(c in answers for c in choices)
+        labels[str(r["id"])] = "overlap" if hit else "clean"
         if hit and len(examples) < 5:
             examples.append(gold)
     n = len(rows)
     return {
+        "labels": labels,
         "items": n,
         "gold_answer_in_training_answers": gold_exact,
         "gold_answer_share": round(gold_exact / n, 4),
@@ -149,6 +152,7 @@ def main() -> None:
     ap.add_argument("--panel", action="append", default=[], metavar="LANG=PATH",
                     help="a CVQA panel, repeatable; overrides --submission for that target")
     ap.add_argument("--output", required=True)
+    ap.add_argument("--emit-labels", help="write {target: {item_id: overlap|clean}} here")
     a = ap.parse_args()
 
     exposure = training_exposure(Path(a.training))
@@ -173,17 +177,22 @@ def main() -> None:
         ),
         "panels": {},
     }
+    per_item = {}
     for lang in sorted(panels):
-        report["panels"][lang] = {
-            "panel": panels[lang],
-            **audit_panel(read_jsonl(Path(panels[lang])), exposure),
-        }
+        result = audit_panel(read_jsonl(Path(panels[lang])), exposure)
+        per_item[lang] = result.pop("labels")
+        report["panels"][lang] = {"panel": panels[lang], **result}
     shares = {l: p["gold_answer_share"] for l, p in report["panels"].items()}
     report["gold_answer_share_by_target"] = shares
     if "bn" in shares and len(shares) > 1:
         others = [v for l, v in shares.items() if l != "bn"]
         report["bn_minus_other_targets"] = round(shares["bn"] - sum(others) / len(others), 4)
     atomic_json(a.output, report)
+    if a.emit_labels:
+        # Per-item, so the gain can be split into overlapping and clean items:
+        # the share alone bounds the contribution, it does not measure it.
+        atomic_json(a.emit_labels, per_item)
+        print(f"per-item labels -> {a.emit_labels}")
     print(json.dumps({k: report[k] for k in ("training", "gold_answer_share_by_target")}, indent=2))
     if "bn_minus_other_targets" in report:
         print("bn minus the mean of the other targets:", report["bn_minus_other_targets"])

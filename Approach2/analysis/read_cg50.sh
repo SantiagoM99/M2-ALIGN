@@ -16,10 +16,14 @@ SUB="${SUB:-$A2/outputs/s1_CG50.eval.submission.json}"
 WITH_Q="${WITH_Q:-$A2/results/qwen_cvqa_bn.jsonl}"
 QBLIND="${QBLIND:-$A2/results/qwen_cvqa_bn_QBLIND.jsonl}"
 OUT="${OUT:-$A2/audits/s1_CG50_analysis.json}"
+# Present once read_cg_overlap.sh has run; without it the report simply omits
+# the answer-set split rather than failing.
+LABELS="${LABELS:-$A2/audits/cg_overlap_labels.json}"
 
 python3 "$A2/analysis/cg50.py" \
   --submission "$SUB" \
   --reference-with "$WITH_Q" \
   --reference-blind "$QBLIND" \
   --output "$OUT" \
-  ${BOOT:+--boot "$BOOT"}
+  ${BOOT:+--boot "$BOOT"} \
+  $([ -f "$LABELS" ] && printf '%s %s' --overlap-labels "$LABELS")
