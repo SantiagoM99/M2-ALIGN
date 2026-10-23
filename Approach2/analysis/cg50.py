@@ -273,6 +273,29 @@ def analyse(cells, labels, B=4000, seed=0):
         "fixed at read time, not on 2026-10-08"
     )
     report["readings"]["1_bn_country_matched"] = bn
+
+    # Contrasts answer the gates; a table needs the levels they are differences
+    # of, so both arms are reported on both panels.
+    report["levels"] = {}
+    for name, b, targets in (("cvqa-bn", "cvqa", ("bn",)), ("cvqa-primary", "cvqa", PRIMARY)):
+        report["levels"][name] = {
+            arm: {
+                ep: interval(
+                    cells, b, {t: eps[arm][t][ep] for t in targets}, B, seed, f"CG50:{name}:{arm}:{ep}"
+                )
+                for ep in ("U", "grounding", "gray")
+            }
+            for arm in ARMS
+        }
+    report["levels"]["xgqa-bn"] = {
+        arm: {
+            ep: interval(
+                cells, "xgqa", {"bn": xgqa[arm]["bn"][ep]}, B, seed, f"CG50:xgqa-bn:{arm}:{ep}"
+            )
+            for ep in ("U", "grounding", "gray")
+        }
+        for arm in ARMS
+    }
     return report
 
 
