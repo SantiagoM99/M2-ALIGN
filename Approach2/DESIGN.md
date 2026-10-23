@@ -5395,3 +5395,41 @@ computed from the module's own location silently violates that, and it violated
 it for sixteen days before a job touched the code path. A guard that compares
 everything is worth more than one that is told what may vary — it found this —
 but a plan that infers a path it could state is where the defect lives.
+
+### The pooled a1 is not above its own backbone either, and the 10-03 reading was the per-language arm — 2026-10-22
+
+The 10-03 entry withdrew "a1 is below its own backbone on CVQA" as an artefact
+of her 64-token evaluation and put the matched-resolution figure at **+2.28
+[0.00, +4.65]**, p = 0.079. That number is the **per-language** checkpoint. Her
+current system is the pooled one, and it had never been scored against Qwen.
+Both arms on the same panel, the same 602,112-pixel budget and the same backbone
+files:
+
+| a1 arm vs Qwen @588 | panel | Δ | p |
+|---|---|---|---|
+| per-language (10-03) | jv/mn/ga/si/bn | **+2.28** [0.00, +4.65] | 0.079 |
+| pooled | jv/mn/ga/si/bn | **−0.48** [−2.97, +2.08] | 0.752 |
+| pooled | + id, 1,858 items | **−1.13** [−3.34, +1.15] | 0.357 |
+
+Per language, pooled: ga +2.45, bn +0.35, si −0.44, jv −2.02, mn −2.88,
+id −3.40. McNemar 225 a1-only against 246 Qwen-only.
+
+**What stands and what does not.** The instrument artefact stands: scoring a1 at
+64 merged visual tokens depresses it by 3.35 points on CVQA and that is where
+"below its own backbone" came from. What cannot be claimed is the reverse. The
++2.28 was never significant — its lower bound sits exactly on zero — and it
+belongs to a checkpoint she has replaced; the pooled arm's point estimate is
+slightly negative and its interval covers zero on both panels. The defensible
+sentence is that **at matched resolution neither a1 arm is distinguishable from
+its own backbone on CVQA**, and that the earlier negative result was the
+evaluation rather than the architecture.
+
+This also sharpens the pooling pattern already visible against our v4: pooling
+helps a1 where it is supervised and costs it where it has to transfer. Against
+Qwen the only clear per-language gain is Irish; Mongolian, Javanese and
+Indonesian all move the other way.
+
+Reports `audits/arch_compare_cvqa_a1pooled_vs_qwen.json` and
+`..._5lang.json`, from `analysis/arch_compare.py` with `--full-only a1p`, so no
+grounding statement travels with these numbers: her evaluator has no blind arm,
+while Qwen's gray-canvas ΔV on the same panel is 4.79.

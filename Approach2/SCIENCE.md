@@ -72,6 +72,17 @@ and the resolution. What survives as the difference is visual token density —
 196 merged tokens against 729 unmerged at the same image size — and it is testable
 by inference alone, across backbones. DESIGN.md 2026-09-29.
 
+### Both halves of the architecture comparison are now measured — 2026-10-20
+
+The pooled a1, her recipe reproduced here and read on identical items in one
+environment, **leads xGQA by 7.95 [+7.53, +8.36]** over seven languages and
+88,046 items, and **loses CVQA by 4.14** (10-13 entry below). a1's xGQA macro
+is 57.61 against her own reported 56.96, so her system reproduces here and the
+4.85 gap of 10-02 was our per-language recipe, not her result. The two
+benchmarks disagree about which architecture wins, which is the project's
+mechanism claim in its sharpest form. Accuracy only on a1's side; no grounding
+statement travels with either number. DESIGN 2026-10-20.
+
 ### The CVQA lead is re-established on the pooled panel — 2026-10-13
 
 a1's pooled checkpoint, trained here on her recipe and scored by her own
