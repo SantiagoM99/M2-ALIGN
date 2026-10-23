@@ -6,6 +6,242 @@
   "boot": 4000,
   "difference": "CG50 minus C1, except retention which is C1 minus CG50, as declared",
   "inference": "one training seed per arm: conditional on these trajectories, no training variance",
+  "levels": {
+    "cvqa-bn": {
+      "C1": {
+        "U": {
+          "ci95": [
+            31.46853146853147,
+            41.97952218430034
+          ],
+          "estimate": 36.71328671328671,
+          "image_clusters": 136,
+          "items": 286,
+          "lb5": 32.280701754385966,
+          "macro_estimate": 36.71328671328671,
+          "ub95": 41.13475177304964
+        },
+        "gray": {
+          "ci95": [
+            1.0676156583629892,
+            10.954063604240282
+          ],
+          "estimate": 5.944055944055944,
+          "image_clusters": 136,
+          "items": 286,
+          "lb5": 1.7985611510791366,
+          "macro_estimate": 5.944055944055944,
+          "ub95": 10.175438596491228
+        },
+        "grounding": {
+          "ci95": [
+            3.009259259259258,
+            10.709987966305658
+          ],
+          "estimate": 6.8764568764568725,
+          "image_clusters": 136,
+          "items": 286,
+          "lb5": 3.5388127853881284,
+          "macro_estimate": 6.8764568764568725,
+          "ub95": 10.139860139860136
+        }
+      },
+      "CG50": {
+        "U": {
+          "ci95": [
+            45.55555555555556,
+            57.93103448275862
+          ],
+          "estimate": 51.74825174825175,
+          "image_clusters": 136,
+          "items": 286,
+          "lb5": 46.57039711191336,
+          "macro_estimate": 51.74825174825175,
+          "ub95": 56.890459363957596
+        },
+        "gray": {
+          "ci95": [
+            11.971830985915492,
+            22.261484098939928
+          ],
+          "estimate": 17.132867132867133,
+          "image_clusters": 136,
+          "items": 286,
+          "lb5": 12.903225806451612,
+          "macro_estimate": 17.132867132867133,
+          "ub95": 21.47887323943662
+        },
+        "grounding": {
+          "ci95": [
+            13.818181818181822,
+            24.074074074074073
+          ],
+          "estimate": 18.881118881118883,
+          "image_clusters": 136,
+          "items": 286,
+          "lb5": 14.5413870246085,
+          "macro_estimate": 18.881118881118883,
+          "ub95": 23.24263038548752
+        }
+      }
+    },
+    "cvqa-primary": {
+      "C1": {
+        "U": {
+          "ci95": [
+            34.88865323435843,
+            40.95744680851064
+          ],
+          "estimate": 37.86096256684492,
+          "image_clusters": 401,
+          "items": 935,
+          "lb5": 35.33755274261603,
+          "macro_estimate": 37.812203890936,
+          "ub95": 40.483701366982125
+        },
+        "gray": {
+          "ci95": [
+            2.656748140276302,
+            8.272251308900524
+          ],
+          "estimate": 5.454545454545454,
+          "image_clusters": 401,
+          "items": 935,
+          "lb5": 3.152173913043478,
+          "macro_estimate": 5.3604446753731,
+          "ub95": 7.785087719298246
+        },
+        "grounding": {
+          "ci95": [
+            2.9749103942652337,
+            7.260726072607261
+          ],
+          "estimate": 5.098039215686277,
+          "image_clusters": 401,
+          "items": 935,
+          "lb5": 3.315118397085612,
+          "macro_estimate": 5.071417511771979,
+          "ub95": 6.910132474042249
+        }
+      },
+      "CG50": {
+        "U": {
+          "ci95": [
+            35.660580021482275,
+            41.569459172852596
+          ],
+          "estimate": 38.6096256684492,
+          "image_clusters": 401,
+          "items": 935,
+          "lb5": 36.0813704496788,
+          "macro_estimate": 38.57787009627501,
+          "ub95": 41.13989637305699
+        },
+        "gray": {
+          "ci95": [
+            1.193058568329718,
+            7.057546145494028
+          ],
+          "estimate": 4.171122994652406,
+          "image_clusters": 401,
+          "items": 935,
+          "lb5": 1.6268980477223427,
+          "macro_estimate": 4.134258530986547,
+          "ub95": 6.557377049180328
+        },
+        "grounding": {
+          "ci95": [
+            4.1409993155373055,
+            8.99859943977591
+          ],
+          "estimate": 6.452762923351159,
+          "image_clusters": 401,
+          "items": 935,
+          "lb5": 4.442075337597725,
+          "macro_estimate": 6.427203095573922,
+          "ub95": 8.488840102451523
+        }
+      }
+    },
+    "xgqa-bn": {
+      "C1": {
+        "U": {
+          "ci95": [
+            45.39954427594877,
+            48.338018852323465
+          ],
+          "estimate": 46.835744951502626,
+          "image_clusters": 398,
+          "items": 12578,
+          "lb5": 45.598535498248964,
+          "macro_estimate": 46.835744951502626,
+          "ub95": 48.08057458928424
+        },
+        "gray": {
+          "ci95": [
+            15.185049468669842,
+            18.081180811808117
+          ],
+          "estimate": 16.62426458896486,
+          "image_clusters": 398,
+          "items": 12578,
+          "lb5": 15.450158347157291,
+          "macro_estimate": 16.62426458896486,
+          "ub95": 17.834916475597772
+        },
+        "grounding": {
+          "ci95": [
+            17.17591141752846,
+            19.718900776169516
+          ],
+          "estimate": 18.436953410717226,
+          "image_clusters": 398,
+          "items": 12578,
+          "lb5": 17.37425011536687,
+          "macro_estimate": 18.436953410717226,
+          "ub95": 19.492154368108555
+        }
+      },
+      "CG50": {
+        "U": {
+          "ci95": [
+            44.92719586660404,
+            47.83419857235561
+          ],
+          "estimate": 46.39052313563364,
+          "image_clusters": 398,
+          "items": 12578,
+          "lb5": 45.16536427500197,
+          "macro_estimate": 46.39052313563364,
+          "ub95": 47.60023535345045
+        },
+        "gray": {
+          "ci95": [
+            19.189520453500844,
+            22.03333054183067
+          ],
+          "estimate": 20.61536015264748,
+          "image_clusters": 398,
+          "items": 12578,
+          "lb5": 19.439579684763572,
+          "macro_estimate": 20.61536015264748,
+          "ub95": 21.801718133271418
+        },
+        "grounding": {
+          "ci95": [
+            16.92983173798032,
+            19.47948901055303
+          ],
+          "estimate": 18.206392113213614,
+          "image_clusters": 398,
+          "items": 12578,
+          "lb5": 17.151170550706052,
+          "macro_estimate": 18.206392113213614,
+          "ub95": 19.228183407287894
+        }
+      }
+    }
+  },
   "readings": {
     "1_bn_country_matched": {
       "condition": "LB5(dU on `other`) > 0 and the gain not concentrated in `shortcut`; the second half is read as other-minus-shortcut >= 0, an operationalisation fixed at read time, not on 2026-10-08",
@@ -131,6 +367,80 @@
           }
         }
       }
+    },
+    "1b_answer_set_overlap": {
+      "clean": {
+        "U": {
+          "ci95": [
+            6.719367588932807,
+            20.0
+          ],
+          "estimate": 13.28125,
+          "image_clusters": 131,
+          "items": 256,
+          "lb5": 7.722007722007722,
+          "macro_estimate": 13.28125,
+          "ub95": 18.69918699186992
+        },
+        "grounding": {
+          "ci95": [
+            4.918032786885247,
+            18.133333333333333
+          ],
+          "estimate": 11.458333333333332,
+          "image_clusters": 131,
+          "items": 256,
+          "lb5": 5.986394557823131,
+          "macro_estimate": 11.458333333333332,
+          "ub95": 16.939890710382514
+        }
+      },
+      "counts": {
+        "clean": 256,
+        "overlap": 30
+      },
+      "overlap": {
+        "U": {
+          "ci95": [
+            14.285714285714286,
+            46.42857142857143
+          ],
+          "estimate": 30.0,
+          "image_clusters": 27,
+          "items": 30,
+          "lb5": 17.24137931034483,
+          "macro_estimate": 30.0,
+          "ub95": 43.333333333333336
+        },
+        "grounding": {
+          "ci95": [
+            2.2988505747126435,
+            30.303030303030305
+          ],
+          "estimate": 16.666666666666668,
+          "image_clusters": 27,
+          "items": 30,
+          "lb5": 4.444444444444446,
+          "macro_estimate": 16.666666666666668,
+          "ub95": 27.95698924731183
+        }
+      },
+      "overlap_minus_clean_U": {
+        "ci95": [
+          0.34657424686750093,
+          33.94267329628546
+        ],
+        "estimate": 16.71875,
+        "items": {
+          "clean": 256,
+          "overlap": 30
+        },
+        "lb5": 2.873563218390804,
+        "resamples_used": 4000,
+        "ub95": 31.14613880742913
+      },
+      "reading": "the gain on `clean` items is the part no memorised answer can explain; exposure on `overlap` items may still require the image, so a positive overlap-minus-clean difference is not by itself evidence of memorisation",
+      "survives_the_answer_set_objection": true
     },
     "2_zero_shot_transfer": {
       "condition": "LB5(dGround(CG50)-dGround(C1)) > 0 and UB95(U(C1)-U(CG50)) < 1.0",

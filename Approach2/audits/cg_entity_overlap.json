@@ -1,0 +1,85 @@
+{
+  "bn_minus_other_targets": 0.1033,
+  "gold_answer_share_by_target": {
+    "bn": 0.1049,
+    "ga": 0.0031,
+    "jv": 0.0,
+    "mn": 0.0032,
+    "si": 0.0
+  },
+  "method": "CVQA choices are English and CulturalGround answers are joined in English; strings are compared after casefolding, accent and punctuation removal. Exposure, not causation: an overlapping answer may still need the image.",
+  "panels": {
+    "bn": {
+      "any_choice_in_training_answers": 76,
+      "any_choice_share": 0.2657,
+      "example_overlapping_answers": [
+        "dhoti",
+        "howrah bridge",
+        "cooch behar",
+        "satyajit ray",
+        "kho kho"
+      ],
+      "gold_answer_in_training_answers": 30,
+      "gold_answer_in_training_entity_labels": 115,
+      "gold_answer_share": 0.1049,
+      "gold_entity_share": 0.4021,
+      "items": 286,
+      "panel": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1/data/bengali.jsonl"
+    },
+    "ga": {
+      "any_choice_in_training_answers": 1,
+      "any_choice_share": 0.0031,
+      "example_overlapping_answers": [
+        "curry"
+      ],
+      "gold_answer_in_training_answers": 1,
+      "gold_answer_in_training_entity_labels": 70,
+      "gold_answer_share": 0.0031,
+      "gold_entity_share": 0.2147,
+      "items": 326,
+      "panel": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1/data/irish.jsonl"
+    },
+    "jv": {
+      "any_choice_in_training_answers": 7,
+      "any_choice_share": 0.0236,
+      "example_overlapping_answers": [],
+      "gold_answer_in_training_answers": 0,
+      "gold_answer_in_training_entity_labels": 64,
+      "gold_answer_share": 0.0,
+      "gold_entity_share": 0.2155,
+      "items": 297,
+      "panel": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1/data/javanese.jsonl"
+    },
+    "mn": {
+      "any_choice_in_training_answers": 3,
+      "any_choice_share": 0.0096,
+      "example_overlapping_answers": [
+        "ghee"
+      ],
+      "gold_answer_in_training_answers": 1,
+      "gold_answer_in_training_entity_labels": 76,
+      "gold_answer_share": 0.0032,
+      "gold_entity_share": 0.2436,
+      "items": 312,
+      "panel": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1/data/mongolian.jsonl"
+    },
+    "si": {
+      "any_choice_in_training_answers": 5,
+      "any_choice_share": 0.0222,
+      "example_overlapping_answers": [],
+      "gold_answer_in_training_answers": 0,
+      "gold_answer_in_training_entity_labels": 61,
+      "gold_answer_share": 0.0,
+      "gold_entity_share": 0.2711,
+      "items": 225,
+      "panel": "/scratch/santimn/datatransfer/Stage3/data/cvqa_s1/data/sinhala.jsonl"
+    }
+  },
+  "training": {
+    "distinct_answers": 10058,
+    "distinct_entity_labels": 14252,
+    "path": "/scratch/santimn/datatransfer/Stage3/data/bn_cg50.jsonl",
+    "rows_cultural": 15000,
+    "rows_total": 30000
+  }
+}
