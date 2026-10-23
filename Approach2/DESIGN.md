@@ -5433,3 +5433,41 @@ Reports `audits/arch_compare_cvqa_a1pooled_vs_qwen.json` and
 `..._5lang.json`, from `analysis/arch_compare.py` with `--full-only a1p`, so no
 grounding statement travels with these numbers: her evaluator has no blind arm,
 while Qwen's gray-canvas ΔV on the same panel is 4.79.
+
+### The number an architecture paper rests on: a1 pooled over its own backbone — 2026-10-22
+
+Every comparison so far was a1 against *us*. For a paper that proposes a1, the
+load-bearing number is a1 against the backbone it is built from, paired on
+identical items. Both now exist on the same panels:
+
+| a1 pooled − Qwen3-VL | panel | Δ | p |
+|---|---|---|---|
+| xGQA | 7 languages, 88,046 items, 2,786 clusters | **+4.61 [+4.22, +5.00]** | 2e-168 |
+| CVQA | 6 languages, 1,858 items | **−1.13 [−3.34, +1.15]** | 0.357 |
+
+**The xGQA gain is a conservative bound, not a matched contrast.** a1 ran at her
+64-token budget and Qwen at its own ~1,400 default, so the instrument favours
+the backbone and a1 wins anyway. It is not a clean apples-to-apples number and
+must not be printed as one: the density control only ever measured 187 → 1,400,
+and the 10-03 correction was precisely about extrapolating below the measured
+range. Scoring Qwen's xGQA panel at 64 tokens, or a1 at matched, closes it.
+
+**What this does to the stated CVQA weakness.** The weakness as carried until now
+was "a1 loses performance on CVQA". The loss is withdrawn — it was the
+instrument, worth 3.35 points — but no gain replaces it: the pooled arm is
+indistinguishable from its backbone on CVQA at matched resolution. The claim that
+survives is scoped rather than negative: the architecture buys transfer where the
+bottleneck is language and moves nothing where the bottleneck is cultural
+knowledge the backbone does not hold, and the mechanism for the second half is
+measured (the question decides 8.7% of CVQA items, 62% sit at chance, and the
+country prompt located the gap in absent knowledge).
+
+**The open risk is the closed-ended panel.** Her largest reported CVQA deficit is
+−6.10 on the lettered variant, and it has never been scored at matched
+resolution; her evaluator has the arm (`--benchmark cvqa_mcq`). If that deficit
+survives the resolution correction, "moves nothing on CVQA" is false and the
+paper needs a different sentence. One short job decides it, and it should be run
+before the claim is written, not after a reviewer asks.
+
+Report `audits/arch_compare_xgqa_a1pooled_vs_qwen.json`, `--full-only a1p`;
+Qwen's own gray-canvas ΔV on that panel is 29.80 against our 17.39.
