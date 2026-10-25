@@ -5526,3 +5526,47 @@ the rows are Bengali, not because they are Indian. The arm that separates them i
 the one the amendment discarded — Bengali rows built from Bangladesh — and it is
 one 3 h 25 training plus its 30-cell evaluation. It should be run before the claim
 is written as a claim about culture.
+
+### CG50 on a1, registered before the run — 2026-10-25
+
+If the paper proposes a1, then a1's CVQA weakness is the paper's weakness, and
+the intervention that moved our own stack by +13.28 is the obvious thing to try
+on it. The swap is mechanically free: `build_culturalground.py` writes `query`,
+`vg_image_id` and `nllb_lang_tag`, which is exactly what her `Stage3/train.py`
+reads, and the `cg_` images already sit in the directory `a1_train.sh` passes as
+`--images-dir`. `a1_train.sh` gains `DATA_PATH` for the per-language stage 3,
+with `ARM_TAG` required alongside it so the arm cannot overwrite the control, and
+it prints the row counts by source so a run fed the unmixed file is not mistaken
+for the arm.
+
+**Design.** Per-language bn, not pooled: replacing half of one file in an
+eleven-language pool changes about 1/24 of the rows, too diluted to measure. The
+control is the per-language a1-bn arm already trained and already scored at 588
+tokens (CVQA-bn 37.76), stages 1 and 2 are shared and not retrained, and
+`--data-path` is the only difference. The arm is scored on bn and on jv/mn/ga/si,
+whose controls are also already scored, so the matched-culture reading and the
+transfer reading both come out of one job.
+
+**Prediction, recorded before submission.** A gain materially smaller than ours.
+The mechanism we measured is visual as much as lexical — on bn's unseen-answer
+items our grounding rose +11.46 [+4.92, +18.13], not just utility — and in our
+stack the vision mapping is trainable and feeds a text-only Gemma, so culturally
+grounded pairs can teach it to surface entity-relevant features. In a1 the vision
+path is Qwen3-VL's own frozen tower and the only trainable mapping carries the
+question, so there is much less for the same rows to change.
+
+**Refutation conditions, both directions.**
+- If a1's gain on unseen-answer items reaches our +13.28 with LB5 > 0, the
+  reading that the effect lives in the trainable vision connector is **refuted**,
+  and the mechanism is elicitation of knowledge the frozen model already holds.
+  That outcome rewrites the mechanism section rather than weakening it.
+- If a1's gain has LB5 ≤ 0 where ours was +7.72, the effect is
+  architecture-specific, which is the predicted outcome and the one that lets an
+  architecture paper claim it.
+
+**The reading needs the same split as ours, and that is not built yet.** The
+10.49% answer overlap on CVQA-bn applies identically to a1's panel, so an
+all-items contrast is not comparable with our +13.28, which is the clean-item
+figure. `arch_compare.py` has no subset facility; the labels already exist in
+`audits/cg_overlap_labels.json`. That reader is to be written while the job runs,
+and the number quoted for a1 must be the clean-item one.

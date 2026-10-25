@@ -63,6 +63,12 @@ INCLUDE_ENGLISH="${INCLUDE_ENGLISH:-1}"
 REPLAY="${REPLAY:-0}"
 REPLAY_LANGS="${REPLAY_LANGS:-bn de ru zh}"
 REPLAY_EVERY="${REPLAY_EVERY:-3}"
+# Stage 3, per-language only: swap the training file and nothing else, the same
+# relationship train_wc50.sh has to arm C1. ARM_TAG is required with it, so the
+# arm writes its own output directory instead of overwriting the control it is
+# meant to be compared against.
+DATA_PATH="${DATA_PATH:-}"
+ARM_TAG="${ARM_TAG:-}"
 DT="${DT:-/scratch/santimn/datatransfer}"
 A1_ROOT="${A1_ROOT:-$SCRATCH/a1}"
 OUT="${OUT:-$ROOT/Approach2/outputs}"
@@ -110,6 +116,7 @@ S2_OUT="$OUT/a1_${SLUG}_stage2"
 # stage-3 checkpoint or its pooled data directory.
 S3_SLUG="$SLUG"
 [ "$POOLED" = 1 ] && [ "$REPLAY" = 1 ] && S3_SLUG="pooled_replay"
+[ -n "$ARM_TAG" ] && S3_SLUG="${S3_SLUG}_${ARM_TAG}"
 S3_OUT="$OUT/a1_${S3_SLUG}_stage3"
 POOL_DATA="$OUT/a1_${S3_SLUG}_stage3_data"
 echo "arm: $S3_SLUG (POOLED=$POOLED REPLAY=$REPLAY)"
@@ -264,6 +271,17 @@ case "$STAGE" in
       fi
       echo "stage 3 pooled over:$POOLED_IN"
       S3_DATA="$POOL_DATA"
+    elif [ -n "$DATA_PATH" ]; then
+      [ -n "$ARM_TAG" ] || {
+        echo "ERROR: DATA_PATH without ARM_TAG would overwrite a1_${SLUG}_stage3,"
+        echo "  which is the control this arm is compared against."
+        exit 1
+      }
+      require "$DATA_PATH"
+      S3_DATA="$DATA_PATH"
+      # A run fed the unmixed rows is the control under another name, so report
+      # what the arm actually trained on instead of trusting the filename.
+      python -c 'import collections,json,sys; c=collections.Counter(json.loads(l).get("source_dataset","?") for l in open(sys.argv[1],encoding="utf-8") if l.strip()); print("stage 3 rows by source:", dict(c))' "$S3_DATA"
     else
       require "$DT/Stage3/data/$A1_LANG.jsonl"
       S3_DATA="$DT/Stage3/data/$A1_LANG.jsonl"
