@@ -183,7 +183,8 @@ def compare(name_a: str, name_b: str, a: dict, b: dict) -> dict:
     }
 
 
-def analyse(arms: dict, benchmark: str, langs, image_map: dict, B=4000, seed=0) -> dict:
+def analyse(arms: dict, benchmark: str, langs, image_map: dict, B=4000, seed=0,
+            subset_labels: dict | None = None) -> dict:
     per_arm, clusters = {}, {}
     for lang in langs:
         items = shared_items(arms, lang)
@@ -234,6 +235,41 @@ def analyse(arms: dict, benchmark: str, langs, image_map: dict, B=4000, seed=0) 
                     for lang, v in c["differences"]["full"].items()
                 },
             }
+            # A contrast on all items is not comparable with one computed on a
+            # subset, and the answer-overlap audit produces exactly such a
+            # subset: a gain carried by items whose answer the arm saw in
+            # training says something different from a gain on the rest. Only
+            # present when asked for, so every earlier report is unchanged.
+            if subset_labels:
+                # The labels may have been built on another copy of the panel.
+                # A join that silently covers nothing would report an empty
+                # split rather than a wrong one, which is harder to notice.
+                scored = sum(len(v) for v in c["differences"]["full"].values())
+                covered = sum(
+                    1
+                    for lang, values in c["differences"]["full"].items()
+                    for i in values
+                    if i in subset_labels.get(lang, {})
+                )
+                if covered < 0.5 * scored:
+                    fail(
+                        f"the subset labels cover {covered} of {scored} scored items; "
+                        "they were built on a different item universe"
+                    )
+                groups = sorted({g for per_lang in subset_labels.values() for g in per_lang.values()})
+                report["contrasts"][key]["subsets"] = {}
+                for group in groups:
+                    selected = {
+                        lang: {i: v for i, v in values.items()
+                               if subset_labels.get(lang, {}).get(i) == group}
+                        for lang, values in c["differences"]["full"].items()
+                    }
+                    selected = {lang: v for lang, v in selected.items() if v}
+                    if not selected:
+                        continue
+                    report["contrasts"][key]["subsets"][group] = interval(
+                        selected, clusters, B, seed, f"{benchmark}:{key}:full:{group}"
+                    )
     return report
 
 
@@ -246,6 +282,9 @@ def main() -> None:
     p.add_argument("--full-only", action="append", default=[], metavar="NAME",
                    help="arm with no blind mode: full accuracy only, dV null")
     p.add_argument("--image-map", help="result file whose rows carry image_id (needed for xGQA)")
+    p.add_argument("--subset-labels",
+                   help="{lang: {item: group}} from cg_entity_overlap.py; every contrast "
+                        "is also reported within each group")
     p.add_argument("--output", required=True)
     p.add_argument("--boot", type=int, default=4000)
     p.add_argument("--seed", type=int, default=0)
@@ -273,7 +312,12 @@ def main() -> None:
         fail("at least two arms are needed")
 
     image_map = read_image_map(Path(a.image_map)) if a.image_map else {}
-    report = analyse(arms, a.benchmark, a.langs, image_map, a.boot, a.seed)
+    subset_labels = None
+    if a.subset_labels:
+        subset_labels = json.loads(Path(a.subset_labels).read_text())
+        if not any(subset_labels.get(lang) for lang in a.langs):
+            fail(f"{a.subset_labels} carries no labels for {' '.join(a.langs)}")
+    report = analyse(arms, a.benchmark, a.langs, image_map, a.boot, a.seed, subset_labels)
     Path(a.output).write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
 
     for name in report["arms"]:

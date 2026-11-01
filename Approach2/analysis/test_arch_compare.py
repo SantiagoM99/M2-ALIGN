@@ -148,5 +148,54 @@ class ArchCompareTests(unittest.TestCase):
                          analyse(reversed_arms, "cvqa", ["jv"], {}, B=80))
 
 
+
+class SubsetSplitTests(unittest.TestCase):
+    """A gain carried by one subset reads differently from the same pooled gain."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = self._tmp.name
+        self.addCleanup(self._tmp.cleanup)
+        ids = cvqa_ids()
+        # b answers the first 30 items, a the first 10, so every one of the 20
+        # items b gains lies in ids[10:30].
+        write_arm(self.root, "a", "cvqa", "jv", 10, 0, ids=ids)
+        write_arm(self.root, "b", "cvqa", "jv", 30, 0, ids=ids)
+        self.arms = {
+            "a": load_arm(f"{self.root}/a_{{b}}_{{L}}{{blind}}.jsonl", "cvqa", ["jv"]),
+            "b": load_arm(f"{self.root}/b_{{b}}_{{L}}{{blind}}.jsonl", "cvqa", ["jv"]),
+        }
+        self.ids = ids
+
+    def report(self, labels):
+        return analyse(self.arms, "cvqa", ["jv"], {}, B=200, subset_labels=labels)
+
+    def test_without_labels_no_subsets_appear(self):
+        report = analyse(self.arms, "cvqa", ["jv"], {}, B=200)
+        self.assertNotIn("subsets", report["contrasts"]["a-minus-b"])
+
+    def test_the_whole_gain_sits_in_the_labelled_subset(self):
+        labels = {"jv": {i: ("gain" if k in range(10, 30) else "rest")
+                         for k, i in enumerate(self.ids)}}
+        subsets = self.report(labels)["contrasts"]["a-minus-b"]["subsets"]
+        # a minus b, so the sign is negative where b wins.
+        self.assertAlmostEqual(subsets["gain"]["estimate"], -100.0, places=6)
+        self.assertAlmostEqual(subsets["rest"]["estimate"], 0.0, places=6)
+        self.assertEqual(subsets["gain"]["items"], 20)
+        self.assertEqual(subsets["rest"]["items"], len(self.ids) - 20)
+
+    def test_labels_from_another_item_universe_fail_closed(self):
+        """A join that covers almost nothing would report an empty split, not a wrong one."""
+        labels = {"jv": {self.ids[0]: "only"}}
+        with self.assertRaisesRegex(SystemExit, "different item universe"):
+            self.report(labels)
+
+    def test_partial_but_sufficient_coverage_is_reported(self):
+        """Above the threshold the split stands, and says how many items it used."""
+        labels = {"jv": {i: "kept" for i in self.ids[: int(len(self.ids) * 0.8)]}}
+        subsets = self.report(labels)["contrasts"]["a-minus-b"]["subsets"]
+        self.assertEqual(sorted(subsets), ["kept"])
+        self.assertEqual(subsets["kept"]["items"], int(len(self.ids) * 0.8))
+
 if __name__ == "__main__":
     unittest.main()
