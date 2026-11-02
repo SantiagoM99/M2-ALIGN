@@ -5656,9 +5656,14 @@ adjacent to China's, so a null there is not proof of a language effect; but a
 *gain* on Singapore as large as China's would be decisive against the cultural
 reading.
 
-**Design.** One pooled stage 3, 50% replacement per donor file at a fixed row
-count, the four zero-shot targets untouched because the builder refuses them, so
-the zero-shot claim survives. About 90,000 cultural rows in a 360,000-row pool,
+**Design, and whose pool it is.** The pooled recipe is **a1's**, not ours: our
+stack has no pooled stage 3, which is the symmetric arm that still does not
+exist. So this arm is a1 pooled with cultural rows in six of its eleven
+languages, and the six-fold replication of reading 1 is measured on a1 rather
+than on Approach 2, where CG50 remains a per-language bn result. One pooled
+stage 3, 50% replacement per donor file at a fixed row count, the four zero-shot
+targets untouched because the builder refuses them, so the zero-shot claim
+survives. About 90,000 cultural rows in a 360,000-row pool,
 25% against the 4% a single donor would give. Read on: the six matched panels,
 the Chinese-Singapore hold-out, jv/mn/ga/si for transfer, and xGQA-bn for cost.
 Every panel gets the answer-overlap split; the number quoted is the clean one.

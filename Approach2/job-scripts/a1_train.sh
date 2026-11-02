@@ -69,6 +69,9 @@ REPLAY_EVERY="${REPLAY_EVERY:-3}"
 # meant to be compared against.
 DATA_PATH="${DATA_PATH:-}"
 ARM_TAG="${ARM_TAG:-}"
+# Pooled stage 3 only: the donor languages whose file is the culturally grounded
+# mix instead of the translated-GQA one. A star marks them in the pool line.
+CULTURAL_LANGS="${CULTURAL_LANGS:-}"
 DT="${DT:-/scratch/santimn/datatransfer}"
 A1_ROOT="${A1_ROOT:-$SCRATCH/a1}"
 OUT="${OUT:-$ROOT/Approach2/outputs}"
@@ -249,8 +252,25 @@ case "$STAGE" in
       POOLED_IN=""
       for L in $POOL_LANGS; do
         f="$DT/Stage3/data/$L.jsonl"
-        require "$f"
-        ln -sf "$f" "$POOL_DATA/$L.jsonl"; POOLED_IN="$POOLED_IN $L"
+        # CULTURAL_LANGS swaps a donor's file for its culturally grounded mix,
+        # built by cg_build_donors.sh. Named rather than inferred, because a pool
+        # that silently picked up a mixed file would be a different recipe under
+        # the same name -- and the zero-shot targets must never appear here.
+        case " $CULTURAL_LANGS " in
+          *" $L "*)
+            case " jv mn si ga " in
+              *" $L "*)
+                echo "ERROR: $L is a zero-shot target; cultural rows there end its claim"
+                exit 1 ;;
+            esac
+            f="$DT/Stage3/data/${L}_cg50.jsonl"
+            require "$f"
+            POOLED_IN="$POOLED_IN ${L}*" ;;
+          *)
+            require "$f"
+            POOLED_IN="$POOLED_IN $L" ;;
+        esac
+        ln -sf "$f" "$POOL_DATA/$L.jsonl"
       done
       # English is in her pool by default: she verified against MindMerger's
       # read_datasets.py that the augmentation stage includes it (the mapping
