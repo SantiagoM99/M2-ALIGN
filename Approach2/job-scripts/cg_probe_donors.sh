@@ -32,7 +32,9 @@ ok=""; missing=""
 for pair in $PAIRS; do
   country="${pair%%:*}"; lang="${pair##*:}"
   echo "=== $country / $lang ==="
-  if python Approach2/build_culturalground.py --probe --country "$country" --lang "$lang" 2>&1 | tail -18; then
+  # No tail: the probe ends with the first row as indented JSON, which is long
+  # enough to push the usable-row count -- the dose -- out of any short window.
+  if python Approach2/build_culturalground.py --probe --country "$country" --lang "$lang" 2>&1; then
     ok="$ok $country:$lang"
   else
     missing="$missing $country:$lang"
