@@ -5570,3 +5570,60 @@ all-items contrast is not comparable with our +13.28, which is the clean-item
 figure. `arch_compare.py` has no subset facility; the labels already exist in
 `audits/cg_overlap_labels.json`. That reader is to be written while the job runs,
 and the number quoted for a1 must be the clean-item one.
+
+### CG50 on a1: smaller where the culture matches, and it transfers — 2026-11-02
+
+Jobs 25134384 (44 min) and 25134385 (12 min), per-language bn, `--data-path` the
+only difference from the control a1-bn arm, both scored at 588 merged tokens on
+the same items. The prediction and both refutation conditions were recorded on
+10-25, before submission.
+
+| CG50 − control, CVQA | all items | answer never seen | answer seen |
+|---|---|---|---|
+| **bn** (country matched) | +8.74 [+2.78, +14.29] | **+6.64 [+0.83, +12.41]** (n=256) | +26.67 [+6.90, +46.43] (n=30) |
+| **jv/mn/ga/si** (zero-shot) | +4.05 [+1.84, +6.24] | **+4.06 [+1.81, +6.26]** (n=1158) | — (n=2) |
+
+Per language: si +10.22, bn +8.74, ga +5.52, mn +1.60, jv +0.34. McNemar on the
+pooled five, 175 CG50-only against 103 control-only, p = 1.9e-05.
+
+**The registered prediction holds on bn and neither refutation condition fired.**
+It said the gain would be materially smaller than our stack's; on unseen-answer
+items a1 gains **+6.64** against our **+13.28**, about half, with a lower bound of
++0.83 that barely clears zero. It did not reach +13.28, so the reading that part
+of the effect lives in the trainable vision connector survives; and its LB5 is
+above zero, so the effect is not architecture-specific either. Both doors the
+10-25 entry left open stayed shut.
+
+**What was not predicted, and is the most interesting thing here: a1 transfers
+and we do not.** Our stack's zero-shot panel gave +1.35 [−1.32, +4.00], a null.
+a1's gives **+4.06 [+1.81, +6.26]**, and in a1 the transfer gain is of the same
+order as its own matched-culture gain (+4.06 against +6.64), where in ours the
+matched culture was ten times the transfer. The same rows do different things to
+the two architectures: ours concentrates on the culture it was given, with
+instance-specific grounding rising +11.46 there, while a1 spreads roughly evenly
+across cultures it never saw. Sinhalese, with 0.0% answer overlap, gains the most
+of any language (+10.22).
+
+**A hypothesis, labelled as one.** In a1 the vision path is Qwen's own frozen
+tower and the only trainable mapping carries the question, so what culturally
+grounded pairs can teach there is how to pose and format, not what to look at —
+and format transfers across cultures while knowledge does not. This is not
+measured: **her evaluator has no blind arm**, so no grounding statement can be
+made for any a1 arm, and the question of whether a1's gain is visual at all is
+not answerable with her code as it stands. The methodological gap now blocks a
+specific scientific question rather than only a reporting convention.
+
+**What it does to the paper.** Against its own backbone at matched resolution,
+plain a1 was indistinguishable on CVQA (−0.48 [−2.97, +2.08] pooled, +2.28
+[0.00, +4.65] per-language). With CG50 the same comparison is **+7.26 [+4.70,
++9.87]**, p = 7e-08, over 1,446 items. The CVQA weakness stops being a weakness
+to explain and becomes an intervention to report.
+
+**The caveat that bounds the claim.** This is the **per-language** track. Her
+current system is pooled, and mixing cultural rows into one language of an
+eleven-language pool changes about 1/24 of the rows — too diluted to expect the
+same effect. Claiming the intervention for her current system needs either
+cultural pools for several donor languages or the result stated for the
+per-language track and labelled as such. Reports
+`audits/arch_compare_cvqa_a1cg50_vs_a1{,_bn,_zeroshot}.json` and
+`..._a1cg50_vs_qwen.json`.

@@ -72,6 +72,22 @@ and the resolution. What survives as the difference is visual token density —
 196 merged tokens against 729 unmerged at the same image size — and it is testable
 by inference alone, across backbones. DESIGN.md 2026-09-29.
 
+### The same intervention behaves differently on the two architectures — 2026-11-02
+
+CG50's rows trained into a1's per-language bn arm, `--data-path` the only
+difference from its control. On unseen-answer items a1 gains **+6.64 [+0.83,
++12.41]** on CVQA-bn against our **+13.28**, so the registered prediction that
+a1's gain would be materially smaller holds and neither refutation condition
+fires. Unpredicted and exploratory: **a1 transfers and we do not** — its
+zero-shot panel gains +4.06 [+1.81, +6.26] where ours was a null (+1.35
+[−1.32, +4.00]), with Sinhalese gaining most (+10.22) at 0% answer overlap. Ours
+concentrates on the culture it was given and raises grounding there; a1 spreads
+evenly across cultures it never saw. Whether a1's gain is visual at all cannot be
+asked: her evaluator has no blind arm. Consequence for the architecture claim:
+against its own backbone plain a1 was indistinguishable on CVQA, and with CG50 it
+is **+7.26 [+4.70, +9.87]**. Bounded to the per-language track, not her pooled
+system. DESIGN 2026-11-02.
+
 ### Culturally grounded supervision: large where the culture matches, absent in transfer — 2026-10-22
 
 CG50, 50% of the Bengali stage-3 rows replaced by CulturalGround India rows at a
