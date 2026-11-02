@@ -5627,3 +5627,58 @@ cultural pools for several donor languages or the result stated for the
 per-language track and labelled as such. Reports
 `audits/arch_compare_cvqa_a1cg50_vs_a1{,_bn,_zeroshot}.json` and
 `..._a1cg50_vs_qwen.json`.
+
+### The pooled cultural arm, registered before anything is built — 2026-11-02
+
+CG50 is one language and one country. Six of the seven pooled donors have their
+own CVQA unit, each with its own country, from `audits/cvqa_inventory.json`:
+
+| donor | language | country | panel items |
+|---|---|---|---|
+| bn | Bengali | India | 286 |
+| zh | Chinese | **China 311, Singapore 212** | 523 |
+| id | Indonesian | Indonesia | 412 |
+| ko | Korean | South Korea | 290 |
+| pt | Portuguese | Brazil | 284 |
+| ru | Russian | Russia | 200 |
+
+German is the one donor with no CVQA unit. Matched-culture items rise from 286 to
+**1,995**, and each language is an independent replication rather than more items
+of the same one.
+
+**Chinese separates language from culture, in the same run.** The confound the
+10-22 entry had to declare — bn carries language supervision and country match
+together — is removed here without an extra training job: build Chinese rows from
+**China**, train on them, and read both the China subset and the **Singapore**
+subset, which is never trained on. Same language, same supervision, two cultures.
+This is a weaker separation than it looks, because Singapore's Chinese culture is
+adjacent to China's, so a null there is not proof of a language effect; but a
+*gain* on Singapore as large as China's would be decisive against the cultural
+reading.
+
+**Design.** One pooled stage 3, 50% replacement per donor file at a fixed row
+count, the four zero-shot targets untouched because the builder refuses them, so
+the zero-shot claim survives. About 90,000 cultural rows in a 360,000-row pool,
+25% against the 4% a single donor would give. Read on: the six matched panels,
+the Chinese-Singapore hold-out, jv/mn/ga/si for transfer, and xGQA-bn for cost.
+Every panel gets the answer-overlap split; the number quoted is the clean one.
+
+**Predictions, with their refutation conditions.**
+1. *Replication.* At least four of the six donors show a positive clean-item gain
+   with LB5 > 0 on their own matched panel. **Refuted if only bn does**, in which
+   case 10-22 was a property of Bengali or of CulturalGround's India file and not
+   of culturally grounded supervision, and the paper says so.
+2. *Culture, not language.* The clean gain on the China subset exceeds the gain on
+   the held-out Singapore subset. **Refuted if Singapore gains as much as China**,
+   and then every "cultural" claim becomes a language-supervision claim.
+3. *Cost.* xGQA-bn retention no worse than the single-language arm's, where
+   U(control) − U(CG50) was +0.45 with UB95 +1.04. That arm already missed the
+   δ = 1.0 margin by 0.04, so this is the prediction most likely to fail, and if
+   it does the trade is reported rather than buried: culturally grounded rows
+   replace translated-GQA rows, and what they cost is a result too.
+
+**Gate before building: `job-scripts/cg_probe_donors.sh`.** The country spellings
+and the per-language row counts inside each country file are not guessable, and
+the usable count per pair is the real dose rather than the 20,000 the build asks
+for. This arm has lost three GPU jobs to unchecked properties of this dataset;
+the probe is minutes on a login node.
