@@ -26,8 +26,13 @@ MISSING="zh pt ru ko"
 for f in "$CG_CKPT" "$CTRL_CKPT"; do
   [ -f "$f" ] || { echo "ERROR: no checkpoint at $f"; exit 1; }
 done
-[ -f "$O/a1_pooled_cg_stage3/complete.json" ] || \
-  echo "WARNING: no complete.json beside the cultural checkpoint; it may be a best-so-far save"
+# No complete.json check: that marker is written by OUR stage-3 trainer, not by
+# hers, so no a1 arm has one and the warning fired on every healthy run.
+# Completion for an a1 arm is the `=== Done === ... status=0` line in its log,
+# and her trainer saves pytorch_model.bin per improving epoch rather than at the
+# end -- so the file existing is not completion either.
+LOG_DONE=$(grep -lh "=== Done ===.*arm=pooled_cg status=0" Approach2/logs/a1_train_*.log 2>/dev/null | tail -1)
+[ -n "$LOG_DONE" ] || echo "WARNING: no log line says arm=pooled_cg finished with status=0"
 
 submit () {  # submit <name> <ckpt> <benchmark> <pixels> <tag> <langs>
   local name="$1" ckpt="$2" bench="$3" px="$4" tag="$5"; shift 5
