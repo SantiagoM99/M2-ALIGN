@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_qwen_base_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Zero-shot Qwen3-VL-8B baseline (Maryam's Baseline protocol, ported to
 # Approach2/baseline_qwen/evaluate.py) run packed: full + BLIND (gray image)

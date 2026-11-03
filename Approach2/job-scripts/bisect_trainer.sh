@@ -8,6 +8,8 @@
 #SBATCH --time=12:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --output=Approach2/logs/a2_bisect_trainer_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Old trainer, current environment (DESIGN.md 2026-09-13).
 #

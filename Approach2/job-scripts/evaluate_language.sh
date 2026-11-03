@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_eval_lang_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Batched per-language evaluation: xGQA full+blind and CVQA full+blind run
 # sequentially inside ONE GPU allocation, instead of 2-4 separate jobs.

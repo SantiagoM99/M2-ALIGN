@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_srcabl_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # X1 — Does the transfer failure belong to the TARGET or to the SOURCE?
 #

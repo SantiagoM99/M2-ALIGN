@@ -9,6 +9,8 @@
 #SBATCH --signal=USR1@120
 #SBATCH --gres=gpu:1
 #SBATCH --output=Approach2/logs/s1_smoke_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 # Smoke test of the S1 stage-3 trainer on a real H100: 120 Bengali rows, the
 # exact C1 arguments (two epochs, dense layers, deterministic algorithms), in
 # a throwaway output directory. It exists only to prove that

@@ -8,6 +8,8 @@
 #SBATCH --time=06:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --output=Approach2/logs/a2_qblind_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 #
 # Does a system TRAINED to use the question also do better without it?
 #

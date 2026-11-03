@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_cvqa_s1_pre_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Close the two remaining S1 pre-freeze checks in one offline job:
 #

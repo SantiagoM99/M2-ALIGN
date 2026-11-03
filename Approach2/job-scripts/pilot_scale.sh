@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_pilot_scale_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 #
 # Stage-2 data scale-up pilot (Bengali), packed in one GPU allocation:
 #   [1] stage 2 on CC3M + WIT + LLaVA-Pretrain (~111k pairs vs 11.5k), same

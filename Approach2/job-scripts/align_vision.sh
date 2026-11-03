@@ -8,6 +8,8 @@
 #SBATCH --time=12:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --output=Approach2/logs/a2_align_vis_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 #
 # Align the SigLIP2 dense expert to Qwen3-VL's embedding space on captions
 # (DESIGN 2026-09-26, 2026-09-29). The only training the merged architecture needs

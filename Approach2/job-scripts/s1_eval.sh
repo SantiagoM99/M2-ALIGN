@@ -8,6 +8,8 @@
 #SBATCH --time=12:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --output=Approach2/logs/s1_eval_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 set -euo pipefail
 ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"
 SUBMISSION="${1:?use s1_submit.py to prepare the immutable submission}"

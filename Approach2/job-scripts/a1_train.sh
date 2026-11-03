@@ -8,6 +8,8 @@
 #SBATCH --time=24:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --output=Approach2/logs/a1_train_s%x_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 #
 # Train Approach 1 here, one stage per submission, from Maryam's own code.
 #

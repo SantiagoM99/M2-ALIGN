@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_eval_text_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Approach 2 text-reasoning evaluation: MGSM + MSVAMP (Bengali), three
 # variants each — plain Gemma (control), stage-1 mapping, stage-3 mapping.

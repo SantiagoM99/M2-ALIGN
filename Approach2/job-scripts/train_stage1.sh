@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_stage1_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Approach 2, Stage 1: NLLB -> Gemma text mapping on translation pairs.
 # Submit from the repo root: sbatch Approach2/job-scripts/train_stage1.sh

@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_pilot_dense_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # DenseConnector pilot (Bengali), packed in one GPU allocation:
 #   [1] stage 2 retrain with multi-layer SigLIP features (--vis-layers),

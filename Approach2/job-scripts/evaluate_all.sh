@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_ev_all_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # ALL evaluations in ONE GPU allocation (packed mode): per language, xGQA
 # full+blind and CVQA full+blind, then the Bengali MGSM/MSVAMP text eval

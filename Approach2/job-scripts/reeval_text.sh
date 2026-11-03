@@ -8,6 +8,8 @@
 #SBATCH --time=03:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --output=Approach2/logs/a2_reeval_text_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Re-evaluate an existing stage-3 checkpoint on MGSM and MSVAMP with the
 # CURRENT code and environment, without retraining (2026-09-13).

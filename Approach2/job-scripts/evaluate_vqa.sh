@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_eval_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Approach 2 evaluation on xGQA (Bengali by default).
 # Submit from the repo root: sbatch Approach2/job-scripts/evaluate_vqa.sh

@@ -9,6 +9,8 @@
 #SBATCH --signal=USR1@120
 #SBATCH --gres=gpu:1
 #SBATCH --output=Approach2/logs/a2_wc50_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 #
 # Intervention WC50 (DESIGN 2026-09-23): C1's recipe with half the
 # NLLB-translated GQA rows replaced by culturally grounded WorldCuisines rows in

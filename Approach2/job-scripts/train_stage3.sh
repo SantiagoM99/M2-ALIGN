@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_stage3_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Approach 2, Stage 3: joint VQA training (both mappings).
 # Reuses Stage3's VQA data (Stage3/load_vqa_data.py + GQA images).

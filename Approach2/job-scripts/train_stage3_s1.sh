@@ -9,6 +9,8 @@
 #SBATCH --signal=USR1@120
 #SBATCH --gres=gpu:1
 #SBATCH --output=Approach2/logs/s1_stage3_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 # Submit through s1_train_submit.py; re-use the same immutable submission to resume.
 set -euo pipefail
 ROOT="${PROJECT_ROOT:-$SLURM_SUBMIT_DIR}"

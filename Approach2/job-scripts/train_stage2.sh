@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_stage2_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Approach 2, Stage 2: SigLIP -> Gemma vision mapping on English captions.
 # DATA_PATH / IMAGE_CACHE_DIR accept comma-separated lists, so WIT and CC3M

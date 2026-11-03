@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_eval_cvqa_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # Approach 2 evaluation on CVQA (answer-choice log-likelihood protocol).
 # CVQA subsets are small (a few hundred rows/language, ~4 forwards each).

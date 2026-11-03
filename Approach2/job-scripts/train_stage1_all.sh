@@ -9,6 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=Approach2/logs/a2_s1_all_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 
 # All stage-1 text mappings in ONE GPU allocation, one language after the
 # other (packed mode: hold a single GPU and run as much as possible on it).

@@ -8,6 +8,8 @@
 #SBATCH --time=12:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --output=Approach2/logs/a1_replay_pool_%j.log
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.martinezn@uniandes.edu.co
 #
 # Build the text replay pool her pooled+replay arm consumes, with her own
 # `Stage3/load_replay_data.py` run unedited from the worktree. Her
