@@ -1,0 +1,129 @@
+{
+  "arms": [
+    "perlang",
+    "pooled"
+  ],
+  "benchmark": "cvqa",
+  "boot": 4000,
+  "clustering": "image_id where the rows carry it, else the CVQA id prefix",
+  "contrasts": {
+    "perlang-minus-pooled": {
+      "full": {
+        "ci95": [
+          0.6202618883528601,
+          4.962095106822881
+        ],
+        "estimate": 2.7662517289073305,
+        "image_clusters": 683,
+        "items": 1446,
+        "lb5": 1.0183299389002036,
+        "ub95": 4.609929078014185
+      },
+      "mcnemar": {
+        "p_two_sided": 0.01916941113234859,
+        "perlang_only": 159,
+        "pooled_only": 119
+      },
+      "per_language_full": {
+        "bn": -1.7482517482517483,
+        "ga": 7.668711656441718,
+        "jv": 6.397306397306397,
+        "mn": 2.2435897435897436,
+        "si": -2.6666666666666665
+      }
+    }
+  },
+  "endpoints": "full = accuracy with the image; dv = full - blind, the visual part",
+  "languages": [
+    "bn",
+    "jv",
+    "mn",
+    "ga",
+    "si"
+  ],
+  "per_language": {
+    "perlang": {
+      "bn": {
+        "dv": null,
+        "full": 37.76223776223776,
+        "n": 286
+      },
+      "ga": {
+        "dv": null,
+        "full": 42.331288343558285,
+        "n": 326
+      },
+      "jv": {
+        "dv": null,
+        "full": 40.74074074074074,
+        "n": 297
+      },
+      "mn": {
+        "dv": null,
+        "full": 36.217948717948715,
+        "n": 312
+      },
+      "si": {
+        "dv": null,
+        "full": 36.0,
+        "n": 225
+      }
+    },
+    "pooled": {
+      "bn": {
+        "dv": null,
+        "full": 39.51048951048951,
+        "n": 286
+      },
+      "ga": {
+        "dv": null,
+        "full": 34.66257668711656,
+        "n": 326
+      },
+      "jv": {
+        "dv": null,
+        "full": 34.343434343434346,
+        "n": 297
+      },
+      "mn": {
+        "dv": null,
+        "full": 33.97435897435897,
+        "n": 312
+      },
+      "si": {
+        "dv": null,
+        "full": 38.666666666666664,
+        "n": 225
+      }
+    }
+  },
+  "pooled": {
+    "perlang": {
+      "full": {
+        "ci95": [
+          36.09385783298827,
+          41.313559322033896
+        ],
+        "estimate": 38.79668049792531,
+        "image_clusters": 683,
+        "items": 1446,
+        "lb5": 36.570247933884296,
+        "ub95": 40.94707520891365
+      }
+    },
+    "pooled": {
+      "full": {
+        "ci95": [
+          33.58464701850583,
+          38.57545839210155
+        ],
+        "estimate": 36.03042876901798,
+        "image_clusters": 683,
+        "items": 1446,
+        "lb5": 33.93854748603352,
+        "ub95": 38.18181818181818
+      }
+    }
+  },
+  "seed": 0
+}

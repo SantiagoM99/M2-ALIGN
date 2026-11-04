@@ -5687,3 +5687,47 @@ and the per-language row counts inside each country file are not guessable, and
 the usable count per pair is the real dose rather than the 20,000 the build asks
 for. This arm has lost three GPU jobs to unchecked properties of this dataset;
 the probe is minutes on a login node.
+
+### The two regimes of a1: pooling helps breadth and damages the low-resource targets — 2026-11-03
+
+Santiago's framing proposal is two regimes of one architecture rather than two
+architectures, and the contrast it rests on is already measurable from committed
+results: both a1 arms are scored on the same CVQA panel at 588 merged tokens.
+
+**Per-language minus pooled, 1,446 items: +2.77 [+0.62, +4.96]**, McNemar 159
+against 119, p = 0.019. Per language: **ga +7.67, jv +6.40, mn +2.24, bn −1.75,
+si −2.67**.
+
+The pattern is the finding, not the average. On **bn**, where both regimes are
+supervised, pooled wins by 1.75. On **ga, jv and mn** the per-language arm wins
+by up to 7.67 — and there it is the Bengali checkpoint applied **zero-shot**,
+while the pooled arm was **trained on those languages**. A mapping that never
+saw Irish beats one that did. Pooling over eleven languages damages the
+low-resource targets by more than supervision in them helps.
+
+**Same direction in the other architecture.** X3/D12 (2026-09-14) found a joint
+multilingual stage-1 mapping lost 1.18 CVQA points on jv/mn/ga, Javanese worst at
+−4.04. Two architectures, one sign, so this is not an implementation quirk.
+
+**The confound runs against the winner, which is why the direction survives it.**
+The per-language arm trained one stage-1 epoch against the pooled arm's three
+(DESIGN 2026-10-20). On ga/jv/mn the finding holds despite that handicap. On bn
+and si, where pooled wins, the confound favours it, so those two cells are the
+ones a retrain can move.
+
+**What the frame requires.** (1) Retrain a1-bn per-language with three stage-1
+epochs, which removes the confound cheaply. (2) For a claim about regimes rather
+than about Bengali, per-language arms for several donors: six chains of stage 1,
+2 and 3, which is the real price and the decision to make. (3) Failing that, the
+clean contrast is bn alone after (1), with the supervised-against-zero-shot
+contrast on the targets reported and labelled as such rather than folded into an
+average. Report
+`audits/arch_compare_cvqa_a1_perlang_vs_pooled.json`; accuracy only, both arms
+`--full-only`, since her evaluator has no blind arm.
+
+**What it does to the paper's claim.** It stops being "a new architecture" and
+becomes the training-regime trade-off inside one: shared capacity buys
+multilingual breadth where languages share structure, and costs the per-language
+specificity that culture-specific entity questions need. That is the decision
+Maryam already made when she replaced the per-language track with the pooled one,
+and the paper would answer it with numbers.
