@@ -5731,3 +5731,37 @@ multilingual breadth where languages share structure, and costs the per-language
 specificity that culture-specific entity questions need. That is the decision
 Maryam already made when she replaced the per-language track with the pooled one,
 and the paper would answer it with numbers.
+
+### Reading the pooled cultural arm: three outcomes, fixed before the data — 2026-11-03
+
+Jobs 25535463/64/65 are queued and the concern raised is that pooling may cost
+the cultural gain. Two questions were being conflated, and only the first is in
+flight: **A**, does the intervention still work under pooling, which is
+(pooled+CG) − (pooled) with the plain pooled arm as control; and **B**, which
+regime is better overall, which is per-language+CG against pooled+CG. The jobs
+answer A.
+
+Levels already measured on the five-language CVQA panel at 588 merged tokens:
+per-language 38.80, per-language + CG50 **43.78** (+4.98), pooled 36.03.
+
+**The two effects compose rather than compete**, and that is what makes A worth
+reading on its own: pooling costs per-language specificity (+2.77 for the
+per-language regime, today's entry) and culturally grounded supervision buys
+specificity. The question is therefore whether the intervention *repairs what
+pooling broke*, at a fixed row count.
+
+**Reading, fixed now.**
+1. If (pooled+CG) − (pooled) is near the per-language +4.98 with LB5 > 0, the
+   intervention is regime-independent: the pooling cost and the cultural gain are
+   separable, and pooled + cultural is the configuration to recommend because it
+   is the scalable one.
+2. If it is positive but materially smaller, there is an interaction: part of the
+   gain needs dedicated capacity. The trade-off becomes the result and both
+   regimes are reported with it.
+3. If it is null (LB5 ≤ 0), culture-specific knowledge requires per-language
+   capacity and a shared mapping cannot hold it. This is the strongest mechanism
+   claim of the three and it is **not** a failure: it localises the effect and it
+   makes the per-language regime the one to recommend, with its cost stated.
+
+No outcome here is a null result in the sense that matters. The answer-overlap
+split applies to every panel as before, and the number quoted is the clean one.
