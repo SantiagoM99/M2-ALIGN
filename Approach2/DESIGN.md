@@ -5996,3 +5996,54 @@ that no measured noise floor exists.
 and Insights were. `2026.c3nlp-1` is a 2026 volume at another venue, so C3NLP
 needs its own sweep — it is where culturally grounded multimodal work would land
 and it is the venue recommended for the short paper.
+
+### EMNLP 2026 main and Findings: our thesis is published in speech, and her backbone is current — 2026-11-10
+
+Coverage, stated by the sweep: **5,182 papers** (2,704 main, 2,478 Findings), all
+abstracts parsed from the Anthology volume HTML, plus **699 full-text PDFs**
+grepped for our benchmark names, cross-checked against the official programme at
+99.4%. Residual gap declared: the other ~4,483 papers were read at
+title-and-abstract level only.
+
+**Across 5,182 abstracts, CVQA, xGQA and WorldCuisines appear zero times**, and
+only one paper in the volume reports a number on any of them.
+
+**The finding that changes our positioning: `2026.emnlp-main.2427`,
+"Text4Speech"** (Sterz, Korhonen, **Vulić**, Glavaš). Two-stage alignment into an
+LLM: align a **multilingual text encoder** to the LLM using abundant text, then
+align the other modality's encoder with limited data, training only the alignment
+parameters, by self-distillation on the LLM. 90 languages, up to +6% on
+Fleurs-SIB over an ASR cascade. Its headline claim is that **text-based alignment
+is what makes aligning the other modality sample-efficient** — which is this
+project's architectural bet, run in speech, by a group that includes an author of
+the original xGQA paper that anchors our research question. It does not touch the
+cultural intervention or the grounding measurement, but the mechanism claim is no
+longer ours to make first. It must be cited prominently rather than left for a
+reviewer to supply.
+
+**Maryam's ask, answered from the data.** Backbone census over 5,182 abstracts:
+**Qwen3-VL 37 mentions against Qwen2.5-VL's 29** — Qwen3-VL has become the
+default open multimodal base, and it is the one a1 already uses, so her backbone
+is current and nothing needs changing. New frozen multilingual dual-encoder bases
+are **MetaCLIP-2 Worldwide-Huge** and **SigLIP-2 SO400M**. And **Pangea,
+Centurio, mBLIP and Aya Vision received zero abstract mentions each**, which cuts
+both ways: mBLIP is the frozen-backbone number the 11-09 check said we beat, and
+nobody at this venue is citing it any more.
+
+**Useful to the frame.** `2026.emnlp-main.2625` gives the theory for the
+pooled-against-per-language result: cross-lingual generalisation **factorises
+into language-specific encoding layers and language-agnostic composition
+layers**, composition being the more influential and needing no target-language
+data. `2026.findings-emnlp.320` (OmniFusion) is a gated connector into a frozen
+multimodal base and reports that early and middle layers transfer better than
+late ones. `2026.emnlp-main.840` is the only paper with CVQA numbers — frozen
+multilingual VL encoders with a trainable front-layer trunk, scored by cosine
+similarity over four candidate texts rather than generatively — and it excludes
+CVQA from its headline mean for having "a higher noise floor".
+
+**Two more open axes confirmed.** Of roughly eight visual-token-budget papers,
+all are efficiency-motivated and **none measures the effect of resolution or
+token budget on a multilingual or cultural benchmark score**. And of 34
+contamination and leakage papers, **none audits a multilingual or multimodal
+benchmark** for train-test overlap. Both of our instrument contributions survive
+at main and Findings as they did at the workshops.
