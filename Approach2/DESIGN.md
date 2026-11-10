@@ -5936,3 +5936,63 @@ against CVQA exists anywhere, which is what `cg_entity_overlap.py` does.
 **Read before writing**: the EMNLP camera-ready, `2025.emnlp-main.1232`, §4.3 and
 Appendix F. The arXiv version has neither, so the two sections that speak
 directly to our claims are the easiest ones to miss.
+
+### EMNLP 2026 workshops, swept by venue: our modelling is unchallenged and the blind-arm claim is gone — 2026-11-10
+
+The claim-targeted check of 11-09 could not answer "is anyone working on our
+tasks", because searching by claim finds competitors and misses everything else.
+This pass was scoped by venue, and it reports its own coverage: **28 of 28
+co-located workshops, 1,525 titles read, all 1,491 abstracts regex-searched**,
+proceedings fully indexed two weeks after the conference. So "nothing found"
+here means nothing, not "not online yet".
+
+**Zero occurrences of CVQA, xGQA or WorldCuisines** in 1,491 abstracts. And the
+two modelling topics are empty: no workshop paper trains a connector from a
+multilingual text encoder into a frozen LLM or VLM, and none does zero-shot
+cross-lingual multimodal transfer without target-language multimodal
+supervision. The only structural analogue is `2026.oracle-main.32`, a trained
+graph-to-LLM projection that transfers zero-shot to Portuguese.
+
+**The question-blind claim is published, and more sharply than ours.**
+`2026.groundlm-1.83` reaches **0.8475 answer accuracy with no visual input at
+all** on GoldenViewVQA and states that the benchmark "permits substantial
+performance without image access"; `2026.groundlm-1.90` reports **0.95 with no
+image**, concluding that "option phrasing alone largely solves the answer head";
+`2026.luhme-1.24` leaves **68% of HellaSwag predictions unchanged** under a
+lorem-ipsum question and releases BenCheck, a package for auditing
+multiple-choice benchmark validity; `2026.arabicnlp-sharedtasks.94` beats a
+GPT-4-as-judge baseline with an image-blind frequency prior. And
+`2026.docinsights-1.6` is the template for the paper we were planning: one
+prompt suffix moves DocVQA ANLS from **94.2 to 7.5**, and two suffixes
+`lmms-eval` ships for the same task differ by **28.8 points**.
+
+**What survives is the axis we actually measured.** In 1,491 papers **nobody
+reports that the visual token budget changes a VQA conclusion**. The nearest are
+`2026.docinsights-1.34` (dpi and a 1568 px provider cap in document QA) and
+`2026.docinsights-1.20` (512x512 against 64x64 flips which typographic layer is
+read). So the short paper's novelty moves from "nobody runs blind controls on
+VQA" — now false — to **the visual-token-budget axis, and the fact that neither
+control has been applied to a multilingual, culturally grounded VQA benchmark**.
+That is the same conclusion the 10-12 overlap analysis reached from the other
+direction: the resolution result is the only piece the main paper does not
+consume.
+
+**Worth citing in the main paper**: `2026.mrl-1.27` (language-specific features
+are recoverable throughout a multilingual LLM, against the edge-layer story) and
+`2026.mrl-1.19` (no shared, causally transferable refusal direction), both of
+which bear on the pooled-against-per-language frame; `2026.mrl-1.20` (63.4% of a
+machine-translated dialect benchmark flagged by native speakers) and
+`2026.oracle-main.24` (tokenization sets the measurement scale, and one in five
+significant associations reverses sign when units are made comparable), the
+genre our instrument work belongs to; `2026.wslp-1.24`, a matched visual
+intervention reported honestly as directional (+3.17, CI [-0.17, 6.50],
+p = 0.082) — the model for how to report our own marginal cells; and
+`2026.arabicnlp-sharedtasks.89`, which measures a **9% answer-flip rate between
+identical runs at temperature 0**, directly relevant to CLAUDE.md's standing note
+that no measured noise floor exists.
+
+**A venue correction.** C3NLP, ALVR, Eval4NLP, LoResLM, LoResMT and SIGTYP were
+**not** co-located with EMNLP 2026; of the priority list only MRL, BlackboxNLP
+and Insights were. `2026.c3nlp-1` is a 2026 volume at another venue, so C3NLP
+needs its own sweep — it is where culturally grounded multimodal work would land
+and it is the venue recommended for the short paper.
