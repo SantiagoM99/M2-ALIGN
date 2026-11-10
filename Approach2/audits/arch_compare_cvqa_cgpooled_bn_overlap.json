@@ -1,0 +1,105 @@
+{
+  "arms": [
+    "cg",
+    "ctrl"
+  ],
+  "benchmark": "cvqa",
+  "boot": 4000,
+  "clustering": "image_id where the rows carry it, else the CVQA id prefix",
+  "contrasts": {
+    "cg-minus-ctrl": {
+      "full": {
+        "ci95": [
+          6.333333333333333,
+          17.832167832167833
+        ],
+        "estimate": 11.888111888111888,
+        "image_clusters": 136,
+        "items": 286,
+        "lb5": 7.191780821917808,
+        "ub95": 16.896551724137932
+      },
+      "mcnemar": {
+        "cg_only": 55,
+        "ctrl_only": 21,
+        "p_two_sided": 0.00012062911599790318
+      },
+      "per_language_full": {
+        "bn": 11.888111888111888
+      },
+      "subsets": {
+        "clean": {
+          "ci95": [
+            3.9682539682539684,
+            15.510204081632653
+          ],
+          "estimate": 9.765625,
+          "image_clusters": 131,
+          "items": 256,
+          "lb5": 4.942965779467681,
+          "ub95": 14.559386973180077
+        },
+        "overlap": {
+          "ci95": [
+            9.67741935483871,
+            51.515151515151516
+          ],
+          "estimate": 30.0,
+          "image_clusters": 27,
+          "items": 30,
+          "lb5": 12.903225806451612,
+          "ub95": 48.275862068965516
+        }
+      }
+    }
+  },
+  "endpoints": "full = accuracy with the image; dv = full - blind, the visual part",
+  "languages": [
+    "bn"
+  ],
+  "per_language": {
+    "cg": {
+      "bn": {
+        "dv": null,
+        "full": 51.3986013986014,
+        "n": 286
+      }
+    },
+    "ctrl": {
+      "bn": {
+        "dv": null,
+        "full": 39.51048951048951,
+        "n": 286
+      }
+    }
+  },
+  "pooled": {
+    "cg": {
+      "full": {
+        "ci95": [
+          44.81481481481482,
+          57.80730897009967
+        ],
+        "estimate": 51.3986013986014,
+        "image_clusters": 136,
+        "items": 286,
+        "lb5": 46.02076124567474,
+        "ub95": 56.81063122923588
+      }
+    },
+    "ctrl": {
+      "full": {
+        "ci95": [
+          33.45070422535211,
+          45.51971326164875
+        ],
+        "estimate": 39.51048951048951,
+        "image_clusters": 136,
+        "items": 286,
+        "lb5": 34.39716312056738,
+        "ub95": 44.522968197879855
+      }
+    }
+  },
+  "seed": 0
+}

@@ -1,0 +1,81 @@
+{
+  "arms": [
+    "cg",
+    "ctrl"
+  ],
+  "benchmark": "cvqa",
+  "boot": 4000,
+  "clustering": "image_id where the rows carry it, else the CVQA id prefix",
+  "contrasts": {
+    "cg-minus-ctrl": {
+      "full": {
+        "ci95": [
+          3.237410071942446,
+          14.840989399293287
+        ],
+        "estimate": 9.154929577464788,
+        "image_clusters": 100,
+        "items": 284,
+        "lb5": 4.2105263157894735,
+        "ub95": 13.978494623655914
+      },
+      "mcnemar": {
+        "cg_only": 49,
+        "ctrl_only": 23,
+        "p_two_sided": 0.002942760530124976
+      },
+      "per_language_full": {
+        "pt": 9.154929577464788
+      }
+    }
+  },
+  "endpoints": "full = accuracy with the image; dv = full - blind, the visual part",
+  "languages": [
+    "pt"
+  ],
+  "per_language": {
+    "cg": {
+      "pt": {
+        "dv": null,
+        "full": 56.690140845070424,
+        "n": 284
+      }
+    },
+    "ctrl": {
+      "pt": {
+        "dv": null,
+        "full": 47.53521126760563,
+        "n": 284
+      }
+    }
+  },
+  "pooled": {
+    "cg": {
+      "full": {
+        "ci95": [
+          50.17667844522968,
+          63.28671328671329
+        ],
+        "estimate": 56.690140845070424,
+        "image_clusters": 100,
+        "items": 284,
+        "lb5": 51.40845070422535,
+        "ub95": 62.27758007117438
+      }
+    },
+    "ctrl": {
+      "full": {
+        "ci95": [
+          41.1764705882353,
+          54.09252669039146
+        ],
+        "estimate": 47.53521126760563,
+        "image_clusters": 100,
+        "items": 284,
+        "lb5": 42.1602787456446,
+        "ub95": 52.961672473867594
+      }
+    }
+  },
+  "seed": 0
+}

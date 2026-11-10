@@ -5765,3 +5765,62 @@ pooling broke*, at a fixed row count.
 
 No outcome here is a null result in the sense that matters. The answer-overlap
 split applies to every panel as before, and the number quoted is the clean one.
+
+### The pooled cultural arm: six of six replicate, pooling strengthens the effect, and the transfer is not cultural — 2026-11-09
+
+Ten CVQA panels per arm at 588 merged tokens, control and arm scored on identical
+items. The reading was fixed on 2026-11-03 before the data existed.
+
+**Reading 1 passes on all six matched donors**, where four of six was the bar:
+
+| donor | control | +CG | Δ (all items) | p |
+|---|---|---|---|---|
+| ru | 41.00 | 61.00 | **+20.00 [+13.13, +26.87]** | 2e-8 |
+| zh | 49.52 | 64.31 | **+14.79 [+9.06, +20.60]** | 7e-7 |
+| ko | 43.79 | 57.59 | **+13.79 [+8.39, +19.52]** | 2e-6 |
+| id | 36.41 | 49.51 | **+13.11 [+8.25, +18.11]** | 2e-7 |
+| bn | 39.51 | 51.40 | **+11.89 [+6.33, +17.83]** | 1e-4 |
+| pt | 47.54 | 56.69 | **+9.15 [+3.24, +14.84]** | 0.003 |
+
+**Outcome 1 of the registered reading, and beyond it: pooling strengthens the
+intervention.** On bn's unseen-answer items the per-language arm gained +6.64 and
+the pooled arm gains **+9.77 [+3.97, +15.51]**, LB5 +4.94; the transfer panel goes
+from +4.06 to **+10.52 [+7.82, +13.26]**, p = 5e-14. The concern that pooling
+would cost the cultural gain is answered in the opposite direction. bn reaches
+51.40, which all but matches Approach 2's 51.75 — across the image-copy boundary,
+so not a paired comparison.
+
+**The transfer is not culture-specific, and the design caught it.** Javanese's
+CVQA country is **Indonesia**, and Indonesian cultural rows were built from
+Indonesia, so jv is not a held-out culture in this arm; mn, si and ga are.
+
+| target | country | trained? | Δ |
+|---|---|---|---|
+| ga | Ireland | no | **+19.94** |
+| si | Sri Lanka | no | +12.00 |
+| jv | Indonesia | **yes, via id** | +6.40 |
+| mn | Mongolia | no | +3.53 |
+
+The one language whose culture is in the training data ranks third of four, and
+Irish — whose culture appears nowhere in it — gains twice as much as any other.
+A culture-knowledge account predicts the opposite order, so that account is out
+for the transfer.
+
+**What the order does track is prior grounding.** Block A measured
+instance-specific grounding per target as ga +8.69, jv +4.15, mn −1.39 (none at
+all). The gains come in nearly that order, which reads as the intervention
+amplifying grounding where there is grounding to amplify and doing little where
+there is none — consistent with E4 and with Mongolian's absent grounding. Four
+points, so this is descriptive and not a test; it is the hypothesis to design
+against, not a claim.
+
+**Not yet reportable, and both are gaps rather than results.** The clean-item
+figures exist only for bn: `cg_entity_overlap.py` was run against the CG50
+submission, whose panels were bn/jv/mn/ga/si, so its labels cover 286 of 1,783
+scored items and `arch_compare` refused the split — correctly. The audit has to
+be re-run against the **union** of the six cultural pools, because the pooled arm
+trains on all of them and any panel's exposure is now that union. And the
+Chinese Singapore subset is absent from the local mirror (`zh.jsonl` is 311 rows,
+the China subset only), so **prediction 2, the language-versus-culture
+separation, has no data** and the amendment is recorded here rather than
+discovered later.
