@@ -5824,3 +5824,60 @@ Chinese Singapore subset is absent from the local mirror (`zh.jsonl` is 311 rows
 the China subset only), so **prediction 2, the language-versus-culture
 separation, has no data** and the amendment is recorded here rather than
 discovered later.
+
+### Literature check before the frame hardens, second pass — 2026-11-09
+
+The 09-26 check cost two novelty claims ("text-side DenseConnector" to
+Puranegedara et al. `2508.09091`, "no instance of two bridges into one frozen
+LLM" to X-LLM). This pass was run on the claims rather than on the leaderboard,
+by a web-search agent with instructions to cite venue, year and arXiv id and to
+say so when it found nothing. **Agent output is not a source**: the two
+load-bearing numbers below must be confirmed in the original before they are
+printed, under the same rule that forbids quoting a baseline from memory.
+
+**Position on xGQA, if mBLIP's numbers verify.** mBLIP mT0-XL (`2307.06930`,
+ALVR @ ACL 2024) is reported at 47.71 averaged over the seven non-English xGQA
+languages, with a frozen ViT and a frozen mT0-XL **plus trained LoRA**, under
+English-GQA-only supervision. Our v4 is 49.66 on the same seven and higher in
+every one of them (bn +2.45, de +1.20, id +3.37, ko +2.38, pt +2.03, ru +0.74,
+zh +1.47); on the six where ours is genuinely zero-shot, 49.99 against 48.12.
+The agent found **no strictly-frozen-LLM xGQA number at all**, so the
+positioning is "first strictly frozen" rather than "best overall" — Pangea-7B
+(60.4 non-English) and Centurio (54.8) are higher and neither is frozen.
+
+**Claims that survive.** No work maps a multilingual text encoder into a frozen
+LLM or frozen VLM **generatively** for multilingual VQA; the near misses are
+text-only (LLINK `2510.27254`; XBridge, ACL 2026, `2603.17512`, which also uses
+NLLB; `2508.09091`) or at the retrieval/embedding level with English-only
+training (M2M, Findings EACL 2026, `2601.10096`).
+
+**The two-bridges claim narrows a second time.** X-InstructBLIP (ECCV 2024,
+`2311.18799`) trains one instruction-aware connector **per modality**, each on
+its own data, into one **frozen** LLM, and reports emergent cross-modal
+reasoning; DAMC (ACL 2024, `2024.acl-long.606`) composes such connectors
+training-free. Neither pairs a multilingual-**text** connector with a vision
+connector, so the claim is admissible only in that narrowed form, with
+X-InstructBLIP cited as the precedent.
+
+**Pooled against per-language is the cleanest gap of the three**, which is the
+frame proposed on 11-03. Nothing found measures it for a connector into a frozen
+model in any modality. The reference frame to position against is machine
+translation: Escolano et al. (EACL 2021, `2021.eacl-main.80`) found
+language-specific encoder-decoders beat shared ones by +2.92 BLEU on seen pairs
+while shared transferred better zero-shot. Our pattern is adjacent and not
+identical — per-language wins CVQA even where it is applied zero-shot — and
+stating that against an established result is stronger than stating it alone.
+
+**A constraint on every comparison table.** Centurio and Pangea xGQA/CVQA
+numbers are **not** zero-shot cross-lingual: their training mixes contain
+NLLB-translated GQA and machine-translated multilingual instructions. Any table
+putting our numbers beside theirs needs a protocol column, which is the same
+discipline the instrument work has demanded since 10-02.
+
+**An opening worth taking.** WorldCuisines (NAACL 2025 best theme paper,
+`2410.12705`) has **no frozen-backbone entry** and nobody has trained on the 1M
+split its authors released. Her evaluator already scores it and
+`build_worldcuisines.py` exists, so this is cheap first-mover territory.
+
+Still open: the cultural-supervision novelty check, whose agent had not reported
+when this entry was written.
