@@ -5881,3 +5881,58 @@ split its authors released. Her evaluator already scores it and
 
 Still open: the cultural-supervision novelty check, whose agent had not reported
 when this entry was written.
+
+### Cultural-supervision novelty check: the dose survives, the transfer claim does not — 2026-11-09
+
+Second half of today's check, same rules: agent output with citations, to be
+confirmed at source before anything is printed.
+
+**The dose-controlled design survives.** No work replaces a fixed fraction of
+translated VQA rows with culturally grounded rows at a **constant total row
+count**. The nearest prior art is CultureVLM (`2501.01282`), which sweeps
+fine-tuning data size 5–100% on one corpus; Multimodal Cultural Safety (TMLR
+2025, `2505.14972`), which fine-tunes on ~1.6K country-overlapping against ~2.4K
+country-exclusive CVQA examples with budgets not equalised; and Pangea (ICLR
+2025), which holds the total at 500K while sweeping the **English** ratio. And
+CulturalGround itself has **no budget ablation at all** — "ablation" and "budget"
+do not occur in either its arXiv v2 or its camera-ready.
+
+**The transfer claim is already published, and by CulturalGround itself.**
+"Grounding Multilingual Multimodal LLMs With Cultural Knowledge" (EMNLP 2025
+main, `2025.emnlp-main.1232`, §4.3) reports CulturalPangea improving on 17
+ALM-Bench languages absent from CulturalGround, and CultureVLM reports
+continent-to-continent transfer plus +7 on CVQA. So "cultural supervision
+transfers" is not ours to claim.
+
+**What today's result does instead is contradict the explanation.**
+CulturalGround's hypothesis for its transfer is cross-lingual alignment of
+representations per cultural entity. Our 11-09 breakdown is incompatible with
+that: Irish, whose culture appears nowhere in the training pools, gains +19.94,
+while Javanese — whose CVQA country is Indonesia and whose culture **is** in the
+pools via Indonesian — gains +6.40 and ranks third of four. An entity-alignment
+account predicts the opposite order. And Multimodal Cultural Safety reports the
+opposite phenomenon outright: gains "contingent on country or region overlap",
+absent for non-overlapping countries. So the transfer finding is a **measured
+disagreement with two published results**, which is a stronger position than a
+fresh claim and tells us what the paper has to argue against.
+
+**The quotable contrast, protocols permitting.** CulturalPangea uses 18M cultural
+samples with the connector **and the LLM** trainable for **+2.2** on CVQA (56.9 →
+59.1). This arm uses **90,000** cultural rows with every large model frozen and
+gains +9.15 to +20.00 per donor language. The protocols differ — theirs is MCQ
+averaged over 31 country-language pairs, ours is per-language panels at 588
+merged tokens against a matched control — so the deltas are not a paired
+comparison and must be labelled. The claim worth making is not that cultural
+supervision helps but that **the budget was never the binding constraint**.
+
+**Our overlap audit is novel in kind, and their audit has a stated gap.** The
+CulturalGround **camera-ready** carries a contamination analysis the arXiv v2
+omits (Appendix F, Tables 5–6): 10 images shared with CVQA, 0.6% overlap,
+accuracy 57.1 → 56.6 when overlapping items are removed. Its footnote 7 says the
+figure was computed on an early 2.3M-sample, 6-language CulturalGround, not the
+released 22M/39-language corpus. And no **answer-string-level** overlap audit
+against CVQA exists anywhere, which is what `cg_entity_overlap.py` does.
+
+**Read before writing**: the EMNLP camera-ready, `2025.emnlp-main.1232`, §4.3 and
+Appendix F. The arXiv version has neither, so the two sections that speak
+directly to our claims are the easiest ones to miss.
