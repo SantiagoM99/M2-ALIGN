@@ -42,6 +42,28 @@ class OverlapTests(unittest.TestCase):
         self.assertEqual(self.exposure["rows_cultural"], 2)
         self.assertNotIn("bread", self.exposure["answers"])
 
+    def test_exposure_is_the_union_of_every_pool(self):
+        """The pooled arm trains on all six, so a panel is exposed through any of them."""
+        second = write(
+            self.root / "id_cg50.jsonl",
+            [{"vg_image_id": "cg_Q7_Borobudur_temple", "answer": "Borobudur",
+              "source_dataset": CULTURAL}],
+        )
+        both = audit.training_exposure([self.training, second])
+        self.assertEqual(both["rows_cultural"], 3)
+        self.assertEqual(sorted(both["pools"]), sorted([str(self.training), str(second)]))
+        out = audit.audit_panel(
+            [{"id": "jv_0", "choices": ["Borobudur", "Prambanan"], "answer_index": 0}],
+            both,
+        )
+        self.assertEqual(out["gold_answer_in_training_answers"], 1)
+        # The same panel against one pool alone would have missed it.
+        alone = audit.audit_panel(
+            [{"id": "jv_0", "choices": ["Borobudur", "Prambanan"], "answer_index": 0}],
+            self.exposure,
+        )
+        self.assertEqual(alone["gold_answer_in_training_answers"], 0)
+
     def test_a_file_without_cultural_rows_is_refused(self):
         plain = write(self.root / "bn.jsonl", [{"answer": "x", "source_dataset": "gqa"}])
         with self.assertRaises(SystemExit):

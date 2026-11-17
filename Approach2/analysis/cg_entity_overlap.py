@@ -67,14 +67,27 @@ def read_jsonl(path: Path) -> list[dict]:
     return rows
 
 
-def training_exposure(path: Path) -> dict:
-    """The answers and entity names the culturally grounded half actually carries."""
-    rows = read_jsonl(path)
-    cultural = [r for r in rows if r.get("source_dataset") == CULTURAL]
-    if not cultural:
-        raise SystemExit(
-            f"{path} has no {CULTURAL} rows; this is not a mixed CG50 file"
-        )
+def training_exposure(paths) -> dict:
+    """The answers and entity names the culturally grounded halves actually carry.
+
+    Takes several pools, because the pooled arm trains on all of them at once:
+    any panel's exposure is the union, not its own language's file. A Javanese
+    panel can be exposed through the Indonesian pool, which is built from the
+    same country.
+    """
+    if isinstance(paths, (str, Path)):
+        paths = [paths]
+    rows, cultural, per_file = [], [], {}
+    for path in paths:
+        these = read_jsonl(Path(path))
+        mine = [r for r in these if r.get("source_dataset") == CULTURAL]
+        if not mine:
+            raise SystemExit(
+                f"{path} has no {CULTURAL} rows; this is not a mixed CG50 file"
+            )
+        per_file[str(path)] = {"rows": len(these), "cultural": len(mine)}
+        rows += these
+        cultural += mine
     answers = {normalise(r.get("answer", "")) for r in cultural}
     answers.discard("")
     # vg_image_id is `cg_<Qid>_<Commons file stem>`; the stem usually spells the
@@ -87,6 +100,7 @@ def training_exposure(path: Path) -> dict:
         if text:
             entities.add(text)
     return {
+        "pools": per_file,
         "rows_total": len(rows),
         "rows_cultural": len(cultural),
         "distinct_answers": len(answers),
@@ -147,7 +161,9 @@ def audit_panel(rows: list[dict], exposure: dict) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--training", required=True, help="the mixed CG50 stage-3 file")
+    ap.add_argument("--training", required=True, action="append", metavar="FILE",
+                    help="a mixed cultural stage-3 file; repeat for every pool the "
+                         "arm trained on, because exposure is their union")
     ap.add_argument("--submission", help="take panel paths from a CG50 eval submission")
     ap.add_argument("--panel", action="append", default=[], metavar="LANG=PATH",
                     help="a CVQA panel, repeatable; overrides --submission for that target")
@@ -155,7 +171,7 @@ def main() -> None:
     ap.add_argument("--emit-labels", help="write {target: {item_id: overlap|clean}} here")
     a = ap.parse_args()
 
-    exposure = training_exposure(Path(a.training))
+    exposure = training_exposure(a.training)
     panels = panel_paths(Path(a.submission)) if a.submission else {}
     for spec in a.panel:
         lang, _, path = spec.partition("=")
@@ -167,7 +183,7 @@ def main() -> None:
 
     report = {
         "training": {
-            "path": str(a.training),
+            "paths": [str(x) for x in a.training],
             **{k: v for k, v in exposure.items() if k not in ("answers", "entities")},
         },
         "method": (
