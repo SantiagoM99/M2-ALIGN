@@ -74,6 +74,11 @@ ARM_TAG="${ARM_TAG:-}"
 # Pooled stage 3 only: the donor languages whose file is the culturally grounded
 # mix instead of the translated-GQA one. A star marks them in the pool line.
 CULTURAL_LANGS="${CULTURAL_LANGS:-}"
+# Her trainer's own default, so an unset SEED reproduces every arm trained
+# before this knob existed and leaves their checkpoint paths alone. Only the
+# stage-3 trainers take it, which is the scope a replicate needs: the stage-2
+# checkpoint is shared, so the spread this measures is the intervention's.
+SEED="${SEED:-42}"
 DT="${DT:-/scratch/santimn/datatransfer}"
 A1_ROOT="${A1_ROOT:-$SCRATCH/a1}"
 OUT="${OUT:-$ROOT/Approach2/outputs}"
@@ -101,6 +106,7 @@ echo "=== Job info ==="; date; hostname; nvidia-smi || true
 }
 A1_SHA=$(git -C "$A1_ROOT" rev-parse HEAD)
 echo "her code: $A1_ROOT at $A1_SHA"
+echo "seed: $SEED"
 echo "DT=$DT"
 
 # Her modules, not ours: her Stage 1 lets deepspeed JIT-compile CPUAdam, and
@@ -122,6 +128,9 @@ S2_OUT="$OUT/a1_${SLUG}_stage2"
 S3_SLUG="$SLUG"
 [ "$POOLED" = 1 ] && [ "$REPLAY" = 1 ] && S3_SLUG="pooled_replay"
 [ -n "$ARM_TAG" ] && S3_SLUG="${S3_SLUG}_${ARM_TAG}"
+# Replicates must not land on each other: three seeds are three checkpoints,
+# and seed 42 keeps the unsuffixed path it already occupies.
+[ "$SEED" != 42 ] && S3_SLUG="${S3_SLUG}_s${SEED}"
 S3_OUT="$OUT/a1_${S3_SLUG}_stage3"
 POOL_DATA="$OUT/a1_${S3_SLUG}_stage3_data"
 echo "arm: $S3_SLUG (POOLED=$POOLED REPLAY=$REPLAY)"
@@ -333,7 +342,7 @@ case "$STAGE" in
       --images-dir "$DT/Stage3/data/gqa/images" \
       --output-dir "$S3_OUT" --init-mapping-ckpt "$S2_CKPT" \
       --mt-path "$MT" --llm-path "$LLM" \
-      --epochs "${EPOCHS:-3}" --lr 2e-5 \
+      --epochs "${EPOCHS:-3}" --lr 2e-5 --seed "$SEED" \
       --train-batch-size 4 --eval-batch-size 4 --grad-accum 8 \
       --max-mt-seq-len 256 --max-seq-len 256 --max-gen-len 16 \
       ${REPLAY_ARGS[@]+"${REPLAY_ARGS[@]}"} \

@@ -6136,3 +6136,40 @@ predicts the opposite ordering.
 
 Unchanged: the dose design is still absent from their paper. Neither "ablation"
 nor "budget" occurs in it, and no arm holds total row count fixed.
+
+### Three seeds for the cultural recipe, registered before the runs — 2026-11-17
+
+Audit of what the cultural claims actually rest on: **one checkpoint each.**
+`a1_bn_cg50` (scored on bn/ga/jv/mn/si) and `a1_pooled_cg` (scored on all ten)
+are single training runs, and no cultural arm anywhere in the project has a seed
+replicate. CLAUDE.md requires three seeds for a recipe claim, and "replace half
+the stage-3 rows with culturally grounded ones" is exactly that. The +7.26 over
+a1's own backbone is therefore one draw, and how wide the distribution is behind
+it is unmeasured.
+
+Two more seeds of the pooled arm, 13 and 7, launched by
+`job-scripts/a1_cg_pooled_seeds.sh`. Seed 42 is the arm already scored as
+`a1_pooled_cg_matched`. `SEED` is new in `a1_train.sh`: it defaults to her
+trainer's own 42 so every earlier arm reproduces at its existing path, it is
+appended to the slug only when it differs, and it reaches **stage 3 only** --
+the stage-1/2 trainer takes no such flag.
+
+**Scope, which must travel with the number.** All three seeds warm-start from
+the same `a1_pooled_stage2` checkpoint. What this measures is the spread of the
+intervention's stage-3 training, not of the whole pipeline, so any CI over the
+three is conditional on that shared warm start and on these three trajectories.
+It bounds the smaller of the two variances; a wider claim needs stage 1 and 2
+retrained per seed, which is about 150 h and is not planned.
+
+**Prediction.** The three-seed mean stays above the control with a lower bound
+clear of zero, and the across-seed SD is small next to +7.26.
+
+**Refutation.** An SD comparable to the effect. That would mean the single-seed
+number was a draw from a wide distribution, and no cultural claim in the paper
+survives without many more runs -- including the six-donor replication, whose
+six arms are six languages of one checkpoint, not six independent draws.
+
+Still to write: the across-seed reader in `analysis/`. Each seed reads against
+the control with `arch_compare.py` today; the mean/SD/range form CLAUDE.md asks
+for has no script yet, and it will be written against the real files rather than
+against a guess at their shape.
