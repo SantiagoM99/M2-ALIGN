@@ -6047,3 +6047,44 @@ token budget on a multilingual or cultural benchmark score**. And of 34
 contamination and leakage papers, **none audits a multilingual or multimodal
 benchmark** for train-test overlap. Both of our instrument contributions survive
 at main and Findings as they did at the workshops.
+
+### Her replay arm measured: the CVQA lead does not survive against her best system — 2026-11-16
+
+The arm trained on 2026-10-23 (job 24900567, 20 h, `arm=pooled_replay`, eleven
+languages plus English, no cultural rows) sat unevaluated for three weeks. Scored
+now on all ten CVQA panels at 588 merged tokens, one job per language.
+
+**Her replay claim holds, and is larger here than she reported.** pooled+replay
+minus pooled is **+2.38 [+1.17, +3.60]**, p = 0.0002, over 2,943 items; her own
+figure was +1.63. Level 39.72 to 42.10. Per language: ga +6.44, ru +6.00,
+si +3.56, bn +3.15, ko +2.41, jv +2.36, id +1.94, zh +0.96, pt +0.70, and
+**mn −2.24**, the only loss and again the target Block A found to have no
+instance-specific grounding.
+
+**Our CVQA advantage does not survive the comparison against her best arm.**
+
+| contrast | Δ | p |
+|---|---|---|
+| v4 − a1 pooled | **+4.14 [+1.74, +6.62]** | 0.0013 |
+| v4 − a1 pooled+replay | **+1.67 [−0.79, +4.20]** | 0.198 |
+
+McNemar 287 v4-only against 256 replay-only, 1,858 items. Per language we lead
+mn +9.62, si +4.89, jv +3.37, id +1.94 and lose bn −3.50, ga −5.52.
+
+**This is the 10-13 concession, measured.** That entry granted her offset at face
+value and computed a lead of about 2.5 points, with 1.74 − 1.63 = 0.11 at the
+conservative end. The offset is 2.38 rather than 1.63, and what remains is +1.67
+with an interval covering zero.
+
+**What the paper may and may not say.** It may say that v4 leads her **current**
+system on CVQA by 4.14, significant and paired on identical items. It may **not**
+say that our architecture leads on CVQA, because against her best arm the
+difference is not detectable. The scoped version is the one that survives review,
+and it is also the more useful statement for her: the replay arm is worth running.
+
+Nothing else moves. CG50's +7.26 over a1's own backbone is a within-architecture
+result and does not depend on beating v4; the per-language against pooled regime
+contrast is unaffected; and the xGQA direction (a1 ahead by 7.95 over v4, and by
+4.61 over its own backbone) is untouched. Reports
+`audits/arch_compare_cvqa_a1replay_vs_pooled.json` and `..._vs_v4.json`;
+accuracy only, her evaluator has no blind arm.
