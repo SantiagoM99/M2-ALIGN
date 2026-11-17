@@ -6088,3 +6088,51 @@ contrast is unaffected; and the xGQA direction (a1 ahead by 7.95 over v4, and by
 4.61 over its own backbone) is untouched. Reports
 `audits/arch_compare_cvqa_a1replay_vs_pooled.json` and `..._vs_v4.json`;
 accuracy only, her evaluator has no blind arm.
+
+### CulturalGround camera-ready read: they ran our audit, on another benchmark — 2026-11-16
+
+The 11-09 entry left reading the camera-ready as an open action because the
+arXiv carries neither §4.3 nor Appendix F. Read now from the Anthology PDF
+(`2025.emnlp-main.1232`, 46 pages): §4.3 on page 6, "Contamination Analysis" with
+Tables 5 and 6 on page 17.
+
+**Correction to the 11-09 entry.** It recorded that no answer- or name-level
+overlap decomposition exists in their work and that ours was novel in kind. That
+is wrong. **Table 6 is exactly that analysis**: MERLIN at the entity-name level,
+46% of items contaminated, Pangea-7B 69.3 contaminated against 62.4 clean,
+CulturalPangea-7B 87.0 against 76.4, so the gain is +15.7 overall, +17.7 on
+contaminated items and **+14.0 on the clean subset**, with 3.7 points attributed
+to the overlap advantage. Same clean/contaminated split, same purpose.
+
+**What is actually ours, stated narrowly.** Three things, all verified in the
+PDF:
+
+1. **They never audit CVQA at the answer or name level.** Their CVQA audit is
+   Table 5, **image-level only**: a small image overlap and under 0.53% absolute
+   accuracy change. Answer strings are never compared for CVQA.
+2. **Their CVQA audit is not of the released corpus.** Footnote 7 and the Table 5
+   caption both state that CVQA and ALM-Bench contamination was computed on an
+   early model trained on an early CulturalGround of **2.3M samples in six
+   languages: English, Hindi, Vietnamese, Japanese, Indonesian, Tamil**. The
+   released corpus is 22M over 39. Table 6's MERLIN numbers use the final model;
+   the CVQA ones do not.
+3. **Five of our six donors are outside their six.** Only Indonesian is shared.
+   Their CVQA contamination result is silent on bn, zh, pt, ru and ko, which are
+   five of the six languages our cultural numbers rest on.
+
+**This improves our position rather than weakening it.** We no longer have to
+argue the design: we apply **their own** decomposition, citing Table 6 as the
+protocol, to the benchmark and corpus version where they did not apply it. A
+reviewer who accepts Table 6 accepts our audit by construction.
+
+**And the mechanism contradiction stands, now with their wording.** §4.3 says
+CulturalPangea transfers to 17 ALM-Bench languages absent from CulturalGround,
+and hypothesises that "most entities are accompanied by QA examples in multiple
+languages, which encourages the model to align semantic representations". Our
+per-country ordering is incompatible with that: Irish, whose culture appears in
+no pool, gains +19.94, while Javanese, whose culture is present through the
+Indonesian pool, gains +6.40 and ranks third of four. Entity-level alignment
+predicts the opposite ordering.
+
+Unchanged: the dose design is still absent from their paper. Neither "ablation"
+nor "budget" occurs in it, and no arm holds total row count fixed.
