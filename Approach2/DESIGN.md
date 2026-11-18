@@ -6268,3 +6268,44 @@ contribution. The decomposition — gain on overlapping against clean items, the
 form of CulturalGround's own Table 6 — needs the per-item labels
 (`audits/cg_overlap_labels_pooled.json`), which exist on the cluster and have
 not been harvested. `arch_compare.py --subset-labels` consumes them directly.
+
+### The audit closes: 91% of the cultural gain is on items never seen — 2026-11-18
+
+Per-item labels harvested (`faebbb9`), and the decomposition run on all three
+seeds with `arch_compare.py --subset-labels`, then across seeds with
+`cg_seed_spread.py --subset` (new flag, 10 tests). This is the form of
+CulturalGround's own Table 6, which their paper applies to MERLIN and never to
+CVQA.
+
+Three-seed means over the plain pooled control:
+
+| panel | items | full | clean | overlap |
+|---|---|---|---|---|
+| all ten | 2943 / 2626 / 317 | **+11.72** | **+10.65** | +20.61 |
+| six donors | 1783 / 1522 / 261 | +13.16 | **+11.54** | +22.61 |
+
+Every seed's clean-subset CI clears zero (all ten: +11.16 [+9.3, +13.0],
++10.28 [+8.5, +12.1], +10.51 [+8.7, +12.4]). Across-seed SD on the clean subset
+is 0.45, tighter than on the full arm.
+
+**Exposure does help where it happens, and it is rare.** Overlapping items gain
+roughly twice as much, +20.61 against +10.65, so there is a real memorisation
+component rather than none. But they are 317 of 2943 items, so in their own
+terms the overlap advantage accounts for **1.07 of the 11.72 points, about 9%**,
+and the weighting checks out: (2626 × 10.65 + 317 × 20.61) / 2943 = 11.72.
+
+**By their metric our intervention is the less contaminated one.** CulturalGround
+reports 3.7 of 15.7 points, about 24%, attributable to overlap on MERLIN. Ours is
+9%. Protocols differ and the benchmarks differ, so this is a comparison of
+decomposition shares and not of methods, and it must be labelled that way.
+
+**Consequence: the six cultural numbers are citable.** The claim the paper makes
+is the clean-subset figure, **+10.65 over the plain pooled control across ten
+panels, three seeds, SD 0.45**, with the full-arm figure and the overlap share
+reported beside it. Nothing here rests on a single training run or on all-items
+accuracy any more.
+
+Both concerns registered against this arm are now answered: seeds (11-18) say
+the effect is not a draw from a wide distribution, and this says it is not
+memorisation. Reports `audits/arch_compare_cvqa_cg_s{42,13,7}_{donors,all}_split.json`
+and `audits/cg_seed_spread_{donors,all}_{clean,overlap}.json`.

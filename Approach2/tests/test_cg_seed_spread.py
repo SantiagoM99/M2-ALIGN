@@ -66,6 +66,32 @@ class TestSpread(unittest.TestCase):
         out = spread.spread(seeds)
         self.assertFalse(out["per_language"]["bn"]["replicates_sign"])
 
+    def test_a_subset_is_read_from_its_own_arm(self):
+        p = self.d / "sub.json"
+        p.write_text(json.dumps({"contrasts": {"cg-minus-ctrl": {
+            "full": {"estimate": 12.30, "ci95": [10.6, 14.1], "items": 2943},
+            "per_language_full": {"bn": 11.0},
+            "subsets": {
+                "clean": {"estimate": 11.16, "ci95": [9.3, 13.0], "items": 2626},
+                "overlap": {"estimate": 21.77, "ci95": [16.0, 27.5], "items": 317},
+            },
+        }}}))
+        clean = spread.read_report(p, "clean")
+        self.assertAlmostEqual(clean["estimate"], 11.16)
+        self.assertEqual(clean["items"], 2626)
+        self.assertIn("[clean]", clean["contrast"])
+        # The per-language table belongs to the full arm, so a subset carries none.
+        self.assertEqual(clean["per_language"], {})
+        self.assertAlmostEqual(spread.read_report(p)["estimate"], 12.30)
+
+    def test_a_missing_subset_is_fatal_not_a_fallback(self):
+        """Reading the full arm as if it were the clean one is the error the
+        audit exists to prevent, so it must never happen silently."""
+        p = report(self.d / "nosub.json", 12.30)
+        with self.assertRaises(SystemExit) as cm:
+            spread.read_report(p, "clean")
+        self.assertIn("--subset-labels", str(cm.exception))
+
     def test_a_report_with_two_contrasts_is_refused(self):
         p = self.d / "two.json"
         p.write_text(json.dumps({"contrasts": {

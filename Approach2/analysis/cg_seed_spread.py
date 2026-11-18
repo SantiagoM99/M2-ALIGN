@@ -45,22 +45,44 @@ def fail(msg: str) -> None:
     sys.exit(f"ERROR: {msg}")
 
 
-def read_report(path: Path) -> dict:
+def read_report(path: Path, subset: str | None = None) -> dict:
+    """One arch_compare report, optionally one labelled subset of it.
+
+    A subset is read from `subsets.<name>`, which is where `--subset-labels`
+    puts the clean and overlap arms. Asking for a subset a report does not carry
+    is fatal rather than silently falling back to the full arm: a clean-subset
+    claim read off the full items would be the memorisation claim the audit
+    exists to rule out.
+    """
     d = json.loads(path.read_text())
     contrasts = d.get("contrasts") or {}
     if len(contrasts) != 1:
         fail(f"{path} has {len(contrasts)} contrasts; expected exactly one")
     name, c = next(iter(contrasts.items()))
-    full = c.get("full") or {}
+    if subset:
+        available = c.get("subsets") or {}
+        if subset not in available:
+            fail(
+                f"{path} has no subset {subset!r}; it carries "
+                f"{sorted(available) or 'none'}. Re-run arch_compare.py with "
+                "--subset-labels."
+            )
+        full = available[subset]
+        name = f"{name} [{subset}]"
+    else:
+        full = c.get("full") or {}
     if "estimate" not in full:
-        fail(f"{path} carries no full-arm estimate")
+        fail(f"{path} carries no estimate for {subset or 'the full arm'}")
     return {
         "contrast": name,
         "estimate": full["estimate"],
         "ci95": full.get("ci95"),
         "items": full.get("items"),
-        "languages": sorted(c.get("per_language_full", {})),
-        "per_language": c.get("per_language_full", {}),
+        # Only the full arm is broken down per language; a subset report carries
+        # the pooled estimate alone, so the across-seed per-language table is
+        # empty for a subset rather than wrong.
+        "languages": sorted(c.get("per_language_full", {})) if not subset else [],
+        "per_language": c.get("per_language_full", {}) if not subset else {},
     }
 
 
@@ -100,6 +122,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--report", action="append", default=[], metavar="SEED=PATH",
                     help="an arch_compare report for one seed; repeat, three or more")
+    ap.add_argument("--subset", help="read subsets.<name> instead of the full arm")
     ap.add_argument("--output", required=True)
     a = ap.parse_args()
 
@@ -110,7 +133,7 @@ def main() -> None:
         k, p = spec.split("=", 1)
         if k in seeds:
             fail(f"seed {k} given twice")
-        seeds[k] = read_report(Path(p))
+        seeds[k] = read_report(Path(p), a.subset)
 
     first = next(iter(seeds.values()))
     for k, s in seeds.items():
@@ -124,6 +147,7 @@ def main() -> None:
 
     out = {
         "contrast": first["contrast"],
+        "subset": a.subset,
         "items": first["items"],
         "languages": first["languages"],
         "seeds": sorted(seeds),

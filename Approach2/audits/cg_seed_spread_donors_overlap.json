@@ -1,0 +1,39 @@
+{
+ "all_same_sign": true,
+ "contrast": "cg-minus-ctrl [overlap]",
+ "items": 261,
+ "languages": [],
+ "max": 23.371647509578544,
+ "mean": 22.60536398467433,
+ "min": 22.22222222222222,
+ "per_language": {},
+ "per_seed": {
+  "13": 22.22222222222222,
+  "42": 23.371647509578544,
+  "7": 22.22222222222222
+ },
+ "per_seed_ci95": {
+  "13": [
+   16.342412451361866,
+   28.185328185328185
+  ],
+  "42": [
+   17.120622568093385,
+   29.69924812030075
+  ],
+  "7": [
+   15.83011583011583,
+   28.46153846153846
+  ]
+ },
+ "range": 1.1494252873563227,
+ "scope": "All seeds warm-start from one shared stage-2 checkpoint, so this SD bounds the stage-3 training variance of the intervention, not the whole pipeline's. It is conditional on these trajectories and is not a population CI over training randomness.",
+ "sd": 0.6636209990685359,
+ "sd_over_mean": 0.029356793348625062,
+ "seeds": [
+  "13",
+  "42",
+  "7"
+ ],
+ "subset": "overlap"
+}
