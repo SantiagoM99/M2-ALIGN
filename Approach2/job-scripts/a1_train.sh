@@ -79,6 +79,10 @@ CULTURAL_LANGS="${CULTURAL_LANGS:-}"
 # stage-3 trainers take it, which is the scope a replicate needs: the stage-2
 # checkpoint is shared, so the spread this measures is the intervention's.
 SEED="${SEED:-42}"
+# A hyperparameter replicate is a different arm, not a rewrite of the one on
+# disk: RUN_TAG lands in all three stage paths, because stage 2 warm-starts from
+# stage 1 and stage 3 from stage 2, so changing stage 1 invalidates both.
+RUN_TAG="${RUN_TAG:-}"
 DT="${DT:-/scratch/santimn/datatransfer}"
 A1_ROOT="${A1_ROOT:-$SCRATCH/a1}"
 OUT="${OUT:-$ROOT/Approach2/outputs}"
@@ -106,7 +110,7 @@ echo "=== Job info ==="; date; hostname; nvidia-smi || true
 }
 A1_SHA=$(git -C "$A1_ROOT" rev-parse HEAD)
 echo "her code: $A1_ROOT at $A1_SHA"
-echo "seed: $SEED"
+echo "seed: $SEED${RUN_TAG:+  run tag: $RUN_TAG}"
 echo "DT=$DT"
 
 # Her modules, not ours: her Stage 1 lets deepspeed JIT-compile CPUAdam, and
@@ -120,6 +124,7 @@ export HF_HOME="$SCRATCH/huggingface" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 
 SLUG="$A1_LANG"
 [ "$POOLED" = 1 ] && SLUG="pooled"
+[ -n "$RUN_TAG" ] && SLUG="${SLUG}_${RUN_TAG}"
 S1_OUT="$OUT/a1_${SLUG}_stage1"
 S2_OUT="$OUT/a1_${SLUG}_stage2"
 # The replay arm shares stages 1 and 2 with the pooled arm and only forks at
