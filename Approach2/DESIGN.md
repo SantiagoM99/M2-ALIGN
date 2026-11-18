@@ -6309,3 +6309,29 @@ Both concerns registered against this arm are now answered: seeds (11-18) say
 the effect is not a draw from a wide distribution, and this says it is not
 memorisation. Reports `audits/arch_compare_cvqa_cg_s{42,13,7}_{donors,all}_split.json`
 and `audits/cg_seed_spread_{donors,all}_{clean,overlap}.json`.
+
+### Epoch-matched per-language arm, registered before the run — 2026-11-18
+
+`job-scripts/a1_perlang_epochs.sh` chains stage 1 at three epochs, stage 2 and
+stage 3 for a1-bn per-language, then the CVQA eval on bn/jv/mn/ga/si at 588
+tokens. `RUN_TAG=e3` is new in `a1_train.sh` and lands in all three stage paths,
+so the one-epoch arm stays on disk and the existing contrast stays reproducible.
+Stage 1 asks 24 h because one language at three epochs is ~13.5 h by her own
+measurement; the other two take the 12 h partition.
+
+This closes item (1) of the three the 11-03 entry said the frame requires. The
++2.77 compares one stage-1 epoch against three, and while the confound runs
+against the winner on ga/jv/mn, bn and si are the cells where pooled wins and
+the confound favours it.
+
+**Prediction.** The per-language arm improves. The question is whether it
+improves enough to flip bn or si. If the pooled lead on those two survives
+matched epochs, the regime trade-off is real and the frame holds as written.
+
+**Refutation of the frame, not of the arm.** Per-language ahead on all five
+panels. That would mean pooling never helps, the trade-off does not exist, and
+the two-regimes story needs rewriting rather than renumbering.
+
+Item (2), per-language arms for several donors, is still unfunded: six chains of
+three stages. Item (3) remains the fallback — bn alone, with the
+supervised-against-zero-shot contrast reported separately rather than averaged.
