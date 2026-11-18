@@ -6225,3 +6225,46 @@ answers "is the effect memorisation". Both are required and only one is done.
 
 Reports: `audits/arch_compare_cvqa_cg_s{42,13,7}_{donors,zeroshot,all}.json` and
 `audits/cg_seed_spread_{donors,zeroshot,all}.json`.
+
+### Answer overlap across all ten panels: exposure does not predict gain — 2026-11-18
+
+`read_cg_overlap.sh` run over the union of the six donor pools (180,000 rows,
+90,000 cultural, 65,354 distinct answers, 80,013 distinct entity labels) against
+the ten scored panels of the pooled cultural arm. The launcher now reads panels
+from the scored result files rather than an S1 submission, because the pooled arm
+has none and the result files carry `id`, `choices` and `answer_index` — so the
+audited universe is exactly the one scored.
+
+Gold-answer share, against the three-seed mean gain over the plain pooled
+control:
+
+| target | overlap | gain |
+|---|---|---|
+| ko | 27.9% | +15.40 |
+| id | 18.9% | +13.19 |
+| jv | 16.2% | +4.94 |
+| bn | 10.8% | +10.37 |
+| zh | 9.3% | +13.18 |
+| ru | 9.0% | +18.50 |
+| pt | 8.5% | +9.86 |
+| mn | 1.3% | +3.21 |
+| si | 0.9% | +11.70 |
+| ga | 0.6% | +18.20 |
+
+**Spearman ρ = +0.055, Pearson r = +0.112, r² = 0.012 over ten targets.**
+Exposure accounts for about one per cent of the variance in gain. Ten points
+cannot exclude a modest correlation and the test is underpowered by
+construction, so the claim is the point estimate and the extremes, not an
+absence of relationship: the least exposed target, ga at 0.6%, has the **largest**
+gain at +18.20, and jv at 16.2% has one of the smallest at +4.94. Memorisation
+predicts the opposite ordering at both ends.
+
+This also sharpens the earlier five-panel reading, which lacked the donors. The
+donor side is not monotone either: ko at 27.9% gains +15.40 while ru at 9.0%
+gains +18.50.
+
+**Still pending, and it is the citable half.** A share only bounds the
+contribution. The decomposition — gain on overlapping against clean items, the
+form of CulturalGround's own Table 6 — needs the per-item labels
+(`audits/cg_overlap_labels_pooled.json`), which exist on the cluster and have
+not been harvested. `arch_compare.py --subset-labels` consumes them directly.
