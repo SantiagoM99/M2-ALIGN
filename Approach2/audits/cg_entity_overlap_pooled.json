@@ -1,0 +1,221 @@
+{
+  "bn_minus_other_targets": 0.0055,
+  "gold_answer_share_by_target": {
+    "bn": 0.1084,
+    "ga": 0.0061,
+    "id": 0.1893,
+    "jv": 0.1616,
+    "ko": 0.2793,
+    "mn": 0.0128,
+    "pt": 0.0845,
+    "ru": 0.09,
+    "si": 0.0089,
+    "zh": 0.0932
+  },
+  "method": "CVQA choices are English and CulturalGround answers are joined in English; strings are compared after casefolding, accent and punctuation removal. Exposure, not causation: an overlapping answer may still need the image.",
+  "panels": {
+    "bn": {
+      "any_choice_in_training_answers": 86,
+      "any_choice_share": 0.3007,
+      "example_overlapping_answers": [
+        "ganesh",
+        "chhau dance",
+        "dhoti",
+        "manna dey",
+        "cooch behar"
+      ],
+      "gold_answer_in_training_answers": 31,
+      "gold_answer_in_training_entity_labels": 126,
+      "gold_answer_share": 0.1084,
+      "gold_entity_share": 0.4406,
+      "items": 286,
+      "panel": "Approach2/results/eval_cvqa_bn_a1_pooled_cg_matched.jsonl"
+    },
+    "ga": {
+      "any_choice_in_training_answers": 6,
+      "any_choice_share": 0.0184,
+      "example_overlapping_answers": [
+        "general post office",
+        "curry"
+      ],
+      "gold_answer_in_training_answers": 2,
+      "gold_answer_in_training_entity_labels": 92,
+      "gold_answer_share": 0.0061,
+      "gold_entity_share": 0.2822,
+      "items": 326,
+      "panel": "Approach2/results/eval_cvqa_ga_a1_pooled_cg_matched.jsonl"
+    },
+    "id": {
+      "any_choice_in_training_answers": 133,
+      "any_choice_share": 0.3228,
+      "example_overlapping_answers": [
+        "chicken noodle",
+        "bandung",
+        "titiek puspa",
+        "supernova",
+        "west sumatra"
+      ],
+      "gold_answer_in_training_answers": 78,
+      "gold_answer_in_training_entity_labels": 209,
+      "gold_answer_share": 0.1893,
+      "gold_entity_share": 0.5073,
+      "items": 412,
+      "panel": "Approach2/results/eval_cvqa_id_a1_pooled_cg_matched.jsonl"
+    },
+    "jv": {
+      "any_choice_in_training_answers": 109,
+      "any_choice_share": 0.367,
+      "example_overlapping_answers": [
+        "surabaya",
+        "soto",
+        "batik",
+        "bakwan",
+        "gamelan"
+      ],
+      "gold_answer_in_training_answers": 48,
+      "gold_answer_in_training_entity_labels": 146,
+      "gold_answer_share": 0.1616,
+      "gold_entity_share": 0.4916,
+      "items": 297,
+      "panel": "Approach2/results/eval_cvqa_jv_a1_pooled_cg_matched.jsonl"
+    },
+    "ko": {
+      "any_choice_in_training_answers": 122,
+      "any_choice_share": 0.4207,
+      "example_overlapping_answers": [
+        "seoul",
+        "south korea",
+        "south korea",
+        "sm entertainment",
+        "line 5"
+      ],
+      "gold_answer_in_training_answers": 81,
+      "gold_answer_in_training_entity_labels": 168,
+      "gold_answer_share": 0.2793,
+      "gold_entity_share": 0.5793,
+      "items": 290,
+      "panel": "Approach2/results/eval_cvqa_ko_a1_pooled_cg_matched.jsonl"
+    },
+    "mn": {
+      "any_choice_in_training_answers": 20,
+      "any_choice_share": 0.0641,
+      "example_overlapping_answers": [
+        "russia",
+        "ghee",
+        "dakh",
+        "central tower"
+      ],
+      "gold_answer_in_training_answers": 4,
+      "gold_answer_in_training_entity_labels": 95,
+      "gold_answer_share": 0.0128,
+      "gold_entity_share": 0.3045,
+      "items": 312,
+      "panel": "Approach2/results/eval_cvqa_mn_a1_pooled_cg_matched.jsonl"
+    },
+    "pt": {
+      "any_choice_in_training_answers": 63,
+      "any_choice_share": 0.2218,
+      "example_overlapping_answers": [
+        "ambev",
+        "rio de janeiro",
+        "brahma",
+        "itamar franco",
+        "northeast region"
+      ],
+      "gold_answer_in_training_answers": 24,
+      "gold_answer_in_training_entity_labels": 113,
+      "gold_answer_share": 0.0845,
+      "gold_entity_share": 0.3979,
+      "items": 284,
+      "panel": "Approach2/results/eval_cvqa_pt_a1_pooled_cg_matched.jsonl"
+    },
+    "ru": {
+      "any_choice_in_training_answers": 56,
+      "any_choice_share": 0.28,
+      "example_overlapping_answers": [
+        "tatarstan",
+        "saint petersburg",
+        "russia",
+        "saint petersburg",
+        "saint petersburg"
+      ],
+      "gold_answer_in_training_answers": 18,
+      "gold_answer_in_training_entity_labels": 97,
+      "gold_answer_share": 0.09,
+      "gold_entity_share": 0.485,
+      "items": 200,
+      "panel": "Approach2/results/eval_cvqa_ru_a1_pooled_cg_matched.jsonl"
+    },
+    "si": {
+      "any_choice_in_training_answers": 14,
+      "any_choice_share": 0.0622,
+      "example_overlapping_answers": [
+        "batik",
+        "ella"
+      ],
+      "gold_answer_in_training_answers": 2,
+      "gold_answer_in_training_entity_labels": 76,
+      "gold_answer_share": 0.0089,
+      "gold_entity_share": 0.3378,
+      "items": 225,
+      "panel": "Approach2/results/eval_cvqa_si_a1_pooled_cg_matched.jsonl"
+    },
+    "zh": {
+      "any_choice_in_training_answers": 94,
+      "any_choice_share": 0.3023,
+      "example_overlapping_answers": [
+        "youtiao",
+        "potala palace",
+        "mid autumn festival",
+        "huangshan",
+        "huangguoshu waterfall"
+      ],
+      "gold_answer_in_training_answers": 29,
+      "gold_answer_in_training_entity_labels": 132,
+      "gold_answer_share": 0.0932,
+      "gold_entity_share": 0.4244,
+      "items": 311,
+      "panel": "Approach2/results/eval_cvqa_zh_a1_pooled_cg_matched.jsonl"
+    }
+  },
+  "training": {
+    "distinct_answers": 65354,
+    "distinct_entity_labels": 80013,
+    "paths": [
+      "/scratch/santimn/datatransfer/Stage3/data/bn_cg50.jsonl",
+      "/scratch/santimn/datatransfer/Stage3/data/zh_cg50.jsonl",
+      "/scratch/santimn/datatransfer/Stage3/data/id_cg50.jsonl",
+      "/scratch/santimn/datatransfer/Stage3/data/pt_cg50.jsonl",
+      "/scratch/santimn/datatransfer/Stage3/data/ru_cg50.jsonl",
+      "/scratch/santimn/datatransfer/Stage3/data/ko_cg50.jsonl"
+    ],
+    "pools": {
+      "/scratch/santimn/datatransfer/Stage3/data/bn_cg50.jsonl": {
+        "cultural": 15000,
+        "rows": 30000
+      },
+      "/scratch/santimn/datatransfer/Stage3/data/id_cg50.jsonl": {
+        "cultural": 15000,
+        "rows": 30000
+      },
+      "/scratch/santimn/datatransfer/Stage3/data/ko_cg50.jsonl": {
+        "cultural": 15000,
+        "rows": 30000
+      },
+      "/scratch/santimn/datatransfer/Stage3/data/pt_cg50.jsonl": {
+        "cultural": 15000,
+        "rows": 30000
+      },
+      "/scratch/santimn/datatransfer/Stage3/data/ru_cg50.jsonl": {
+        "cultural": 15000,
+        "rows": 30000
+      },
+      "/scratch/santimn/datatransfer/Stage3/data/zh_cg50.jsonl": {
+        "cultural": 15000,
+        "rows": 30000
+      }
+    },
+    "rows_cultural": 90000,
+    "rows_total": 180000
+  }
+}
