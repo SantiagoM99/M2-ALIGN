@@ -1,0 +1,117 @@
+{
+  "arms": [
+    "cg",
+    "ctrl"
+  ],
+  "benchmark": "cvqa",
+  "boot": 4000,
+  "clustering": "image_id where the rows carry it, else the CVQA id prefix",
+  "contrasts": {
+    "cg-minus-ctrl": {
+      "full": {
+        "ci95": [
+          7.8231292517006805,
+          13.258232235701906
+        ],
+        "estimate": 10.517241379310345,
+        "image_clusters": 547,
+        "items": 1160,
+        "lb5": 8.198121263877027,
+        "ub95": 12.771503040834057
+      },
+      "mcnemar": {
+        "cg_only": 195,
+        "ctrl_only": 73,
+        "p_two_sided": 5.286377661496133e-14
+      },
+      "per_language_full": {
+        "ga": 19.938650306748468,
+        "jv": 6.397306397306397,
+        "mn": 3.5256410256410255,
+        "si": 12.0
+      }
+    }
+  },
+  "endpoints": "full = accuracy with the image; dv = full - blind, the visual part",
+  "languages": [
+    "jv",
+    "mn",
+    "ga",
+    "si"
+  ],
+  "per_language": {
+    "cg": {
+      "ga": {
+        "dv": null,
+        "full": 54.60122699386503,
+        "n": 326
+      },
+      "jv": {
+        "dv": null,
+        "full": 40.74074074074074,
+        "n": 297
+      },
+      "mn": {
+        "dv": null,
+        "full": 37.5,
+        "n": 312
+      },
+      "si": {
+        "dv": null,
+        "full": 50.666666666666664,
+        "n": 225
+      }
+    },
+    "ctrl": {
+      "ga": {
+        "dv": null,
+        "full": 34.66257668711656,
+        "n": 326
+      },
+      "jv": {
+        "dv": null,
+        "full": 34.343434343434346,
+        "n": 297
+      },
+      "mn": {
+        "dv": null,
+        "full": 33.97435897435897,
+        "n": 312
+      },
+      "si": {
+        "dv": null,
+        "full": 38.666666666666664,
+        "n": 225
+      }
+    }
+  },
+  "pooled": {
+    "cg": {
+      "full": {
+        "ci95": [
+          42.708333333333336,
+          48.62778730703259
+        ],
+        "estimate": 45.689655172413794,
+        "image_clusters": 547,
+        "items": 1160,
+        "lb5": 43.169877408056045,
+        "ub95": 48.13205907906168
+      }
+    },
+    "ctrl": {
+      "full": {
+        "ci95": [
+          32.40418118466899,
+          37.933954276037255
+        ],
+        "estimate": 35.172413793103445,
+        "image_clusters": 547,
+        "items": 1160,
+        "lb5": 32.88020390824129,
+        "ub95": 37.510656436487636
+      }
+    }
+  },
+  "seed": 0
+}

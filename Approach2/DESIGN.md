@@ -6173,3 +6173,55 @@ Still to write: the across-seed reader in `analysis/`. Each seed reads against
 the control with `arch_compare.py` today; the mean/SD/range form CLAUDE.md asks
 for has no script yet, and it will be written against the real files rather than
 against a guess at their shape.
+
+### The cultural recipe holds at three seeds — 2026-11-18
+
+Seeds 13 and 7 of the pooled cultural arm trained and scored on all ten panels
+(20 files, harvest `eb92846`). Read against the plain pooled control with
+`arch_compare.py` per seed, then across seeds by the new
+`analysis/cg_seed_spread.py` (8 tests). **The prediction registered on 11-17
+holds, and by a wide margin.**
+
+| panel | seed 42 | seed 13 | seed 7 | mean | SD | range | SD/mean |
+|---|---|---|---|---|---|---|---|
+| six matched donors | +13.46 | +12.39 | +13.63 | **+13.16** | 0.67 | 1.23 | 5.1% |
+| four zero-shot targets | +10.52 | +9.74 | +8.28 | **+9.51** | 1.14 | 2.24 | 12.0% |
+| all ten | +12.30 | +11.35 | +11.52 | **+11.72** | 0.51 | 0.95 | 4.3% |
+
+The refutation condition was an SD comparable to the effect. On all ten items it
+is 4.3% of the mean. **Eighteen of eighteen donor-seed cells improve**, and the
+donor ordering is stable at both ends: ru and ko are top two in every seed, bn
+and pt bottom two in every seed.
+
+**The mechanism contradiction replicates, which is the load-bearing check.** The
+argument against CulturalGround's §4.3 explanation rests on a per-language
+zero-shot ordering, the noisiest number here, so it was tested before being
+relied on:
+
+| target | s42 | s13 | s7 | mean | SD | rank per seed |
+|---|---|---|---|---|---|---|
+| ga (culture in no pool) | +19.94 | +17.79 | +16.87 | **+18.20** | 1.57 | 1/1/1 |
+| si | +12.00 | +11.56 | +11.56 | +11.70 | 0.26 | 2/2/2 |
+| jv (culture present via id) | +6.40 | +4.71 | +3.70 | +4.94 | 1.36 | 3/4/3 |
+| mn | +3.53 | +4.81 | +1.28 | +3.21 | 1.78 | 4/3/4 |
+
+Irish ranks first in all three seeds and beats Javanese in all three. Entity-level
+cross-lingual alignment predicts the opposite ordering, so that explanation stays
+refuted on replicated data rather than on one run. jv and mn swap ranks between
+seeds and are not separable; nothing in the argument needs them to be.
+
+**Scope, which must travel with every SD above.** All three seeds warm-start
+from one shared `a1_pooled_stage2`, so this bounds the **stage-3** training
+variance of the intervention, not the pipeline's. It is conditional on these
+three trajectories and is not a population CI over training randomness.
+`cg_seed_spread.py` writes that sentence into every report it emits, and a test
+asserts it is there.
+
+**What this does not fix.** Every number above is **all-items**. The
+answer-overlap audit has still not been run: `audits/cg_entity_overlap.json` is
+the single-pool bengali version from 10-23, and `cvqa_subset_labels.json` does
+not exist. Seeds answer "is the effect real given this training run"; the audit
+answers "is the effect memorisation". Both are required and only one is done.
+
+Reports: `audits/arch_compare_cvqa_cg_s{42,13,7}_{donors,zeroshot,all}.json` and
+`audits/cg_seed_spread_{donors,zeroshot,all}.json`.

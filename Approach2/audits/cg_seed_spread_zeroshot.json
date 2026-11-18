@@ -1,0 +1,84 @@
+{
+ "all_same_sign": true,
+ "contrast": "cg-minus-ctrl",
+ "items": 1160,
+ "languages": [
+  "ga",
+  "jv",
+  "mn",
+  "si"
+ ],
+ "max": 10.517241379310345,
+ "mean": 9.511494252873563,
+ "min": 8.275862068965518,
+ "per_language": {
+  "ga": {
+   "mean": 18.20040899795501,
+   "per_seed": {
+    "13": 17.791411042944784,
+    "42": 19.938650306748468,
+    "7": 16.87116564417178
+   },
+   "replicates_sign": true,
+   "sd": 1.574110870995978
+  },
+  "jv": {
+   "mean": 4.938271604938271,
+   "per_seed": {
+    "13": 4.713804713804714,
+    "42": 6.397306397306397,
+    "7": 3.7037037037037037
+   },
+   "replicates_sign": true,
+   "sd": 1.360758210211239
+  },
+  "mn": {
+   "mean": 3.2051282051282053,
+   "per_seed": {
+    "13": 4.8076923076923075,
+    "42": 3.5256410256410255,
+    "7": 1.2820512820512822
+   },
+   "replicates_sign": true,
+   "sd": 1.784539859881417
+  },
+  "si": {
+   "mean": 11.703703703703704,
+   "per_seed": {
+    "13": 11.555555555555555,
+    "42": 12.0,
+    "7": 11.555555555555555
+   },
+   "replicates_sign": true,
+   "sd": 0.2566001196398338
+  }
+ },
+ "per_seed": {
+  "13": 9.741379310344827,
+  "42": 10.517241379310345,
+  "7": 8.275862068965518
+ },
+ "per_seed_ci95": {
+  "13": [
+   7.112970711297071,
+   12.388591800356506
+  ],
+  "42": [
+   7.8231292517006805,
+   13.258232235701906
+  ],
+  "7": [
+   5.746140651801029,
+   10.848643919510062
+  ]
+ },
+ "range": 2.2413793103448274,
+ "scope": "All seeds warm-start from one shared stage-2 checkpoint, so this SD bounds the stage-3 training variance of the intervention, not the whole pipeline's. It is conditional on these trajectories and is not a population CI over training randomness.",
+ "sd": 1.1382357655366873,
+ "sd_over_mean": 0.1196695004250052,
+ "seeds": [
+  "13",
+  "42",
+  "7"
+ ]
+}
