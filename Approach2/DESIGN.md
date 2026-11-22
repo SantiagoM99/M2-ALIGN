@@ -6335,3 +6335,39 @@ the two-regimes story needs rewriting rather than renumbering.
 Item (2), per-language arms for several donors, is still unfunded: six chains of
 three stages. Item (3) remains the fallback — bn alone, with the
 supervised-against-zero-shot contrast reported separately rather than averaged.
+
+### The venv was on $SCRATCH and Alliance purged it mid-chain — 2026-11-19
+
+The epoch-matched chain lost stage 2 four seconds in, job 27170006, exit 1:
+`ModuleNotFoundError: No module named 'torch._utils_internal'`, with
+`distutils-precedence.pth` failing on `_distutils_hack.add_shim`. Stage 1 had
+imported the same torch nine hours earlier and ran to completion.
+
+**The cause is the filesystem, not the code.** `_utils_internal.py` is gone from
+the installed package while `pip check` reports "No broken requirements found":
+pip's metadata is intact and the files underneath it are not. That is a purge,
+not a failed install or an interrupted upgrade. The venv lived at
+`$SCRATCH/venvs/m2-align`, and Alliance purges scratch by file age regardless of
+use, so a venv installed months ago qualifies however often it is activated.
+
+**Why it was invisible.** Nothing reports a purge. `pip check` passes, the
+activation succeeds, `python` starts, and the first symptom is an ImportError
+inside a job that has already waited in the queue and consumed an allocation. In
+this chain the cost was the 8 h 52 m of stage 1 held hostage behind a four-second
+failure, and stages 3 and the eval silently dropped on `afterok`.
+
+**Three changes.** (1) The 35 job scripts that activated the venv now take
+`${VENV:-$HOME/venvs/m2-align}`, off the purged filesystem and overridable in one
+place. (2) Each one hard-fails on `import torch` immediately after activation,
+so a damaged venv costs seconds instead of a stage; the error names the rebuild
+command. (3) `env.sh` checks torch too, and the `qwen` venv's default moved off
+scratch as well — it was exposed identically and had not yet been bitten.
+
+**The repo had no requirements file**, so a rebuild was guesswork at the moment
+pip's metadata was the only surviving record of what was installed. Captured to
+`job-scripts/requirements.txt` while that metadata was still readable. Anything
+reconstructing this environment installs from Alliance wheels with
+`pip install --no-index -r`, never from PyPI.
+
+Stage 1's checkpoint survived at `outputs/a1_bn_e3_stage1`; only stages 2 and 3
+and the eval need resubmitting.
