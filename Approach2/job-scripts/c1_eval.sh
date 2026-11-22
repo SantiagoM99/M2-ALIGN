@@ -25,7 +25,7 @@ SUB="$O/s1_C1_seed${SEED}.eval.submission.json"
 
 [ -d "$A2" ] || { echo "run this from the repo root"; exit 1; }
 [ -n "${VIRTUAL_ENV:-}" ] || {
-  echo "no venv active: source \$SCRATCH/venvs/m2-align/bin/activate first (activate only, install nothing)"
+  echo "no venv active: source \${VENV:-\$HOME/venvs/m2-align}/bin/activate first (activate only, install nothing)"
   exit 1
 }
 [ -f "$GATE" ] || { echo "no Block A report at $GATE"; exit 1; }

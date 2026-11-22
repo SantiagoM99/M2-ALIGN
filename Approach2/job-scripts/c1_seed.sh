@@ -39,7 +39,7 @@ export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 
 [ -d "$A2" ] || { echo "run this from the repo root"; exit 1; }
 [ -n "${VIRTUAL_ENV:-}" ] || {
-  echo "no venv active: source \$SCRATCH/venvs/m2-align/bin/activate first (activate only, install nothing)"
+  echo "no venv active: source \${VENV:-\$HOME/venvs/m2-align}/bin/activate first (activate only, install nothing)"
   exit 1
 }
 

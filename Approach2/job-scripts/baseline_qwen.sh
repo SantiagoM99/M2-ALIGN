@@ -35,11 +35,11 @@
 #   RUN_TAG  appended to every output name, so re-running a cell that already
 #          has results writes beside them instead of being skipped. Use it to
 #          re-measure a reference arm when the environment may have moved
-#   QWEN_VENV  venv with recent transformers (default $SCRATCH/venvs/qwen)
+#   QWEN_VENV  venv with recent transformers (default $HOME/venvs/qwen)
 #
 # One-time setup on a login node (tmux):
 #   module load StdEnv/2023 python/3.11.5
-#   python -m venv $SCRATCH/venvs/qwen && source $SCRATCH/venvs/qwen/bin/activate
+#   python -m venv $HOME/venvs/qwen && source $HOME/venvs/qwen/bin/activate
 #   pip install --upgrade pip && pip install torch transformers accelerate pillow tqdm requests
 #   HF_HOME=$SCRATCH/huggingface hf download Qwen/Qwen3-VL-8B-Instruct
 
@@ -87,7 +87,7 @@ module load StdEnv/2023
 module load python/3.11.5
 module load cudacore/.12.2.2
 
-source "${QWEN_VENV:-$SCRATCH/venvs/qwen}/bin/activate"
+source "${QWEN_VENV:-$HOME/venvs/qwen}/bin/activate"
 
 export HF_HOME="$SCRATCH/huggingface"
 export HF_HUB_OFFLINE=1

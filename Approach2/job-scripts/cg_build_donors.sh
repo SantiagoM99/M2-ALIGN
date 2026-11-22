@@ -21,7 +21,7 @@ set -uo pipefail
 
 [ -d Approach2 ] || { echo "run this from the repo root"; exit 1; }
 [ -n "${VIRTUAL_ENV:-}" ] || {
-  echo "no venv active: source \$SCRATCH/venvs/m2-align/bin/activate first"
+  echo "no venv active: source \${VENV:-\$HOME/venvs/m2-align}/bin/activate first"
   exit 1
 }
 DT="${DT:-/scratch/santimn/datatransfer}"

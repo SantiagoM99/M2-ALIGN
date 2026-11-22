@@ -92,7 +92,7 @@ done
 ls "$SCRATCH/huggingface/datasets" 2>/dev/null | grep -qi gsm8k || \
   echo "WARNING: GSM8K not found in the HF datasets cache — math replay builds
   will fail on the offline compute node. Pre-download on this login node:
-  module load StdEnv/2023 python/3.11.5 && source \$SCRATCH/venvs/m2-align/bin/activate &&
+  module load StdEnv/2023 python/3.11.5 && source \${VENV:-\$HOME/venvs/m2-align}/bin/activate &&
   HF_HOME=\$SCRATCH/huggingface python -c \"from datasets import load_dataset; load_dataset('openai/gsm8k','main')\""
 n_math=$(ls "$A2"/data/math_replay_*.jsonl 2>/dev/null | wc -l | tr -d ' ')
 echo "OK. Math replay files present: $n_math/11 (missing ones are built in-job)."
